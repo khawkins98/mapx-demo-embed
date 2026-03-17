@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MapX View Probe</title>
+    <link rel="stylesheet" href="https://assets.undrr.org/static/mangrove/1.3.3/css/style.css" />
+    <style>
+      html { font-size: 10px; }
+      body { padding: 2rem; max-width: 120rem; margin: 0 auto; }
+      h1 { margin-bottom: 1rem; }
+      .project-section { margin-bottom: 3rem; }
+      table { width: 100%; margin-top: 1rem; }
+      td, th { text-align: left; vertical-align: top; padding: 0.5rem; }
+      .tag-vt { background: #004f91; }
+      .tag-rt { background: #eb752a; }
+      .tag-sm { background: #962987; }
+      .tag-cc { background: #00afae; }
+      #frames { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+      .loader { margin: 1rem 0; }
+      pre { background: #f2f2f2; padding: 1rem; overflow-x: auto; font-size: 1.2rem; max-height: 30rem; }
+    </style>
+  </head>
+  <body>
+    <h1>MapX View Probe</h1>
+    <p class="mg-form-help">
+      Connects to MapX projects via the SDK and dumps their public view catalogs.
+      This helps discover view IDs, types, and titles for use in the demo.
+    </p>
+    <hr />
+    <div id="output"></div>
+    <div id="frames"></div>
+
+    <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
+    <script>
+      const projects = [
+        { id: "MX-Z5J-4IZ-RM2-3O9-506", name: "Training Project (current)" },
+        { id: "MX-2LD-FBB-58N-ROK-8RH", name: "Eco-DRR Geospatial datasets" },
+        { id: "MX-YBJ-YYF-08R-UUR-QW6", name: "MapX Default/HOME" },
+      ];
+
+      const output = document.getElementById("output");
+      const frames = document.getElementById("frames");
+
+      async function probeProject(project) {
+        const section = document.createElement("div");
+        section.className = "project-section";
+        section.innerHTML = `
+          <h2>${project.name}</h2>
+          <p class="mg-form-help">Project: <code>${project.id}</code></p>
+          <div class="loader">Loading...</div>
+        `;
+        output.appendChild(section);
+
+        const container = document.createElement("div");
+        container.style.cssText = "width:1px;height:1px";
+        frames.appendChild(container);
+
+        try {
+          const mgr = new mxsdk.Manager({
+            container,
+            url: `https://app.mapx.org/?project=${project.id}&language=en&theme=color_light`,
+            params: { closePanels: true },
+            style: { width: "1px", height: "1px", border: "none" },
+          });
+
+          const views = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error("Timeout (60s)")), 60000);
+            mgr.on("ready", async () => {
+              try {
+                const v = await mgr.ask("get_views");
+                clearTimeout(timeout);
+                resolve(v);
+              } catch (e) {
+                clearTimeout(timeout);
+                reject(e);
+              }
+            });
+          });
+
+          const rows = views.map((v) => {
+            const title =
+              (v.data && v.data.title && (v.data.title.en || v.data.title.fr || Object.values(v.data.title)[0])) ||
+              "(untitled)";
+            const type = v.type || "unknown";
+            const abstract =
+              (v.data && v.data.abstract && (v.data.abstract.en || v.data.abstract.fr || "")) || "";
+            return { id: v.id, type, title, abstract: abstract.substring(0, 200) };
+          });
+
+          // Sort by type then title
+          rows.sort((a, b) => a.type.localeCompare(b.type) || a.title.localeCompare(b.title));
+
+          let html = `
+            <p><strong>${rows.length} views found</strong></p>
+            <table class="mg-table mg-table--striped mg-table--border">
+              <thead><tr><th>Type</th><th>View ID</th><th>Title</th><th>Description</th></tr></thead>
+              <tbody>
+          `;
+          for (const r of rows) {
+            const tagClass =
+              r.type === "rt" ? "tag-rt" : r.type === "sm" ? "tag-sm" : r.type === "cc" ? "tag-cc" : "tag-vt";
+            html += `<tr>
+              <td><span class="mg-tag ${tagClass}">${r.type}</span></td>
+              <td><code>${r.id}</code></td>
+              <td>${r.title}</td>
+              <td>${r.abstract}</td>
+            </tr>`;
+          }
+          html += "</tbody></table>";
+
+          // Also dump raw JSON for copy-paste
+          html += `<details><summary>Raw JSON</summary><pre>${JSON.stringify(rows, null, 2)}</pre></details>`;
+
+          section.querySelector(".loader").remove();
+          section.insertAdjacentHTML("beforeend", html);
+        } catch (err) {
+          section.querySelector(".loader").textContent = `Error: ${err.message}`;
+        }
+      }
+
+      // Probe projects sequentially to avoid overloading
+      (async () => {
+        for (const p of projects) {
+          await probeProject(p);
+        }
+      })();
+    </script>
+  </body>
+</html>

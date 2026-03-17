@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MapX Embed — Disaster Risk Reduction Demo</title>
+
+    <!--
+      UNDRR Mangrove Component Library (v1.3.3)
+      Provides Roboto font family, button styles (mg-button, mg-button-primary,
+      mg-button-secondary), tags (mg-tag), form helpers (mg-form-help), the
+      page header with UNDRR black bar (mg-page-header), Sendai decoration
+      stripe (mg-page-header__decoration), container layout (mg-container),
+      grid system (mg-grid), card components (mg-card), footer (mg-footer),
+      utility classes (mg-u-*), and other UN-consistent UI patterns.
+
+      Source & docs: https://unisdr.github.io/undrr-mangrove/
+      GitHub: https://github.com/unisdr/undrr-mangrove
+      CDN base: https://assets.undrr.org/static/mangrove/{version}/css/style.css
+
+      Note: Mangrove sets html font-size to 10px and uses rem units throughout,
+      so 1.6rem = 16px, 2.3rem = 23px, etc.
+    -->
+    <link rel="stylesheet" href="https://assets.undrr.org/static/mangrove/1.3.3/css/style.css" />
+
+    <style>
+      /*
+       * Layout overrides — Mangrove is a component library, not an app framework,
+       * so it doesn't ship a sidebar+main layout. We build the page shell here
+       * using Mangrove color tokens where possible.
+       *
+       * Color reference (from Mangrove _variables.scss):
+       *   #004f91 = $mg-color-blue-900 (primary interactive)
+       *   #3372a7 = $mg-color-blue-700 (hover)
+       *   #1a1a1a = $mg-color-neutral-800 (text/dark bg)
+       *   #ccc    = $mg-color-neutral-100 (borders)
+       *   #c10920 = $mg-color-red-900 / Sendai red (danger/destructive)
+       *   #eb752a = $mg-color-orange-900 / Sendai orange (accent)
+       *   #962987 = Sendai purple
+       *   #00afae = Sendai turquoise
+       *   #333    = PageHeader toolbar background
+       */
+      html,
+      body {
+        margin: 0;
+      }
+
+      /*
+       * App title bar — sits between the UNDRR page header and the map.
+       * Uses mg-container for consistent horizontal alignment with the
+       * card sections below the map.
+       */
+      .app-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1.2rem;
+        padding-bottom: 1.2rem;
+      }
+      .app-title-bar h1 {
+        margin: 0;
+        font-size: 2.3rem; /* mg-font-size-500 */
+      }
+
+      /*
+       * Main split: sidebar + map.
+       * Uses a fixed height (75vh) instead of flex:1 so the page can scroll
+       * down to the info card sections and footer below the map.
+       */
+      .app-body {
+        display: flex;
+        height: 75vh;
+        min-height: 500px;
+      }
+
+      /* --- Sidebar --- */
+      .app-sidebar {
+        width: 320px;
+        min-width: 320px;
+        background: #fff;
+        border-right: 1px solid #ccc; /* mg-color-neutral-100 */
+        padding: 1.5rem 1rem;
+        overflow-y: auto;
+      }
+      .app-sidebar h2 {
+        margin-top: 0;
+      }
+      .sidebar-section {
+        margin-bottom: 2rem;
+      }
+      .sidebar-section:last-child {
+        margin-bottom: 0;
+      }
+
+      /* View toggle buttons — stacked vertically */
+      #view-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      #view-buttons .mg-button {
+        width: 100%;
+        text-align: left;
+        justify-content: flex-start;
+      }
+
+      /*
+       * Active state for view buttons — uses the "is-active" class pattern
+       * borrowed from Mangrove's tab component (mg-tabs__link.is-active).
+       * We toggle this class in JS when a view is added/removed.
+       */
+      #view-buttons .mg-button.is-active,
+      .mg-button.is-active {
+        background-color: #004f91;
+        color: #fff;
+        border-color: #004f91;
+      }
+
+      /* Small type tag (live/raster/vector) inside each view button */
+      .view-type-tag {
+        font-size: 1rem;
+        padding: 0.1rem 0.4rem;
+        margin-right: 0.5rem;
+        vertical-align: middle;
+        flex-shrink: 0;
+      }
+
+      /* Generic vertical button stack for actions/scenarios/regions */
+      .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .action-buttons .mg-button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* --- Map container --- */
+      .app-map {
+        flex: 1;
+        position: relative;
+        min-width: 0;
+      }
+      /*
+       * The #mapx div is where the SDK creates its iframe.
+       * position:absolute + inset:0 makes it fill the entire .app-map container.
+       */
+      #mapx {
+        position: absolute;
+        inset: 0;
+      }
+
+      #log div {
+        padding: 0.15rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      UNDRR Page Header (mg-page-header)
+      This is the standard UNDRR "black bar" used across all UNDRR family sites
+      (undrr.org, preventionweb.net, mcr2030.undrr.org, recovery.preventionweb.net).
+
+      Structure:
+        mg-page-header__decoration     — Sendai Framework four-color stripe
+                                          (red #c10920, purple #962987,
+                                           orange #eb752a, turquoise #00afae).
+                                          Needs exactly 4 child divs, each 25% wide × 7px.
+        mg-page-header__toolbar-wrapper — dark toolbar background (#333 with subtle texture)
+        mg-page-header__container       — wraps content in mg-container for centering
+        mg-page-header__region--toolbar — flex row holding logo + optional controls
+        mg-page-header__block--logo     — UNDRR horizontal logo (SVG from assets CDN)
+
+      Source component: stories/Components/PageHeader/PageHeader.jsx
+      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-pageheader--docs
+    -->
+    <!--
+      PIN GATE OVERLAY
+      A simple access gate to signal this is an unofficial preview.
+      Requires entering a 4-digit PIN (5498) to dismiss the overlay
+      and access the demo. The PIN is not a security measure — it's
+      a speed bump to make clear this is not a public-facing product.
+      The PIN is documented in the README.
+    -->
+    <div id="pin-gate" style="
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(0,79,145,0.95);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Roboto',sans-serif;
+    ">
+      <div style="
+        background:#fff;max-width:440px;width:90%;
+        padding:3rem 2.5rem;text-align:center;
+      ">
+        <h2 style="margin-top:0;font-size:2.3rem;color:#1a1a1a;">Preview Access</h2>
+        <p style="font-size:1.6rem;color:#4d4d4d;line-height:1.5;margin-bottom:2rem;">
+          This is an <strong>unofficial investigation proof of concept</strong>
+          for demonstration purposes only. It is not an official UNDRR product.
+        </p>
+        <p style="font-size:1.4rem;color:#666;margin-bottom:1.5rem;">
+          Enter the preview PIN to continue:
+        </p>
+        <input id="pin-input" type="text" inputmode="numeric" maxlength="4"
+          placeholder="_ _ _ _"
+          style="
+            font-size:2.4rem;text-align:center;letter-spacing:0.8rem;
+            width:12rem;padding:0.75rem;
+            border:2px solid #ccc;outline:none;
+            font-family:'Roboto Condensed',monospace;
+          "
+        />
+        <p id="pin-error" style="color:#c10920;font-size:1.4rem;margin-top:1rem;min-height:1.4rem;"></p>
+      </div>
+    </div>
+    <script>
+      (function() {
+        const PIN = "5498";
+        const gate = document.getElementById("pin-gate");
+        const input = document.getElementById("pin-input");
+        const error = document.getElementById("pin-error");
+
+        /* Auto-dismiss if PIN was already entered this session */
+        if (localStorage.getItem("mapx-demo-pin") === "ok") {
+          gate.remove();
+        } else {
+          input.focus();
+          input.addEventListener("input", function() {
+            error.textContent = "";
+            if (input.value.length === 4) {
+              if (input.value === PIN) {
+                localStorage.setItem("mapx-demo-pin", "ok");
+                gate.style.transition = "opacity 0.3s";
+                gate.style.opacity = "0";
+                setTimeout(() => gate.remove(), 300);
+              } else {
+                error.textContent = "Incorrect PIN";
+                input.value = "";
+              }
+            }
+          });
+          /* Also handle Enter key */
+          input.addEventListener("keydown", function(e) {
+            if (e.key === "Enter" && input.value.length === 4) {
+              input.dispatchEvent(new Event("input"));
+            }
+          });
+        }
+      })();
+    </script>
+
+    <header id="header" class="mg-page-header mg-page-header--default">
+      <div class="mg-page-header__decoration">
+        <div></div><div></div><div></div><div></div>
+      </div>
+      <div class="mg-page-header__toolbar-wrapper">
+        <div class="mg-page-header__container mg-container">
+          <div class="mg-page-header__region mg-page-header__region--toolbar">
+            <section class="mg-page-header__block mg-page-header__block--logo">
+              <a href="https://www.undrr.org">
+                <img src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                     alt="UNDRR Logo" width="324" height="47"
+                     title="UNDRR — United Nations Office for Disaster Risk Reduction"
+                     class="mg-page-header__logo-img" />
+              </a>
+            </section>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!--
+      App Title Bar — uses Mangrove utility classes instead of custom .app-header CSS:
+        mg-u-background-color--blue-900  → UNDRR primary blue background
+        mg-container                     → centered content with responsive max-width
+        mg-u-color--white                → white text on the <h1>
+
+      Status badge — uses mg-tag--outline for the "Loading" state, switches
+      to mg-tag--accent (orange) on error. The style override makes the
+      outline variant visible against the blue header background.
+    -->
+    <div class="mg-u-background-color--blue-900">
+      <div class="mg-container app-title-bar">
+        <h1 class="mg-u-color--white">Eco-DRR MapX Demo</h1>
+        <span class="mg-tag mg-tag--outline" style="color:#fff;border-color:#fff" id="status">Loading SDK...</span>
+      </div>
+    </div>
+
+    <div class="app-body">
+      <!-- Sidebar — all controls live here -->
+      <aside class="app-sidebar">
+
+        <!--
+          DRR VIEWS SECTION
+          Each button toggles a single MapX view on/off via view_add / view_remove.
+          Buttons are built dynamically in buildViewButtons() from the CURATED_VIEWS array.
+          Each button includes a small mg-tag showing the data type (live/raster/vector).
+        -->
+        <div class="sidebar-section">
+          <h2>DRR Views</h2>
+          <!-- mg-form-help is a Mangrove class for hint/helper text -->
+          <p class="mg-form-help">Curated disaster risk reduction layers. Click to toggle. This is an initial proof of concept to demonstrate MapX functionalities.</p>
+          <div id="view-buttons">
+            <button class="mg-button mg-button-secondary disabled">Loading views...</button>
+          </div>
+        </div>
+
+        <hr />
+
+        <!--
+          SCENARIOS SECTION
+          Each scenario button chains multiple SDK calls in sequence:
+          1. Clear existing views
+          2. Activate one or more layers (view_add)
+          3. Fly/zoom to a region (common_loc_fit_bbox or map_fly_to)
+          4. Optionally adjust transparency (set_view_layer_transparency)
+          5. Optionally open the dashboard panel (set_dashboard_visibility)
+
+          This demonstrates how the SDK can orchestrate complex map interactions
+          from a single button click — the core pattern for website integration.
+        -->
+        <div class="sidebar-section">
+          <h2>Scenarios</h2>
+          <p class="mg-form-help">Pre-built multi-step interactions</p>
+          <div class="action-buttons" id="scenario-buttons">
+            <!--
+              Scenario 1: Activate the Active Fires admin-polygon layer,
+              fly to India using ISO country code, open the fire-trend dashboard.
+              SDK methods: view_add → common_loc_fit_bbox → has_dashboard → set_dashboard_visibility
+            -->
+            <button class="mg-button mg-button-primary disabled" id="sc-fires-india">
+              India — Fire Activity + Dashboard
+            </button>
+            <!--
+              Scenario 2: Layer two raster hazard maps (cyclone + flood),
+              fly to the Caribbean, set cyclone layer to 50% transparency
+              so both hazards are visible simultaneously.
+              SDK methods: view_add (x2) → map_fly_to → set_view_layer_transparency
+            -->
+            <button class="mg-button mg-button-primary disabled" id="sc-caribbean-multi">
+              Caribbean — Cyclone + Flood Hazard
+            </button>
+            <!--
+              Scenario 3: Show tsunami exposure alongside mangrove restoration
+              opportunities — demonstrates pairing a hazard with an eco-DRR
+              solution layer. Flies to Indonesia.
+              SDK methods: view_add (x2) → common_loc_fit_bbox → set_view_layer_transparency
+            -->
+            <button class="mg-button mg-button-primary disabled" id="sc-seasia-tsunami">
+              SE Asia — Tsunami + Mangrove NbS
+            </button>
+            <!--
+              Scenario 4: Show a single vector polygon layer (water stress
+              projection) and log its attribute configuration. Demonstrates
+              get_view_table_attribute_config for discovering a view's data schema.
+              SDK methods: view_add → map_fly_to → get_view_table_attribute_config
+            -->
+            <!--
+              Scenario 4: Activate the water stress polygon layer, introspect
+              its attribute schema, filter to Ukraine, and fly there.
+              SDK methods: view_add → get_view_table_attribute_config →
+                get_view_table_attribute → set_view_layer_filter_text →
+                common_loc_fit_bbox
+            -->
+            <!--
+              Scenarios 4a/4b: Water Stress 2030 — binary filter toggle.
+              Both buttons share the same view but filter to opposite categories.
+              Demonstrates how set_view_layer_filter_text can be used to build
+              a simple toggle UI on top of a single dataset.
+              SDK methods: view_add → map_wait_idle → get_view_table_attribute →
+                set_view_layer_filter_text
+            -->
+            <button class="mg-button mg-button-primary disabled" id="sc-water-high">
+              Water Stress 2030 — High
+            </button>
+            <button class="mg-button mg-button-primary disabled" id="sc-water-low">
+              Water Stress 2030 — Low
+            </button>
+          </div>
+        </div>
+
+        <hr />
+
+        <!--
+          REGIONS SECTION
+          Simple fly-to presets using map_fly_to with center coordinates and zoom.
+          These regions were chosen for their DRR relevance (hurricane corridors,
+          tsunami zones, flood-prone areas). See methodology.md for rationale.
+
+          Alternative: use common_loc_fit_bbox({code: "XXX"}) with ISO 3166-1
+          alpha-3 codes to fly to country bounding boxes instead of manual coords.
+          The SDK also supports M49 region codes (e.g. "m49_029" for Caribbean).
+          Use common_loc_get_list_codes() to see all available codes.
+        -->
+        <div class="sidebar-section">
+          <h2>Regions</h2>
+          <p class="mg-form-help">Fly to a region of interest</p>
+          <div class="action-buttons">
+            <button class="mg-button mg-button-secondary disabled" id="btn-world">World</button>
+            <button class="mg-button mg-button-secondary disabled" id="btn-caribbean">Caribbean</button>
+            <button class="mg-button mg-button-secondary disabled" id="btn-se-asia">Southeast Asia</button>
+            <button class="mg-button mg-button-secondary disabled" id="btn-e-africa">East Africa</button>
+            <button class="mg-button mg-button-secondary disabled" id="btn-pacific">Pacific Islands</button>
+          </div>
+        </div>
+
+        <hr />
+
+        <!--
+          CONTROLS SECTION
+          Zoom, map projection, 3D terrain, and reset controls.
+        -->
+        <div class="sidebar-section">
+          <h2>Controls</h2>
+          <div class="action-buttons">
+            <button class="mg-button mg-button-primary disabled" id="btn-zoom-in">Zoom In (+2)</button>
+            <button class="mg-button mg-button-primary disabled" id="btn-zoom-out">Zoom Out (-2)</button>
+
+            <!--
+              Globe projection toggle — uses the SDK's direct Mapbox GL JS
+              method passthrough: mapx.ask("map", {method, parameters}).
+              This calls map.setProjection("globe") or map.setProjection("mercator")
+              on the underlying Mapbox instance.
+
+              The "map" resolver is a powerful escape hatch — it can call ANY
+              Mapbox GL JS Map method. Use it for features the SDK doesn't
+              wrap directly. See: https://docs.mapbox.com/mapbox-gl-js/api/map/
+            -->
+            <button class="mg-button mg-button-secondary disabled" id="btn-globe">Toggle Globe</button>
+
+            <!--
+              3D terrain toggle — uses set_3d_terrain({action: "toggle"}).
+              Adds/removes terrain exaggeration so you can see elevation.
+              Actions: "show", "hide", "toggle"
+            -->
+            <button class="mg-button mg-button-secondary disabled" id="btn-terrain">Toggle 3D Terrain</button>
+
+            <!--
+              3D mode (pitch/bearing) — uses set_mode_3d({action: "toggle"}).
+              Tilts the map into a 3D perspective view with pitch and bearing.
+              Actions: "show", "hide", "toggle"
+            -->
+            <button class="mg-button mg-button-secondary disabled" id="btn-3d">Toggle 3D Tilt</button>
+
+            <!--
+              Aerial/satellite imagery — uses set_mode_aerial({action: "toggle"}).
+              Switches between the standard basemap and satellite imagery.
+              Actions: "show", "hide", "toggle"
+            -->
+            <button class="mg-button mg-button-secondary disabled" id="btn-aerial">Toggle Aerial View</button>
+
+            <!--
+              Immersive mode — uses set_immersive_mode({action: "toggle"}).
+              Hides all MapX UI panels for a clean, full-map presentation view.
+              Good for screenshots or embedding without the MapX chrome.
+            -->
+            <button class="mg-button mg-button-secondary disabled" id="btn-immersive">Toggle Immersive</button>
+
+            <button class="mg-button disabled" id="btn-reset" style="border-color:#c10920;color:#c10920">Remove All Views</button>
+          </div>
+        </div>
+
+        <hr />
+
+        <!--
+          SDK FEATURES SECTION
+          Demonstrates additional SDK capabilities beyond map views:
+          language switching, theme switching, and story map playback.
+        -->
+        <div class="sidebar-section">
+          <h2>SDK Features</h2>
+          <p class="mg-form-help">Language, theme, and story map controls</p>
+
+          <!--
+            Language switching — set_language({lang}) changes the MapX
+            interface language. get_languages() returns supported codes.
+            Common codes: en, fr, es, ru, zh, ar, de, pt, fa, ps
+          -->
+          <p class="mg-form-help" style="margin-top:1rem;">Language</p>
+          <div class="action-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
+            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="en">EN</button>
+            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="fr">FR</button>
+            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="es">ES</button>
+            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="ru">RU</button>
+            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="zh">ZH</button>
+            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="ar">AR</button>
+          </div>
+
+          <!--
+            Theme switching — set_theme({idTheme}) changes the map's
+            visual theme. get_themes_id() returns available theme IDs.
+            We fetch them dynamically and build buttons.
+          -->
+          <p class="mg-form-help" style="margin-top:1rem;">Theme</p>
+          <div class="action-buttons" id="theme-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
+            <button class="mg-button mg-button-secondary disabled">Loading...</button>
+          </div>
+
+          <!--
+            STORY MAP PLAYBACK — LIMITATION & WORKAROUND
+
+            Story maps (type "sm") are narrative presentations built into MapX
+            with step-by-step map navigation. Normally you'd play them via:
+
+              mapx.ask("view_add", {idView: "MX-..."})
+
+            However, view_add only works for views that belong to the CURRENT
+            project. The SDK communicates with the MapX app inside its iframe
+            via postMessage, and the app only knows about views in its loaded
+            project. If you pass a view ID from a different project, the call
+            silently returns without error or network activity.
+
+            The Eco-DRR project (MX-2LD-FBB-58N-ROK-8RH) has 0 story maps.
+            The story maps we want are in the HOME project (MX-YBJ-YYF-08R-UUR-QW6).
+
+            We tried three approaches:
+              1. view_add with cross-project IDs — silently fails (no error, no network)
+              2. Opening in a new tab — works but breaks the on-page experience
+              3. Overlay iframe — loads a second MapX instance in the same page
+                 area with ?storyAutoStart=true, dismissed via a close button.
+                 This is what we use below.
+
+            The overlay approach works but has trade-offs:
+              - It loads a full second MapX instance (heavier on resources)
+              - The SDK-controlled map underneath pauses but keeps state
+              - The story map runs independently of the SDK (not controllable)
+
+            If your project has its own story maps, use view_add directly —
+            it's seamless and doesn't need this workaround.
+
+            See methodology.md section 8 for full details on this limitation.
+          -->
+          <p class="mg-form-help" style="margin-top:1rem;">Story Maps</p>
+          <div class="action-buttons">
+            <button class="mg-button mg-button-primary disabled" id="btn-story-mapx">
+              Play: MapX Presentation
+            </button>
+            <button class="mg-button mg-button-primary disabled" id="btn-story-caribbean">
+              Play: Caribbean Sea
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!--
+        MAP AREA
+        The #mapx div is the SDK's target container. The Manager constructor
+        creates an iframe inside it pointed at the MapX app. The #log div
+        overlays on top to show SDK activity.
+      -->
+      <div class="app-map">
+        <div id="mapx"></div>
+      </div>
+    </div>
+
+    <!--
+      ABOUT SECTION — Mangrove icon cards (mg-card__icon) in a 3-column grid.
+
+      Mangrove layout components used:
+        mg-u-background-color--neutral-25 — light gray section background
+        mg-container                      — responsive centered content
+                                            (max-width 480/900/1164/1440px at breakpoints,
+                                             padding-left/right: 1rem)
+        mg-container--padded              — adds padding-top/bottom: 2rem
+        mg-container--spacer              — adds vertical spacing between children
+        mg-grid mg-grid__col-3            — CSS Grid, 3 columns at tablet+,
+                                            column-gap/row-gap: 2rem ($mg-spacing-200)
+        mg-card mg-card__icon             — icon card layout (flex column, max-width 300px)
+        mg-card__content                  — card body wrapper
+        mg-card__title                    — card heading (inherits Mangrove heading styles)
+        mg-card__summary                  — card description text
+        mg-u-text-wrap-pretty             — CSS text-wrap: pretty for better typography
+
+      Source: stories/Components/Cards/IconCard/IconCard.jsx
+      Grid:   stories/Atom/Layout/Grid/Grid.jsx
+      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-icon-card--docs
+    -->
+    <section class="mg-u-background-color--neutral-25">
+      <div class="mg-container mg-container--padded mg-container--spacer">
+        <h2>About This Demo</h2>
+        <p class="mg-u-text-wrap-pretty">
+          This proof-of-concept demonstrates embedding
+          <a href="https://app.mapx.org">MapX</a> geospatial datasets
+          via the SDK, showcasing disaster risk reduction data from the
+          <strong>Eco-DRR Geospatial Datasets</strong> project.
+        </p>
+
+        <div class="mg-grid mg-grid__col-3">
+          <article class="mg-card mg-card__icon">
+            <div class="mg-card__content">
+              <header class="mg-card__title">Hazard Layers</header>
+              <p class="mg-card__summary">
+                Explore flood, landslide, cyclone, and tsunami exposure data
+                from global risk models covering return periods and annual
+                physical exposure.
+              </p>
+            </div>
+          </article>
+
+          <article class="mg-card mg-card__icon">
+            <div class="mg-card__content">
+              <header class="mg-card__title">Nature-Based Solutions</header>
+              <p class="mg-card__summary">
+                See where forest protection and mangrove restoration can
+                reduce flood and storm surge risk — the core of the Eco-DRR
+                approach.
+              </p>
+            </div>
+          </article>
+
+          <article class="mg-card mg-card__icon">
+            <div class="mg-card__content">
+              <header class="mg-card__title">Live Monitoring</header>
+              <p class="mg-card__summary">
+                Real-time earthquake data (M5.5+) from USGS and active fire
+                tracking at administrative level, updated continuously.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!--
+      DATA & RESOURCES SECTION — Mangrove vertical cards (mg-card__vc) in 4-column grid.
+
+      Vertical card structure (from stories/Components/Cards/Card/VerticalCard.jsx):
+        mg-card mg-card__vc   — article wrapper (display: grid, gap: 1rem)
+        mg-card__content      — body wrapper
+        mg-card__meta         — label/tag container
+        mg-card__label        — small category label
+        mg-card__label--active — blue interactive label style
+        mg-card__title        — heading with <a> inside for stretched-link behavior
+                                (the title link's ::before pseudo-element covers the
+                                 entire card, making the whole card clickable)
+        mg-card__summary      — description paragraph
+
+      Variants (add to article): mg-card--secondary (orange title),
+      mg-card--tertiary (black title), mg-card--quaternary (red title).
+
+      Grid: mg-grid__col-4 → 4 columns at desktop, 2 at tablet, 1 at mobile.
+
+      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-vertical-card--docs
+    -->
+    <section>
+      <div class="mg-container mg-container--padded mg-container--spacer">
+        <h2>Data &amp; Resources</h2>
+        <div class="mg-grid mg-grid__col-4">
+          <article class="mg-card mg-card__vc">
+            <div class="mg-card__content">
+              <div class="mg-card__meta">
+                <span class="mg-card__label mg-card__label--active">Platform</span>
+              </div>
+              <header class="mg-card__title">
+                <a href="https://app.mapx.org" target="_blank" rel="noopener">MapX</a>
+              </header>
+              <p class="mg-card__summary">
+                Open-source geospatial platform for sustainable development,
+                managed by UNEP/GRID-Geneva.
+              </p>
+            </div>
+          </article>
+
+          <article class="mg-card mg-card__vc">
+            <div class="mg-card__content">
+              <div class="mg-card__meta">
+                <span class="mg-card__label mg-card__label--active">Framework</span>
+              </div>
+              <header class="mg-card__title">
+                <a href="https://www.undrr.org/implementing-sendai-framework" target="_blank" rel="noopener">Sendai Framework</a>
+              </header>
+              <p class="mg-card__summary">
+                The global roadmap for reducing disaster risk and losses
+                through 2030, adopted by UN Member States.
+              </p>
+            </div>
+          </article>
+
+          <article class="mg-card mg-card__vc">
+            <div class="mg-card__content">
+              <div class="mg-card__meta">
+                <span class="mg-card__label mg-card__label--active">Documentation</span>
+              </div>
+              <header class="mg-card__title">
+                <a href="https://github.com/unep-grid/mapx/tree/master/app/src/js/sdk" target="_blank" rel="noopener">MapX SDK</a>
+              </header>
+              <p class="mg-card__summary">
+                JavaScript SDK for embedding interactive MapX maps,
+                querying views, and controlling the map programmatically.
+              </p>
+            </div>
+          </article>
+
+          <article class="mg-card mg-card__vc">
+            <div class="mg-card__content">
+              <div class="mg-card__meta">
+                <span class="mg-card__label mg-card__label--active">Design System</span>
+              </div>
+              <header class="mg-card__title">
+                <a href="https://unisdr.github.io/undrr-mangrove/" target="_blank" rel="noopener">Mangrove</a>
+              </header>
+              <p class="mg-card__summary">
+                UNDRR's component library for consistent, accessible UI
+                across disaster risk reduction websites.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!--
+      GLOBAL FOOTER (UNDRR syndicated via PreventionWeb widget)
+
+      The mg-footer class provides footer container styling from Mangrove.
+      The #pw-widget-footer div is the target for the PW_Widget syndication
+      script, which dynamically injects the standard UNDRR global footer
+      (links, copyright, social media, etc.) — the same footer used across
+      undrr.org, preventionweb.net, and other UNDRR family sites.
+
+      Syndication config:
+        contenttype: "landingpage"  — fetches the landing page footer variant
+        pageid: "83835"             — UNDRR footer content ID
+        activedomain: "www.undrr.org" — which site's footer to pull
+
+      Source component: stories/Components/Footer/Footer.jsx
+      Widget endpoint: https://publish.preventionweb.net/widget.js
+      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-footer--docs
+    -->
+    <footer class="mg-footer">
+      <div id="pw-widget-footer"></div>
+    </footer>
+
+    <!--
+      MapX SDK (UMD build)
+      Loaded via script tag — no npm/build step required.
+      Exposes the global `mxsdk` object with the `Manager` class.
+
+      SDK source & docs: https://github.com/unep-grid/mapx/tree/master/app/src/js/sdk
+      NPM alternative: npm install @fxi/mxsdk → import { Manager } from '@fxi/mxsdk'
+    -->
+
+    <!--
+      SDK Debug Log — collapsible panel at the bottom of the page.
+      Shows timestamped SDK calls and responses. Closed by default
+      so it doesn't distract from the demo, but available for debugging.
+    -->
+    <details id="log-panel" open style="background:#1a1a1a;color:#90ee90;font-family:'Roboto Condensed',monospace;font-size:1.25rem;">
+      <summary style="padding:0.75rem 1.5rem;cursor:pointer;color:#aaa;font-size:1.4rem;">SDK Debug Log</summary>
+      <div id="log" style="max-height:300px;overflow-y:auto;padding:0.5rem 1.5rem;"></div>
+    </details>
+
+    <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
+    <script>
+      /*
+       * ============================================================
+       * CURATED VIEW CONFIGURATION
+       * ============================================================
+       *
+       * These view IDs come from the Eco-DRR project (MX-2LD-FBB-58N-ROK-8RH)
+       * and the MapX HOME project. They were discovered using probe-views.html,
+       * which uses the SDK's get_views() method to enumerate all public views
+       * in a project. See methodology.md for the full discovery process.
+       *
+       * MapX view types:
+       *   cc = Custom Coded (dynamic/real-time, e.g. live earthquake feeds)
+       *   rt = Raster Tiles (gridded data, e.g. hazard maps, population grids)
+       *   vt = Vector Tiles (polygons/points/lines, e.g. admin boundaries)
+       *   sm = Story Map (narrative presentations — not used in this demo)
+       *
+       * To find more views:
+       *   1. Open probe-views.html and add project IDs to the `projects` array
+       *   2. Or visit https://app.mapx.org, open a project, and browse the catalog
+       *   3. View IDs follow the pattern MX-XXXXX-XXXXX-XXXXX
+       */
+      const CURATED_VIEWS = [
+        // Real-time points (cc) — USGS earthquake feed, updates every 15 minutes
+        { id: "MX-YLZJG-JAIID-V27X5", label: "Earthquakes Mag >= 5.5 (live)", type: "cc" },
+
+        // Raster hazard layers (rt) — gridded exposure and frequency models
+        { id: "MX-V07LO-829XA-4BIZ8", label: "Flood Hazard 25yr", type: "rt" },
+        { id: "MX-04E66-2E550-81068", label: "Landslide Exposure", type: "rt" },
+        { id: "MX-10AE5-746D1-76777", label: "Tropical Cyclone Exposure", type: "rt" },
+        { id: "MX-F0DEE-12D97-6447B", label: "Tsunami Exposure", type: "rt" },
+        { id: "MX-6YLMU-U4WXC-2JJD7", label: "Population (HRSL 2022)", type: "rt" },
+
+        // Eco-DRR solution layers (rt) — nature-based risk reduction opportunities
+        { id: "MX-DC56E-6ABC9-3C768", label: "Forest Protection — Flood Risk", type: "rt" },
+        { id: "MX-559C5-58858-96A69", label: "Mangrove Restoration — Cyclone Surge", type: "rt" },
+
+        // Vector polygon layers (vt) — admin-level and ecosystem boundaries
+        { id: "MX-1L2TA-6FXPV-N3QMX", label: "Water Stress Change (RCP8.5 2030)", type: "vt" },
+        { id: "MX-OU7NG-ZNZGA-ZX3K0", label: "Active Fires (Admin Level 1)", type: "vt" },
+        { id: "MX-FX1HT-Z7KXL-8X22K", label: "Intact Forest Landscapes", type: "vt" },
+      ];
+
+      /* Display labels and Mangrove tag classes for each view type */
+      const TYPE_LABELS = { cc: "live", rt: "raster", vt: "vector", sm: "story" };
+      const TYPE_TAG_CLASS = {
+        cc: "",                  /* default mg-tag (blue) */
+        rt: "mg-tag--accent",    /* orange — stands out for gridded data */
+        vt: "mg-tag--secondary", /* gray — subtle for polygon layers */
+        sm: "",
+      };
+
+      /*
+       * ============================================================
+       * UTILITY FUNCTIONS
+       * ============================================================
+       */
+
+      /** Append a timestamped message to the on-screen log overlay */
+      const log = (msg) => {
+        const el = document.getElementById("log");
+        const line = document.createElement("div");
+        const ts = new Date().toLocaleTimeString();
+        line.textContent = `[${ts}] ${msg}`;
+        el.appendChild(line);
+        el.scrollTop = el.scrollHeight;
+        console.log(msg);
+      };
+
+      /**
+       * Update the status badge in the header.
+       * Uses Mangrove tag variants: outline (normal), accent (error), secondary (loading).
+       */
+      const setStatus = (msg, variant) => {
+        const el = document.getElementById("status");
+        el.textContent = msg;
+        el.className = "mg-tag";
+        if (variant === "ok") {
+          el.classList.add("mg-tag--outline");
+          el.style.cssText = "color:#fff;border-color:#fff";
+        } else if (variant === "error") {
+          el.classList.add("mg-tag--accent");
+          el.style.cssText = "";
+        } else {
+          el.classList.add("mg-tag--secondary");
+          el.style.cssText = "";
+        }
+      };
+
+      /*
+       * ============================================================
+       * SDK INITIALISATION
+       * ============================================================
+       *
+       * The Manager constructor creates an iframe inside the target container
+       * and loads the MapX app with the specified project. All communication
+       * between this page and the MapX app happens via window.postMessage.
+       *
+       * Constructor options:
+       *   container — DOM element where the iframe will be inserted
+       *   url       — MapX app URL with project, language, and theme params
+       *   params    — URL query params passed to the MapX app:
+       *                closePanels: hide the sidebar/panels on load
+       *                views: array of view IDs to show at startup
+       *                lat/lng/zoom: initial map position
+       *                lockProject: prevent project switching
+       *   style     — CSS applied to the iframe element
+       *   static    — if true, loads /static.html (fewer features, faster)
+       *
+       * Full options: https://github.com/unep-grid/mapx/tree/master/app/src/js/sdk
+       */
+      const mapx = new mxsdk.Manager({
+        container: document.getElementById("mapx"),
+        url: "https://app.mapx.org/?project=MX-2LD-FBB-58N-ROK-8RH&language=en&theme=color_light",
+        params: {
+          closePanels: true,
+        },
+        style: {
+          width: "100%",
+          height: "100%",
+          border: "none",
+        },
+      });
+
+      /*
+       * Track which views are currently displayed on the map.
+       * This is needed because view_add/view_remove are fire-and-forget —
+       * the SDK doesn't expose a synchronous "is this view open?" check.
+       * (You can call get_views_id_open() but it's async.)
+       */
+      const openViews = new Set();
+
+      /*
+       * The "ready" event fires once the MapX app inside the iframe has fully
+       * loaded and is ready to accept SDK commands via mapx.ask().
+       * All mapx.ask() calls must happen after this event.
+       */
+      mapx.on("ready", async () => {
+        setStatus("Connected", "ok");
+        log("SDK ready — Eco-DRR project loaded");
+        buildViewButtons();
+        enableActionButtons();
+      });
+
+      /*
+       * ============================================================
+       * VIEW TOGGLE BUTTONS
+       * ============================================================
+       *
+       * Builds one button per curated view. Each button:
+       *   - Shows a colored type tag (mg-tag) and the view label
+       *   - Calls view_add on first click, view_remove on second (toggle)
+       *   - Syncs the is-active CSS class for visual feedback
+       *   - Stores the view ID in the button's title attribute for lookup
+       */
+      function buildViewButtons() {
+        const container = document.getElementById("view-buttons");
+        container.innerHTML = "";
+
+        CURATED_VIEWS.forEach((v) => {
+          const btn = document.createElement("button");
+          btn.className = "mg-button mg-button-secondary";
+
+          /* Type tag — uses mg-tag with variant class for color coding */
+          const tag = document.createElement("span");
+          tag.className = `mg-tag view-type-tag ${TYPE_TAG_CLASS[v.type] || ""}`;
+          tag.textContent = TYPE_LABELS[v.type] || v.type;
+
+          const text = document.createTextNode(v.label);
+          btn.appendChild(tag);
+          btn.appendChild(text);
+          btn.title = v.id; /* used by ensureView() to sync button state */
+          btn.addEventListener("click", () => toggleView(v.id, btn));
+          container.appendChild(btn);
+        });
+      }
+
+      /**
+       * Toggle a view on or off.
+       *
+       * SDK methods used:
+       *   mapx.ask("view_add", {idView})    — display a view on the map
+       *   mapx.ask("view_remove", {idView}) — remove a view from the map
+       *
+       * Both return a Promise<Boolean>. The idView must be a valid view ID
+       * from the current project (or a publicly shared view).
+       */
+      async function toggleView(idView, btn) {
+        dismissStoryOverlay();
+        if (openViews.has(idView)) {
+          log(`Removing view ${idView}`);
+          await mapx.ask("view_remove", { idView });
+          openViews.delete(idView);
+          btn.classList.remove("is-active");
+        } else {
+          log(`Adding view ${idView}`);
+          await mapx.ask("view_add", { idView });
+          openViews.add(idView);
+          btn.classList.add("is-active");
+        }
+      }
+
+      /** Dismiss the story map overlay if it's open */
+      function dismissStoryOverlay() {
+        const overlay = document.getElementById("story-overlay");
+        if (overlay) {
+          log("Dismissing story map overlay");
+          overlay.remove();
+        }
+      }
+
+      /**
+       * Ensure a view is active (add it if not already open).
+       * Used by scenarios to idempotently activate views without double-adding.
+       * Also syncs the corresponding sidebar button's visual state.
+       */
+      async function ensureView(idView) {
+        dismissStoryOverlay();
+        if (!openViews.has(idView)) {
+          log(`Adding view ${idView}`);
+          await mapx.ask("view_add", { idView });
+          openViews.add(idView);
+          const btn = document.querySelector(`#view-buttons .mg-button[title="${idView}"]`);
+          if (btn) btn.classList.add("is-active");
+        }
+      }
+
+      /**
+       * Remove all currently displayed views and reset button states.
+       * Called at the start of each scenario to ensure a clean slate.
+       */
+      async function clearAllViews() {
+        dismissStoryOverlay();
+        for (const idView of openViews) {
+          await mapx.ask("view_remove", { idView });
+        }
+        openViews.clear();
+        document
+          .querySelectorAll("#view-buttons .mg-button")
+          .forEach((b) => b.classList.remove("is-active"));
+      }
+
+      /*
+       * ============================================================
+       * SCENARIOS
+       * ============================================================
+       *
+       * Scenarios chain multiple SDK calls to demonstrate real-world
+       * integration patterns. Each scenario follows a common structure:
+       *
+       *   1. clearAllViews()        — start from a clean map
+       *   2. ensureView(id)         — activate one or more layers
+       *   3. fly/zoom               — navigate to a region of interest
+       *   4. adjust layers          — transparency, filters, dashboard
+       *
+       * Key SDK methods demonstrated:
+       *
+       *   common_loc_fit_bbox({code, param})
+       *     Flies to a country/region bounding box.
+       *     - code: ISO 3166-1 alpha-3 (e.g. "IND", "IDN") or M49 code
+       *     - param: Mapbox AnimationOptions (duration, maxZoom, etc.)
+       *     - Use common_loc_get_list_codes() to see all available codes
+       *
+       *   set_view_layer_transparency({idView, value})
+       *     Sets a layer's transparency from 0 (opaque) to 100 (invisible).
+       *     Useful for overlaying multiple raster layers.
+       *
+       *   has_dashboard()
+       *     Returns true if the MapX app currently has a dashboard panel.
+       *     Dashboards are attached to views that have chart/graph widgets.
+       *
+       *   set_dashboard_visibility({show: true})
+       *     Opens the dashboard slide-out panel. The dashboard content
+       *     depends on which view is active and what data it exposes.
+       *     Also supports {toggle: true} to toggle on/off.
+       *
+       *   get_view_table_attribute_config({idView})
+       *     Returns {attributes, idSource, labels} — the column names
+       *     and source ID for a vector view's data table. Useful for
+       *     discovering what filter values are available before calling
+       *     set_view_layer_filter_text({idView, value}).
+       *
+       *   map_wait_idle()
+       *     Returns a Promise that resolves when the map finishes rendering.
+       *     Call this between navigation and dashboard/filter operations
+       *     to avoid race conditions.
+       */
+      function enableScenarios() {
+
+        /*
+         * SCENARIO 1: India — Active Fires + Dashboard
+         *
+         * The Active Fires view (MX-OU7NG-ZNZGA-ZX3K0) is a vector polygon
+         * layer showing fire occurrence trends at GADM admin level 1 (provinces).
+         * It has an attached dashboard with time-series charts.
+         *
+         * This scenario:
+         *   1. Activates the fire polygons
+         *   2. Flies to India using common_loc_fit_bbox with ISO code "IND"
+         *   3. Waits for the map to settle (map_wait_idle)
+         *   4. Opens the dashboard panel if available
+         *
+         * To adapt this for a different country, change the ISO code:
+         *   "BRA" = Brazil, "AUS" = Australia, "COD" = DR Congo, etc.
+         */
+        document.getElementById("sc-fires-india").addEventListener("click", async () => {
+          log("Scenario: India fire activity");
+          await clearAllViews();
+
+          const idView = "MX-OU7NG-ZNZGA-ZX3K0";
+          await ensureView(idView);
+
+          log("Flying to India...");
+          await mapx.ask("common_loc_fit_bbox", { code: "IND", param: { duration: 2000 } });
+
+          await mapx.ask("map_wait_idle");
+          try {
+            const hasDash = await mapx.ask("has_dashboard");
+            if (hasDash) {
+              log("Opening dashboard...");
+              await mapx.ask("set_dashboard_visibility", { show: true });
+            } else {
+              log("No dashboard available for this view");
+            }
+          } catch (e) {
+            log("Dashboard: " + e.message);
+          }
+        });
+
+        /*
+         * SCENARIO 2: Caribbean — Cyclone Exposure + Flood Hazard
+         *
+         * Demonstrates overlaying two raster hazard layers and adjusting
+         * transparency so both are visible simultaneously. This is a common
+         * pattern for multi-hazard risk analysis.
+         *
+         * set_view_layer_transparency takes:
+         *   {idView: "...", value: 0-100}
+         *   0 = fully opaque, 100 = fully transparent
+         *
+         * The order views are added matters — later views render on top.
+         * Here we add cyclone first (bottom) then flood (top), then make
+         * the cyclone layer semi-transparent.
+         */
+        document.getElementById("sc-caribbean-multi").addEventListener("click", async () => {
+          log("Scenario: Caribbean multi-hazard");
+          await clearAllViews();
+
+          await ensureView("MX-10AE5-746D1-76777"); // Tropical Cyclone Exposure
+          await ensureView("MX-V07LO-829XA-4BIZ8"); // Flood Hazard 25yr
+
+          log("Flying to Caribbean...");
+          await mapx.ask("map_fly_to", { center: { lng: -72, lat: 18 }, zoom: 5.5 });
+
+          log("Setting cyclone layer to 50% transparency...");
+          await mapx.ask("set_view_layer_transparency", {
+            idView: "MX-10AE5-746D1-76777",
+            value: 50,
+          });
+        });
+
+        /*
+         * SCENARIO 3: SE Asia — Tsunami Exposure + Mangrove Restoration
+         *
+         * Pairs a hazard layer with a nature-based solution (NbS) layer.
+         * This is the core Eco-DRR use case: showing where ecosystems
+         * (mangroves, coral reefs, forests) can reduce disaster risk.
+         *
+         * Flies to Indonesia using ISO code "IDN" via common_loc_fit_bbox.
+         * The mangrove restoration layer shows areas where restoring
+         * mangroves could reduce cyclone surge exposure.
+         */
+        document.getElementById("sc-seasia-tsunami").addEventListener("click", async () => {
+          log("Scenario: SE Asia tsunami + mangrove NbS");
+          await clearAllViews();
+
+          await ensureView("MX-F0DEE-12D97-6447B"); // Tsunami Exposure
+          await ensureView("MX-559C5-58858-96A69"); // Mangrove Restoration — Cyclone Surge
+
+          log("Flying to Indonesia...");
+          await mapx.ask("common_loc_fit_bbox", { code: "IDN", param: { duration: 2000 } });
+
+          log("Setting tsunami layer to 40% transparency...");
+          await mapx.ask("set_view_layer_transparency", {
+            idView: "MX-F0DEE-12D97-6447B",
+            value: 40,
+          });
+        });
+
+        /*
+         * SCENARIO 4: Water Stress 2030 — Ukraine
+         *
+         * Demonstrates the full introspect → filter → navigate workflow
+         * for a vector polygon layer:
+         *
+         *   1. Activate the water stress layer
+         *   2. Introspect: get_view_table_attribute_config reveals the
+         *      view's data columns (logged so you can see the schema)
+         *   3. Fetch data: get_view_table_attribute pulls actual row values
+         *      — this tells us what text strings are valid for filtering
+         *   4. Filter: set_view_layer_filter_text isolates Ukraine's polygon
+         *      by matching against the view's text attribute values
+         *   5. Navigate: common_loc_fit_bbox flies to Ukraine by ISO code
+         *
+         * How set_view_layer_filter_text works:
+         *   - It controls the view's text/category search box filter
+         *   - value must match entries from the view's filter dropdown
+         *   - Pass a string for single match, or array for multiple
+         *   - Pass empty string/array to clear the filter
+         *   - Use get_view_table_attribute first to discover valid values
+         *
+         * To adapt for a different country:
+         *   - Change "UKR" in common_loc_fit_bbox to any ISO alpha-3 code
+         *   - Change the filter value to match (check logged sample rows)
+         */
+        /*
+         * Water Stress shared setup — both buttons use the same view,
+         * so we only need to activate it once. If it's already open,
+         * we just swap the filter.
+         *
+         * The view's attribute column "ws3028cl" contains categories:
+         *   "1.4x decrease", "1.4x increase", "2.8x or greater decrease",
+         *   "2.8x or greater increase", "2x decrease", "2x increase",
+         *   "Near normal", "No data"
+         *
+         * We split these into "increase" vs everything else.
+         */
+        const waterStressView = "MX-1L2TA-6FXPV-N3QMX";
+        let waterStressCategories = null; // cached after first fetch
+
+        async function ensureWaterStressReady() {
+          await ensureView(waterStressView);
+          if (!waterStressCategories) {
+            await mapx.ask("map_wait_idle");
+            try {
+              const data = await mapx.ask("get_view_table_attribute", { idView: waterStressView });
+              if (data && Array.isArray(data)) {
+                const cats = new Set();
+                for (const row of data) {
+                  const val = row.ws3028cl || Object.values(row).find((v) => typeof v === "string");
+                  if (val) cats.add(val);
+                }
+                waterStressCategories = [...cats].sort();
+                log(`Water stress categories: ${waterStressCategories.join(", ")}`);
+              }
+            } catch (e) {
+              log("Attribute data: " + e.message);
+            }
+          }
+        }
+
+        /*
+         * Scenario 4a: High Water Stress
+         * Filters to categories containing "increase" — shows where
+         * water stress is projected to worsen by 2030.
+         */
+        document.getElementById("sc-water-high").addEventListener("click", async () => {
+          log("Water Stress 2030 — filtering to HIGH stress");
+          await ensureWaterStressReady();
+          if (waterStressCategories) {
+            const high = waterStressCategories.filter(
+              (c) => c.toLowerCase().includes("increase")
+            );
+            log(`Showing: ${high.join(", ")}`);
+            await mapx.ask("set_view_layer_filter_text", {
+              idView: waterStressView,
+              value: high,
+            });
+          }
+        });
+
+        /*
+         * Scenario 4b: Low Water Stress
+         * Filters to categories containing "decrease" or "normal" — shows
+         * where water stress is stable or improving.
+         */
+        document.getElementById("sc-water-low").addEventListener("click", async () => {
+          log("Water Stress 2030 — filtering to LOW stress");
+          await ensureWaterStressReady();
+          if (waterStressCategories) {
+            const low = waterStressCategories.filter(
+              (c) => c.toLowerCase().includes("decrease") || c.toLowerCase().includes("normal")
+            );
+            log(`Showing: ${low.join(", ")}`);
+            await mapx.ask("set_view_layer_filter_text", {
+              idView: waterStressView,
+              value: low,
+            });
+          }
+        });
+      }
+
+      /*
+       * ============================================================
+       * ACTION BUTTONS (regions, zoom, reset)
+       * ============================================================
+       *
+       * These are simpler single-call interactions. All buttons start
+       * with the Mangrove "disabled" class and get enabled once the
+       * SDK reports "ready".
+       */
+      function enableActionButtons() {
+        /* Remove Mangrove "disabled" class from all interactive buttons */
+        document
+          .querySelectorAll(".action-buttons .mg-button, #btn-zoom-in, #btn-zoom-out, #btn-reset, #scenario-buttons .mg-button")
+          .forEach((b) => b.classList.remove("disabled"));
+
+        enableScenarios();
+        enableSdkFeatures();
+
+        /*
+         * Zoom controls — use map_get_zoom() to read the current zoom level,
+         * then map_fly_to({zoom}) to animate to the new level.
+         * map_fly_to accepts any Mapbox GL AnimationOptions:
+         *   {center, zoom, bearing, pitch, duration, essential, ...}
+         */
+        document.getElementById("btn-zoom-in").addEventListener("click", async () => {
+          const z = await mapx.ask("map_get_zoom");
+          log(`Zoom in: ${z.toFixed(1)} → ${(z + 2).toFixed(1)}`);
+          await mapx.ask("map_fly_to", { zoom: z + 2 });
+        });
+
+        document.getElementById("btn-zoom-out").addEventListener("click", async () => {
+          const z = await mapx.ask("map_get_zoom");
+          log(`Zoom out: ${z.toFixed(1)} → ${(z - 2).toFixed(1)}`);
+          await mapx.ask("map_fly_to", { zoom: Math.max(0, z - 2) });
+        });
+
+        /*
+         * Globe projection toggle — uses the "map" resolver to call
+         * Mapbox GL JS methods directly on the underlying map instance.
+         *
+         * mapx.ask("map", {method: "getProjection"})
+         *   → returns {name: "mercator"|"globe", ...}
+         *
+         * mapx.ask("map", {method: "setProjection", parameters: ["globe"]})
+         *   → switches to globe view
+         *
+         * The "map" resolver is a passthrough — it can call ANY method on
+         * the Mapbox GL JS Map object. The "parameters" array maps to the
+         * method's arguments. Use this for features the SDK doesn't wrap.
+         */
+        let isGlobe = false;
+        document.getElementById("btn-globe").addEventListener("click", async () => {
+          isGlobe = !isGlobe;
+          const proj = isGlobe ? "globe" : "mercator";
+          log(`Setting projection: ${proj}`);
+          await mapx.ask("map", { method: "setProjection", parameters: [proj] });
+        });
+
+        /*
+         * 3D terrain — adds elevation exaggeration to the basemap.
+         * SDK method: set_3d_terrain({action})
+         *   action: "show" | "hide" | "toggle"
+         */
+        document.getElementById("btn-terrain").addEventListener("click", async () => {
+          log("Toggling 3D terrain");
+          await mapx.ask("set_3d_terrain", { action: "toggle" });
+        });
+
+        /*
+         * 3D tilt mode — adjusts pitch and bearing for a perspective view.
+         * SDK method: set_mode_3d({action})
+         *   action: "show" | "hide" | "toggle"
+         * Combine with 3D terrain for the full effect.
+         */
+        document.getElementById("btn-3d").addEventListener("click", async () => {
+          log("Toggling 3D tilt mode");
+          await mapx.ask("set_mode_3d", { action: "toggle" });
+        });
+
+        /*
+         * Aerial/satellite imagery toggle.
+         * SDK method: set_mode_aerial({action})
+         *   action: "show" | "hide" | "toggle"
+         */
+        document.getElementById("btn-aerial").addEventListener("click", async () => {
+          log("Toggling aerial view");
+          await mapx.ask("set_mode_aerial", { action: "toggle" });
+        });
+
+        /*
+         * Immersive mode — hides all MapX chrome (panels, toolbars, etc.)
+         * for a clean map-only presentation.
+         * SDK method: set_immersive_mode({action})
+         *   action: "show" | "hide" | "toggle"
+         * Also: get_immersive_mode() returns current Boolean state.
+         */
+        document.getElementById("btn-immersive").addEventListener("click", async () => {
+          log("Toggling immersive mode");
+          await mapx.ask("set_immersive_mode", { action: "toggle" });
+        });
+
+        /*
+         * Region fly-to presets — chosen for DRR relevance.
+         * Uses map_fly_to with manual coordinates and zoom levels.
+         *
+         * Alternative approach using ISO/M49 codes:
+         *   await mapx.ask("common_loc_fit_bbox", { code: "m49_029" }); // Caribbean
+         *   await mapx.ask("common_loc_fit_bbox", { code: "IDN" });     // Indonesia
+         */
+        document.getElementById("btn-world").addEventListener("click", async () => {
+          log("Fly to world view");
+          await mapx.ask("map_fly_to", { center: { lng: 0, lat: 20 }, zoom: 2 });
+        });
+
+        document.getElementById("btn-caribbean").addEventListener("click", async () => {
+          log("Fly to Caribbean");
+          await mapx.ask("map_fly_to", { center: { lng: -72, lat: 18 }, zoom: 5.5 });
+        });
+
+        document.getElementById("btn-se-asia").addEventListener("click", async () => {
+          log("Fly to Southeast Asia");
+          await mapx.ask("map_fly_to", { center: { lng: 110, lat: 5 }, zoom: 4.5 });
+        });
+
+        document.getElementById("btn-e-africa").addEventListener("click", async () => {
+          log("Fly to East Africa");
+          await mapx.ask("map_fly_to", { center: { lng: 37, lat: 0 }, zoom: 4.5 });
+        });
+
+        document.getElementById("btn-pacific").addEventListener("click", async () => {
+          log("Fly to Pacific Islands");
+          await mapx.ask("map_fly_to", { center: { lng: 170, lat: -10 }, zoom: 4 });
+        });
+
+        /* Reset — removes all views and clears button states */
+        document.getElementById("btn-reset").addEventListener("click", async () => {
+          log("Removing all views");
+          await clearAllViews();
+        });
+      }
+
+      /*
+       * ============================================================
+       * SDK FEATURES (language, theme, story maps)
+       * ============================================================
+       *
+       * These demonstrate SDK capabilities beyond view management:
+       *
+       *   set_language({lang})    — switch interface language (ISO 639-1)
+       *   get_language()          — get current language code
+       *   get_languages()         — get list of supported language codes
+       *
+       *   set_theme({idTheme})    — switch map visual theme
+       *   get_themes_id()         — get available theme IDs
+       *   get_theme_id()          — get current theme ID
+       *
+       *   view_add({idView})      — for story maps (type "sm"), this
+       *                             activates the story map player
+       *   view_remove({idView})   — stops story map playback
+       */
+      async function enableSdkFeatures() {
+
+        /*
+         * Language buttons — each has a data-lang attribute with the
+         * ISO 639-1 code. set_language changes both the MapX UI language
+         * and view titles/descriptions (where translations exist).
+         */
+        document.querySelectorAll(".btn-lang").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const lang = btn.dataset.lang;
+            log(`Switching language to: ${lang}`);
+            await mapx.ask("set_language", { lang });
+
+            /* Highlight the active language button */
+            document.querySelectorAll(".btn-lang").forEach((b) => b.classList.remove("is-active"));
+            btn.classList.add("is-active");
+          });
+        });
+
+        /* Mark the current language as active on load */
+        try {
+          const currentLang = await mapx.ask("get_language");
+          log(`Current language: ${currentLang}`);
+          const activeBtn = document.querySelector(`.btn-lang[data-lang="${currentLang}"]`);
+          if (activeBtn) activeBtn.classList.add("is-active");
+        } catch (e) {
+          log("get_language: " + e.message);
+        }
+
+        /*
+         * Theme buttons — built dynamically from get_themes_id().
+         * MapX ships several themes (light, dark, colored variants).
+         * set_theme accepts either {idTheme: "..."} for built-in themes
+         * or custom color overrides.
+         */
+        try {
+          const themeIds = await mapx.ask("get_themes_id");
+          const currentTheme = await mapx.ask("get_theme_id");
+          log(`Available themes: ${themeIds.join(", ")}`);
+          log(`Current theme: ${currentTheme}`);
+
+          const container = document.getElementById("theme-buttons");
+          container.innerHTML = "";
+
+          themeIds.forEach((id) => {
+            const btn = document.createElement("button");
+            btn.className = "mg-button mg-button-secondary";
+            /* Clean up theme ID for display: "color_light" → "Light" */
+            const label = id.replace(/^color_/, "").replace(/_/g, " ");
+            btn.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+            if (id === currentTheme) btn.classList.add("is-active");
+
+            btn.addEventListener("click", async () => {
+              log(`Switching theme to: ${id}`);
+              await mapx.ask("set_theme", { idTheme: id });
+              container.querySelectorAll(".mg-button").forEach((b) => b.classList.remove("is-active"));
+              btn.classList.add("is-active");
+            });
+
+            container.appendChild(btn);
+          });
+        } catch (e) {
+          log("Themes: " + e.message);
+        }
+
+        /*
+         * Story map buttons — story maps are narrative presentations
+         * built into MapX. When activated via view_add, the MapX app
+         * enters a full-screen story player with step-by-step navigation.
+         *
+         * The story map IDs below are shared across projects (discovered
+         * via probe-views.html). Type "sm" views work the same as other
+         * views — view_add starts playback, view_remove stops it.
+         *
+         * Note: story maps take over the MapX UI, so the user will need
+         * to close the story (or we call view_remove) to return to the
+         * normal map view.
+         */
+        /*
+         * STORY MAP — overlay iframe approach.
+         *
+         * Story maps require the current project to contain them.
+         * The Eco-DRR project has 0 story maps. We tried two alternatives:
+         *
+         *   1. set_project to switch projects first — fails with
+         *      "must log in" because the SDK iframe doesn't carry
+         *      the user's authentication context for project switching.
+         *
+         *   2. view_add with cross-project IDs — silently fails
+         *      (no error, no network request).
+         *
+         * So we use a third approach: overlay a second iframe that loads
+         * the story map directly via URL with ?storyAutoStart=true from
+         * the HOME project (which is publicly accessible without auth).
+         * A close button dismisses the overlay.
+         *
+         * If your project has its own story maps (check probe-views.html
+         * for type "sm"), view_add works natively without this workaround.
+         *
+         * See methodology.md section 8 for the full investigation.
+         */
+        function playStoryMap(idView, label) {
+          log(`Playing story map: ${label} (${idView})`);
+          const mapArea = document.querySelector(".app-map");
+
+          /* Remove any existing story overlay */
+          const existing = document.getElementById("story-overlay");
+          if (existing) existing.remove();
+
+          /* Create overlay with iframe + close button */
+          const overlay = document.createElement("div");
+          overlay.id = "story-overlay";
+          overlay.style.cssText = "position:absolute;inset:0;z-index:20;background:#000;";
+
+          const iframe = document.createElement("iframe");
+          iframe.src = `https://app.mapx.org/?project=MX-YBJ-YYF-08R-UUR-QW6&views=${idView}&storyAutoStart=true&language=en`;
+          iframe.style.cssText = "width:100%;height:100%;border:none;";
+
+          const closeBtn = document.createElement("button");
+          closeBtn.className = "mg-button mg-button-primary";
+          closeBtn.textContent = "Close Story Map";
+          closeBtn.style.cssText = "position:absolute;top:1rem;right:1rem;z-index:21;";
+          closeBtn.addEventListener("click", () => {
+            log("Closing story map");
+            overlay.remove();
+          });
+
+          overlay.appendChild(iframe);
+          overlay.appendChild(closeBtn);
+          mapArea.appendChild(overlay);
+        }
+
+        document.getElementById("btn-story-mapx").addEventListener("click", () => {
+          playStoryMap("MX-5BWRN-RBB0W-ZAXRA", "MapX Presentation");
+        });
+
+        document.getElementById("btn-story-caribbean").addEventListener("click", () => {
+          playStoryMap("MX-YF1T2-42JUK-5EXLM", "Caribbean Sea");
+        });
+      }
+    </script>
+
+    <!--
+      UNDRR Syndicated Footer Widget
+      Loads the PreventionWeb widget script and initialises the global footer.
+      The widget fetches HTML from the UNDRR syndication service and injects
+      it into the #pw-widget-footer container above.
+
+      If the widget script fails to load (e.g. ad blocker, network issue),
+      the footer div remains empty — wrapped in try/catch to fail silently.
+    -->
+    <script src="https://publish.preventionweb.net/widget.js"></script>
+    <script>
+      try {
+        if (typeof PW_Widget !== "undefined" && PW_Widget.defined) {
+          PW_Widget.defined("footer", {
+            container: document.getElementById("pw-widget-footer"),
+            contenttype: "landingpage",
+            pageid: "83835",
+            includemetatags: false,
+            includecss: false,
+            suffixID: "footer",
+            activedomain: "www.undrr.org",
+          });
+        }
+      } catch (e) {
+        console.log("Footer syndication not available:", e.message);
+      }
+    </script>
+  </body>
+</html>
