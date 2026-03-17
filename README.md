@@ -1,11 +1,11 @@
 # MapX Demo Embed
 
-> **Investigation proof of concept** — This is exploratory work to evaluate
-> MapX SDK capabilities for embedding interactive geospatial maps into a
-> website. It is not intended for production use and may contain workarounds
-> or limitations documented in [methodology.md](methodology.md).
+> **Investigation proof of concept** — Exploratory work to see what the
+> MapX SDK can do for embedding interactive geospatial maps into a website.
+> Not intended for production use; workarounds and rough edges are documented
+> in [methodology.md](methodology.md).
 
-Demonstrates embedding MapX disaster risk reduction maps via the SDK and wiring them up to UI controls styled with the UNDRR Mangrove component library.
+A proof-of-concept that embeds MapX disaster risk reduction maps via the SDK and wires them up to UI controls styled with the UNDRR Mangrove component library.
 
 ## Project
 
@@ -14,7 +14,7 @@ Demonstrates embedding MapX disaster risk reduction maps via the SDK and wiring 
 
 ## Preview Access
 
-The demo is gated behind a PIN overlay to signal it is an unofficial preview.
+The demo sits behind a PIN overlay since it's an unofficial preview.
 
 **PIN: `5498`**
 
@@ -41,7 +41,7 @@ Open **http://localhost:3001**. To change the port: `PORT=8080 node server.js`.
 
 ## Curated DRR Views
 
-The demo loads 11 curated views spanning hazards, exposure, eco-DRR solutions, and climate projections:
+The demo loads 11 curated views covering hazards, exposure, eco-DRR solutions, and climate projections:
 
 | Type | View | What it shows |
 |---|---|---|
@@ -70,7 +70,7 @@ See [methodology.md](methodology.md) section 8 for the full investigation.
 
 ## Custom Data Overlays
 
-The demo supports overlaying your own data on top of MapX layers using three approaches:
+You can overlay your own data on top of MapX layers in a few different ways:
 
 | Approach | Method | Best for |
 |---|---|---|
@@ -79,12 +79,12 @@ The demo supports overlaying your own data on top of MapX layers using three app
 | **Polygon overlay** | `map` method with `fill`/`line` layers | Area boundaries and project zones |
 
 **Click interaction:** GeoJSON views fire the `click_attributes` event natively
-when a feature is clicked, providing feature properties automatically. Mapbox
+when a feature is clicked, and feature properties come through with it. Mapbox
 passthrough layers cannot have click handlers (callbacks are not serializable
 through `postMessage`), so a coordinate matching fallback is used instead —
 nearest-point matching for points and ray-casting point-in-polygon for polygons.
 
-See [methodology.md](methodology.md) section 9 for the full technical details,
+See [methodology.md](methodology.md) section 9 for technical details,
 trade-offs, and implementation patterns.
 
 ## Key SDK Methods

@@ -1,7 +1,7 @@
 # Methodology: Discovering MapX Views and Data Sources
 
-This document records how the demo views and project configuration were discovered
-and selected, since MapX does not expose a public unauthenticated search API.
+The demo views and project configuration had to be discovered manually because
+MapX does not expose a public unauthenticated search API. Here is what we did.
 
 ## 1. SDK documentation review
 
@@ -55,8 +55,8 @@ The probe returned each view's ID, type code, English title, and description.
 
 ## 4. Project selection
 
-The **Eco-DRR project** (`MX-2LD-FBB-58N-ROK-8RH`) was chosen as the primary project
-because it contains 85 views purpose-built for disaster risk reduction, including:
+The **Eco-DRR project** (`MX-2LD-FBB-58N-ROK-8RH`) was the natural fit as the primary
+project -- it has 85 views focused on disaster risk reduction, covering:
 
 - Multi-hazard exposure and frequency layers (flood, cyclone, tsunami, landslide)
 - Ecosystem-based DRR solution layers (forest protection/restoration, mangrove, coral reef, seagrass)
@@ -144,7 +144,7 @@ await mapx.ask("view_add", { idView: "MX-5BWRN-RBB0W-ZAXRA" });
 ```
 
 This works when the story map belongs to the project the SDK is connected to.
-However, the Eco-DRR project (`MX-2LD-FBB-58N-ROK-8RH`) contains 85 views but
+The Eco-DRR project (`MX-2LD-FBB-58N-ROK-8RH`) contains 85 views but
 **zero story maps**. The story maps we wanted to demo are in the HOME project
 (`MX-YBJ-YYF-08R-UUR-QW6`).
 
@@ -197,8 +197,8 @@ Use `probe-views.html` to check — look for views with type `sm` in your projec
 
 - **`set_project`** — the SDK has a `set_project({idProject})` method that
   switches the loaded project. This could theoretically switch to the HOME
-  project, play the story map, then switch back. However, this reloads the
-  entire MapX app state and would lose all current views/filters.
+  project, play the story map, then switch back. The downside is that this
+  reloads the entire MapX app state, so you lose all current views/filters.
 - **Requesting story maps be added to the Eco-DRR project** — the cleanest
   solution if working with the MapX data administrators.
 
@@ -207,9 +207,9 @@ Use `probe-views.html` to check — look for views with type `sm` in your projec
 ### The problem
 
 The curated MapX views (sections 4-5) are published datasets hosted on the MapX
-platform. For many integration scenarios, however, you need to overlay your own
-data — field office locations, monitoring stations, project boundaries — on top
-of the MapX basemap and its layers. The SDK provides two distinct mechanisms for
+platform. In practice, you will often want to overlay your own data -- field
+office locations, monitoring stations, project boundaries -- on top of the MapX
+basemap and its layers. The SDK provides two distinct mechanisms for
 this, plus a hybrid approach for polygon overlays.
 
 ### Approach A: GeoJSON view (`view_geojson_create`)
@@ -237,7 +237,7 @@ await mapx.ask("view_geojson_create", {
 
 When a user clicks a feature in this layer, MapX fires the `click_attributes`
 event with the feature's properties attached at `data.attributes[0]`. This is
-the simplest path for interactive point overlays.
+the most straightforward way to get interactive point overlays working.
 
 ### Approach B: Mapbox passthrough (`map` method)
 
@@ -269,7 +269,7 @@ await mapx.ask("map", {
 ```
 
 This gives full Mapbox styling power (data-driven paint expressions, zoom
-interpolation, heatmaps, 3D extrusions, etc.) but has a critical limitation:
+interpolation, heatmaps, 3D extrusions, etc.) but comes with a notable limitation:
 **the layer has no click handler**. Mapbox GL normally supports `map.on("click",
 layerId, callback)`, but the SDK's `map` passthrough only accepts serializable
 arguments. Callbacks (functions) cannot be serialized through `postMessage`, so
@@ -333,7 +333,7 @@ fallback was implemented:
    locally stored point features and finds the nearest one using Euclidean
    distance on longitude/latitude. A tolerance of **0.5 degrees** is applied —
    if no point is within this radius, the click is ignored. This tolerance is
-   deliberately generous because it must account for varying zoom levels.
+   fairly generous so that it works across different zoom levels.
 
 4. **Ray-casting point-in-polygon (for polygon layers).** For polygon overlays,
    the fallback uses a ray-casting algorithm to determine whether the click
@@ -355,9 +355,9 @@ parent page — not inside the MapX iframe:
 - **Toast notification**: a brief notification confirming the click was
   registered, shown at the top of the page.
 
-Both elements are standard DOM elements in the parent page, styled with the
-Mangrove component library. They are not injected into the MapX iframe (which
-would violate cross-origin restrictions).
+Both are regular DOM elements in the parent page, styled with Mangrove classes.
+They live outside the MapX iframe -- injecting them into the iframe would break
+cross-origin restrictions.
 
 ### Sample data
 
@@ -387,9 +387,8 @@ alongside the real hazard and ecosystem layers.
 | Removal | `view_remove` by view ID | Must call `map` with `removeLayer` and `removeSource` |
 | Complexity | Low — single SDK call | Higher — multiple calls, local data management, fallback logic |
 
-**Recommendation:** Use GeoJSON views (Approach A) when click interaction is
-important and styling needs are simple. Use Mapbox passthrough (Approach B/C)
-when you need advanced Mapbox styling or when the overlay is purely visual
-without click interaction. For interactive polygon overlays with advanced
-styling, the passthrough with coordinate matching fallback is the only option,
-but it adds significant complexity.
+In general, GeoJSON views (Approach A) are the easier path when you need click
+interaction and simple styling. The Mapbox passthrough (Approach B/C) makes more
+sense for advanced styling or for overlays that are purely visual. If you need
+interactive polygon overlays with advanced styling, the passthrough plus
+coordinate matching fallback is the way to go, though it does add complexity.

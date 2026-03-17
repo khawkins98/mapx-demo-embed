@@ -182,11 +182,10 @@
     -->
     <!--
       PIN GATE OVERLAY
-      A simple access gate to signal this is an unofficial preview.
+      Basic PIN gate so people know this is an unofficial preview.
       Requires entering a 4-digit PIN (5498) to dismiss the overlay
-      and access the demo. The PIN is not a security measure — it's
-      a speed bump to make clear this is not a public-facing product.
-      The PIN is documented in the README.
+      and access the demo. Not a real security measure — just a
+      speed bump. PIN is in the README.
     -->
     <div id="pin-gate" style="
       position:fixed;inset:0;z-index:9999;
@@ -321,8 +320,8 @@
           4. Optionally adjust transparency (set_view_layer_transparency)
           5. Optionally open the dashboard panel (set_dashboard_visibility)
 
-          This demonstrates how the SDK can orchestrate complex map interactions
-          from a single button click — the core pattern for website integration.
+          Shows how you can chain several SDK calls from one button click —
+          the basic pattern for embedding in a real site.
         -->
         <div class="sidebar-section">
           <h2>Scenarios</h2>
@@ -347,7 +346,7 @@
             </button>
             <!--
               Scenario 3: Show tsunami exposure alongside mangrove restoration
-              opportunities — demonstrates pairing a hazard with an eco-DRR
+              opportunities — pairs a hazard layer with an eco-DRR
               solution layer. Flies to Indonesia.
               SDK methods: view_add (x2) → common_loc_fit_bbox → set_view_layer_transparency
             -->
@@ -356,8 +355,8 @@
             </button>
             <!--
               Scenario 4: Show a single vector polygon layer (water stress
-              projection) and log its attribute configuration. Demonstrates
-              get_view_table_attribute_config for discovering a view's data schema.
+              projection) and log its attribute configuration. Uses
+              get_view_table_attribute_config to discover a view's data schema.
               SDK methods: view_add → map_fly_to → get_view_table_attribute_config
             -->
             <!--
@@ -370,8 +369,8 @@
             <!--
               Scenarios 4a/4b: Water Stress 2030 — binary filter toggle.
               Both buttons share the same view but filter to opposite categories.
-              Demonstrates how set_view_layer_filter_text can be used to build
-              a simple toggle UI on top of a single dataset.
+              Both buttons share one view but apply opposite filters, so you
+              get a simple toggle UI from a single dataset.
               SDK methods: view_add → map_wait_idle → get_view_table_attribute →
                 set_view_layer_filter_text
             -->
@@ -427,9 +426,9 @@
               This calls map.setProjection("globe") or map.setProjection("mercator")
               on the underlying Mapbox instance.
 
-              The "map" resolver is a powerful escape hatch — it can call ANY
-              Mapbox GL JS Map method. Use it for features the SDK doesn't
-              wrap directly. See: https://docs.mapbox.com/mapbox-gl-js/api/map/
+              The "map" resolver is an escape hatch — you can call any
+              Mapbox GL JS Map method through it. Handy for things the SDK
+              doesn't wrap. See: https://docs.mapbox.com/mapbox-gl-js/api/map/
             -->
             <button class="mg-button mg-button-secondary disabled" id="btn-globe">Toggle Globe</button>
 
@@ -524,9 +523,9 @@
 
           <!--
             Polygon overlay — GeoJSON polygons via view_geojson_create.
-            Demonstrates that the SDK handles polygons the same way as
-            points. Click a polygon to see its properties in the infobox.
-            Uses fill+stroke styling via view_geojson_set_style.
+            Works the same way as points. Click a polygon to see its
+            properties in the infobox. Styled with fill+stroke via
+            view_geojson_set_style.
           -->
           <p class="mg-form-help" style="margin-top:1rem;">Polygon Overlay (SDK-managed)</p>
           <div class="action-buttons">
@@ -543,8 +542,8 @@
 
         <!--
           SDK FEATURES SECTION
-          Demonstrates additional SDK capabilities beyond map views:
-          language switching, theme switching, and story map playback.
+          Other SDK controls: language switching, theme switching,
+          and story map playback.
         -->
         <div class="sidebar-section">
           <h2>SDK Features</h2>
@@ -1297,9 +1296,9 @@
 
       /*
        * Track which views are currently displayed on the map.
-       * This is needed because view_add/view_remove are fire-and-forget —
-       * the SDK doesn't expose a synchronous "is this view open?" check.
-       * (You can call get_views_id_open() but it's async.)
+       * Needed because view_add/view_remove are fire-and-forget —
+       * there's no synchronous "is this view open?" check.
+       * (get_views_id_open() exists but it's async.)
        */
       const openViews = new Set();
 
@@ -1516,8 +1515,8 @@
        * SCENARIOS
        * ============================================================
        *
-       * Scenarios chain multiple SDK calls to demonstrate real-world
-       * integration patterns. Each scenario follows a common structure:
+       * Each scenario chains several SDK calls to show a typical
+       * integration pattern. They all follow the same structure:
        *
        *   1. clearAllViews()        — start from a clean map
        *   2. ensureView(id)         — activate one or more layers
@@ -1601,9 +1600,9 @@
         /*
          * SCENARIO 2: Caribbean — Cyclone Exposure + Flood Hazard
          *
-         * Demonstrates overlaying two raster hazard layers and adjusting
-         * transparency so both are visible simultaneously. This is a common
-         * pattern for multi-hazard risk analysis.
+         * Overlays two raster hazard layers and adjusts transparency so
+         * both are visible at once — a common pattern for multi-hazard
+         * risk analysis.
          *
          * set_view_layer_transparency takes:
          *   {idView: "...", value: 0-100}
@@ -1661,8 +1660,8 @@
         /*
          * SCENARIO 4: Water Stress 2030 — Ukraine
          *
-         * Demonstrates the full introspect → filter → navigate workflow
-         * for a vector polygon layer:
+         * Full introspect → filter → navigate workflow for a vector
+         * polygon layer:
          *
          *   1. Activate the water stress layer
          *   2. Introspect: get_view_table_attribute_config reveals the
@@ -1808,9 +1807,9 @@
          * mapx.ask("map", {method: "setProjection", parameters: ["globe"]})
          *   → switches to globe view
          *
-         * The "map" resolver is a passthrough — it can call ANY method on
-         * the Mapbox GL JS Map object. The "parameters" array maps to the
-         * method's arguments. Use this for features the SDK doesn't wrap.
+         * The "map" resolver is a passthrough to the underlying Mapbox GL
+         * JS Map object. The "parameters" array maps to the method's
+         * arguments. Use it for anything the SDK doesn't wrap directly.
          */
         document.getElementById("btn-globe").addEventListener("click", async () => {
           const current = await mapx.ask("map", { method: "getProjection" });
@@ -1907,7 +1906,7 @@
        * SDK FEATURES (language, theme, story maps)
        * ============================================================
        *
-       * These demonstrate SDK capabilities beyond view management:
+       * SDK features beyond view management:
        *
        *   set_language({lang})    — switch interface language (ISO 639-1)
        *   get_language()          — get current language code
@@ -2282,8 +2281,8 @@
         /*
          * ---- POLYGON OVERLAY ----
          *
-         * Demonstrates GeoJSON polygons via view_geojson_create.
-         * Same SDK method as points — MapX handles both geometry types.
+         * GeoJSON polygons via view_geojson_create.
+         * Same method as points — MapX handles both geometry types.
          * Polygons are styled with fill + stroke via view_geojson_set_style.
          * Click interaction works the same as points (click_attributes event).
          *
