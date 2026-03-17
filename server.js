@@ -19,6 +19,13 @@ const server = http.createServer((req, res) => {
     __dirname,
     req.url === "/" ? "index.html" : req.url
   );
+
+  if (!filePath.startsWith(__dirname)) {
+    res.writeHead(403, { "Content-Type": "text/plain" });
+    res.end("Forbidden");
+    return;
+  }
+
   const ext = path.extname(filePath);
 
   fs.readFile(filePath, (err, data) => {

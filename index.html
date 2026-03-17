@@ -82,6 +82,11 @@
         padding: 1.5rem 1rem;
         overflow-y: auto;
       }
+
+      @media (max-width: 768px) {
+        .app-body { flex-direction: column; height: auto; }
+        .app-sidebar { width: 100%; min-width: auto; max-height: 50vh; }
+      }
       .app-sidebar h2 {
         margin-top: 0;
       }
@@ -903,6 +908,13 @@
        * ============================================================
        */
 
+      /** Escape a string for safe insertion into innerHTML */
+      function esc(str) {
+        const d = document.createElement("div");
+        d.textContent = String(str);
+        return d.innerHTML;
+      }
+
       /** Append a timestamped message to the on-screen log overlay */
       const log = (msg) => {
         const el = document.getElementById("log");
@@ -1054,6 +1066,12 @@
               if (pointInPolygon(lng, lat, ring)) {
                 return feature.properties;
               }
+            } else if (feature.geometry.type === "MultiPolygon") {
+              for (const polygon of feature.geometry.coordinates) {
+                if (pointInPolygon(lng, lat, polygon[0])) {
+                  return feature.properties;
+                }
+              }
             }
           }
         }
@@ -1082,17 +1100,6 @@
         return best;
       }
 
-      /**
-       * Handle click_attributes events from the SDK.
-       *
-       * The event data contains: {part, npart, idView, x, y, lng, lat}
-       * It does NOT contain the clicked feature's properties — MapX
-       * shows those in its own attribute table, but doesn't pass them
-       * through the event.
-       *
-       * For custom GeoJSON data, we match the click coordinates against
-       * our registered datasets to find and display the feature properties.
-       */
       /**
        * Handle click_attributes from the SDK.
        *
@@ -1182,8 +1189,8 @@
         for (const [key, value] of entries) {
           const label = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
           html += `<tr>
-            <td style="padding:0.3rem 0.5rem 0.3rem 0;color:#666;white-space:nowrap;vertical-align:top;">${label}</td>
-            <td style="padding:0.3rem 0;font-weight:500;">${value}</td>
+            <td style="padding:0.3rem 0.5rem 0.3rem 0;color:#666;white-space:nowrap;vertical-align:top;">${esc(label)}</td>
+            <td style="padding:0.3rem 0;font-weight:500;">${esc(value)}</td>
           </tr>`;
         }
         html += "</table>";
@@ -1237,7 +1244,7 @@
         wrapper.innerHTML = `
           <div class="mg-snackbar mg-snackbar__info">
             <div class="mg-snackbar__content">
-              <span class="mg-snackbar__message">Selected: <strong>${message}</strong></span>
+              <span class="mg-snackbar__message">Selected: <strong>${esc(message)}</strong></span>
             </div>
           </div>
         `;
@@ -1275,9 +1282,11 @@
        */
       const mapx = new mxsdk.Manager({
         container: document.getElementById("mapx"),
-        url: "https://app.mapx.org/?project=MX-2LD-FBB-58N-ROK-8RH&language=en&theme=color_light",
+        url: "https://app.mapx.org/?project=MX-2LD-FBB-58N-ROK-8RH",
         params: {
           closePanels: true,
+          language: "en",
+          theme: "color_light",
         },
         style: {
           width: "100%",
@@ -1293,6 +1302,14 @@
        * (You can call get_views_id_open() but it's async.)
        */
       const openViews = new Set();
+
+      /* Custom data overlay state — hoisted so clearAllViews can reset them */
+      let geojsonViewId = null;
+      let polygonViewId = null;
+      let markersAdded = false;
+      const MARKERS_SOURCE = "demo-monitoring-stations";
+      const MARKERS_LAYER = "demo-monitoring-circles";
+      const MARKERS_LABEL_LAYER = "demo-monitoring-labels";
 
       /*
        * The "ready" event fires once the MapX app inside the iframe has fully
@@ -1410,16 +1427,20 @@
        */
       async function toggleView(idView, btn) {
         dismissStoryOverlay();
-        if (openViews.has(idView)) {
-          log(`Removing view ${idView}`);
-          await mapx.ask("view_remove", { idView });
-          openViews.delete(idView);
-          btn.classList.remove("is-active");
-        } else {
-          log(`Adding view ${idView}`);
-          await mapx.ask("view_add", { idView });
-          openViews.add(idView);
-          btn.classList.add("is-active");
+        try {
+          if (openViews.has(idView)) {
+            log(`Removing view ${idView}`);
+            await mapx.ask("view_remove", { idView });
+            openViews.delete(idView);
+            btn.classList.remove("is-active");
+          } else {
+            log(`Adding view ${idView}`);
+            await mapx.ask("view_add", { idView });
+            openViews.add(idView);
+            btn.classList.add("is-active");
+          }
+        } catch (e) {
+          log(`View toggle error (${idView}): ${e.message}`);
         }
       }
 
@@ -1454,13 +1475,40 @@
        */
       async function clearAllViews() {
         dismissStoryOverlay();
-        for (const idView of openViews) {
-          await mapx.ask("view_remove", { idView });
-        }
+
+        /* Remove curated views in parallel */
+        const removals = [...openViews].map((idView) =>
+          mapx.ask("view_remove", { idView })
+        );
+        await Promise.all(removals);
         openViews.clear();
         document
           .querySelectorAll("#view-buttons .mg-button")
           .forEach((b) => b.classList.remove("is-active"));
+
+        /* Also clear custom data overlays */
+        if (geojsonViewId) {
+          unregisterGeoJSON(geojsonViewId);
+          await mapx.ask("view_geojson_delete", { idView: geojsonViewId });
+          geojsonViewId = null;
+        }
+        if (polygonViewId) {
+          unregisterGeoJSON(polygonViewId);
+          await mapx.ask("view_geojson_delete", { idView: polygonViewId });
+          polygonViewId = null;
+        }
+        if (markersAdded) {
+          try {
+            await mapx.ask("map", { method: "removeLayer", parameters: [MARKERS_LABEL_LAYER] });
+            await mapx.ask("map", { method: "removeLayer", parameters: [MARKERS_LAYER] });
+            await mapx.ask("map", { method: "removeSource", parameters: [MARKERS_SOURCE] });
+            unregisterGeoJSON(MARKERS_SOURCE);
+          } catch (e) {
+            log("Marker cleanup: " + e.message);
+          }
+          markersAdded = false;
+        }
+        document.getElementById("infobox").style.display = "none";
       }
 
       /*
@@ -1764,12 +1812,11 @@
          * the Mapbox GL JS Map object. The "parameters" array maps to the
          * method's arguments. Use this for features the SDK doesn't wrap.
          */
-        let isGlobe = false;
         document.getElementById("btn-globe").addEventListener("click", async () => {
-          isGlobe = !isGlobe;
-          const proj = isGlobe ? "globe" : "mercator";
-          log(`Setting projection: ${proj}`);
-          await mapx.ask("map", { method: "setProjection", parameters: [proj] });
+          const current = await mapx.ask("map", { method: "getProjection" });
+          const next = current?.name === "globe" ? "mercator" : "globe";
+          log(`Setting projection: ${next}`);
+          await mapx.ask("map", { method: "setProjection", parameters: [next] });
         });
 
         /*
@@ -1972,8 +2019,6 @@
           ]
         };
 
-        let geojsonViewId = null;
-
         document.getElementById("btn-geojson-add").addEventListener("click", async () => {
           if (geojsonViewId) {
             log("GeoJSON view already added");
@@ -2105,11 +2150,6 @@
          * map.on("click", layer, callback), but callbacks can't be passed
          * through the SDK's postMessage bridge.
          */
-        const MARKERS_SOURCE = "demo-monitoring-stations";
-        const MARKERS_LAYER = "demo-monitoring-circles";
-        const MARKERS_LABEL_LAYER = "demo-monitoring-labels";
-        let markersAdded = false;
-
         document.getElementById("btn-markers-add").addEventListener("click", async () => {
           if (markersAdded) {
             log("Monitoring stations already added");
@@ -2341,8 +2381,6 @@
             }
           ]
         };
-
-        let polygonViewId = null;
 
         document.getElementById("btn-polygons-add").addEventListener("click", async () => {
           if (polygonViewId) {
