@@ -463,6 +463,80 @@
         <hr />
 
         <!--
+          CUSTOM DATA OVERLAYS
+          Two approaches for adding your own data on top of MapX maps:
+
+          1. GeoJSON View (view_geojson_create) — creates a proper MapX view
+             from inline GeoJSON. It integrates with the view system: it
+             appears in the view list, respects layer ordering, and click
+             events flow through MapX's attribute system. Best for data
+             that should behave like a "real" map layer.
+
+          2. Mapbox Passthrough (map method) — calls addSource/addLayer on
+             the raw Mapbox GL JS instance. This bypasses MapX's view system
+             entirely, giving full control over styling, popups, and
+             interaction. Best for UI elements (markers, labels, custom
+             popups) that the parent page controls directly.
+
+          Both can be toggled on/off independently of the DRR views.
+        -->
+        <div class="sidebar-section">
+          <h2>Custom Data</h2>
+          <p class="mg-form-help">Overlay your own data on top of MapX layers</p>
+
+          <!--
+            Approach 1: GeoJSON View
+            Uses view_geojson_create to push GeoJSON into MapX as a native view.
+            The data lives inside the MapX iframe and is managed by MapX.
+            Style with view_geojson_set_style (Mapbox paint/layout props).
+            Remove with view_geojson_delete.
+          -->
+          <p class="mg-form-help" style="margin-top:1rem;">GeoJSON View (SDK-managed)</p>
+          <div class="action-buttons">
+            <button class="mg-button mg-button-secondary disabled" id="btn-geojson-add">
+              Add: DRR Field Offices
+            </button>
+            <button class="mg-button disabled" id="btn-geojson-remove" style="border-color:#c10920;color:#c10920">
+              Remove GeoJSON Layer
+            </button>
+          </div>
+
+          <!--
+            Approach 2: Mapbox Passthrough
+            Uses the SDK's map() resolver to call Mapbox GL JS methods directly.
+            Data and styling are controlled from the parent page.
+            Supports custom popups, clustering, and any Mapbox feature.
+          -->
+          <p class="mg-form-help" style="margin-top:1rem;">Mapbox Direct (parent-controlled)</p>
+          <div class="action-buttons">
+            <button class="mg-button mg-button-secondary disabled" id="btn-markers-add">
+              Add: Monitoring Stations
+            </button>
+            <button class="mg-button disabled" id="btn-markers-remove" style="border-color:#c10920;color:#c10920">
+              Remove Markers
+            </button>
+          </div>
+
+          <!--
+            Polygon overlay — GeoJSON polygons via view_geojson_create.
+            Demonstrates that the SDK handles polygons the same way as
+            points. Click a polygon to see its properties in the infobox.
+            Uses fill+stroke styling via view_geojson_set_style.
+          -->
+          <p class="mg-form-help" style="margin-top:1rem;">Polygon Overlay (SDK-managed)</p>
+          <div class="action-buttons">
+            <button class="mg-button mg-button-secondary disabled" id="btn-polygons-add">
+              Add: DRR Project Zones
+            </button>
+            <button class="mg-button disabled" id="btn-polygons-remove" style="border-color:#c10920;color:#c10920">
+              Remove Polygon Layer
+            </button>
+          </div>
+        </div>
+
+        <hr />
+
+        <!--
           SDK FEATURES SECTION
           Demonstrates additional SDK capabilities beyond map views:
           language switching, theme switching, and story map playback.
@@ -550,6 +624,26 @@
       -->
       <div class="app-map">
         <div id="mapx"></div>
+        <!--
+          Custom infobox — shown when the user clicks a feature.
+          Positioned in the top-right of the map area. Populated
+          dynamically from click_attributes event data.
+        -->
+        <div id="infobox" style="
+          display:none;
+          position:absolute;top:1rem;right:1rem;z-index:15;
+          background:#fff;
+          max-width:320px;width:90%;
+          box-shadow:0 2px 12px rgba(0,0,0,0.25);
+          font-size:1.4rem;
+          overflow:hidden;
+        ">
+          <div style="background:#004f91;color:#fff;padding:0.6rem 1rem;display:flex;justify-content:space-between;align-items:center;">
+            <strong id="infobox-title">Feature</strong>
+            <button id="infobox-close" style="background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;padding:0 0.3rem;">×</button>
+          </div>
+          <div id="infobox-body" style="padding:1rem;max-height:280px;overflow-y:auto;"></div>
+        </div>
       </div>
     </div>
 
@@ -841,6 +935,323 @@
       };
 
       /*
+       * Registry of custom GeoJSON datasets added to the map.
+       *
+       * WHY THIS EXISTS:
+       * The MapX SDK's click_attributes event tells us WHERE a click happened
+       * (lng/lat coordinates) and WHICH view was clicked (idView), but for
+       * GeoJSON views created via view_geojson_create or layers added via the
+       * Mapbox passthrough, the event may not include the actual feature
+       * properties (e.g. name, status, budget). The feature data lives in
+       * the parent page's JavaScript — not inside the MapX iframe.
+       *
+       * This registry bridges that gap: when we add GeoJSON data to the map,
+       * we also store a copy here. When a click event arrives, we use the
+       * click coordinates to search the registry and find the matching
+       * feature, then display its properties in our custom infobox.
+       *
+       * PATTERN:
+       *   1. Call view_geojson_create (or map.addSource) to put data on the map
+       *   2. Call registerGeoJSON(id, geojson) to store the data for click matching
+       *   3. On click_attributes, findNearestFeature() searches the registry
+       *   4. On removal, call unregisterGeoJSON(id) to clean up
+       */
+      const customGeoJSONRegistry = [];
+
+      /**
+       * Register a GeoJSON dataset so clicks can be matched to features.
+       * Call this after view_geojson_create (or map.addSource for passthrough
+       * layers) with the same GeoJSON data. The id should match the view ID
+       * or source ID used with the SDK, so we can clean up on removal.
+       */
+      function registerGeoJSON(id, geojson) {
+        customGeoJSONRegistry.push({ id, geojson });
+      }
+
+      /**
+       * Unregister a GeoJSON dataset (call on view_geojson_delete or
+       * map.removeSource). Removes the dataset from the registry so stale
+       * features are no longer matched on click.
+       */
+      function unregisterGeoJSON(id) {
+        const idx = customGeoJSONRegistry.findIndex((r) => r.id === id);
+        if (idx !== -1) customGeoJSONRegistry.splice(idx, 1);
+      }
+
+      /**
+       * Simple point-in-polygon test using the ray casting algorithm.
+       * Works for simple polygons (not multi-polygons with holes).
+       *
+       * HOW IT WORKS (non-technical summary):
+       * Imagine drawing a horizontal line from the test point out to
+       * infinity. If that line crosses the polygon boundary an ODD
+       * number of times, the point is inside. If it crosses an EVEN
+       * number of times (or zero), the point is outside. Think of it
+       * like crossing fence lines — if you cross one fence you're in
+       * the yard; cross a second and you're out again.
+       *
+       * The loop walks each edge of the polygon (pairs of consecutive
+       * vertices). For each edge, it checks: (a) does the edge straddle
+       * the point's latitude? and (b) is the crossing point to the
+       * right of the test point? Each qualifying crossing toggles the
+       * inside/outside flag.
+       *
+       * @param {number} lng - Longitude of the test point
+       * @param {number} lat - Latitude of the test point
+       * @param {Array}  ring - Array of [lng, lat] coordinate pairs
+       *                        forming the polygon's outer boundary
+       * @returns {boolean} true if the point is inside the polygon
+       */
+      function pointInPolygon(lng, lat, ring) {
+        let inside = false;
+        for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+          const [xi, yi] = ring[i];
+          const [xj, yj] = ring[j];
+          /* Check if edge straddles the point's latitude, and if the
+           * ray cast rightward from the point crosses this edge */
+          if (((yi > lat) !== (yj > lat)) &&
+              (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) {
+            inside = !inside;
+          }
+        }
+        return inside;
+      }
+
+      /**
+       * Find the nearest/matching GeoJSON feature at a click location.
+       * Handles both Point (nearest within 0.5 degrees) and Polygon
+       * (point-in-polygon ray casting) geometries.
+       *
+       * TWO-PASS APPROACH:
+       * This function uses a deliberate two-pass strategy:
+       *
+       *   Pass 1 — Polygons (exact containment test):
+       *     Polygons are checked first because they provide an exact,
+       *     unambiguous match: either the click is inside the polygon
+       *     or it isn't. If the user clicks inside a project zone,
+       *     we can confidently return that zone's properties.
+       *
+       *   Pass 2 — Points (nearest-neighbor proximity):
+       *     Points are checked second because they use approximate
+       *     matching (closest point within 0.5 degrees). This is a
+       *     fuzzy match — if the click is near two points, we pick
+       *     the closest one. By checking polygons first, we avoid
+       *     the situation where a point proximity match "steals" a
+       *     click that was clearly meant for an overlapping polygon.
+       *
+       * @param {number} lng - Click longitude
+       * @param {number} lat - Click latitude
+       * @returns {Object|null} Feature properties, or null if no match
+       */
+      function findNearestFeature(lng, lat) {
+        /* Pass 1: Check polygons first — exact containment test.
+         * If the click lands inside a polygon, return immediately.
+         * This takes priority over nearby points. */
+        for (const { geojson } of customGeoJSONRegistry) {
+          for (const feature of geojson.features) {
+            if (feature.geometry.type === "Polygon") {
+              const ring = feature.geometry.coordinates[0]; /* outer ring */
+              if (pointInPolygon(lng, lat, ring)) {
+                return feature.properties;
+              }
+            }
+          }
+        }
+
+        /* Pass 2: Check points — nearest-neighbor within tolerance.
+         * Only reached if no polygon contained the click point.
+         * The 0.5-degree tolerance is generous enough to catch clicks
+         * near markers at most zoom levels, but tight enough to avoid
+         * matching distant features. */
+        let best = null;
+        let bestDist = 0.5; /* tolerance in degrees (~55km at equator) */
+
+        for (const { geojson } of customGeoJSONRegistry) {
+          for (const feature of geojson.features) {
+            if (feature.geometry.type !== "Point") continue;
+            const [fLng, fLat] = feature.geometry.coordinates;
+            /* Simple Euclidean distance in degree-space (adequate for
+             * click matching; not geodesically accurate but fast) */
+            const dist = Math.sqrt((fLng - lng) ** 2 + (fLat - lat) ** 2);
+            if (dist < bestDist) {
+              bestDist = dist;
+              best = feature.properties;
+            }
+          }
+        }
+        return best;
+      }
+
+      /**
+       * Handle click_attributes events from the SDK.
+       *
+       * The event data contains: {part, npart, idView, x, y, lng, lat}
+       * It does NOT contain the clicked feature's properties — MapX
+       * shows those in its own attribute table, but doesn't pass them
+       * through the event.
+       *
+       * For custom GeoJSON data, we match the click coordinates against
+       * our registered datasets to find and display the feature properties.
+       */
+      /**
+       * Handle click_attributes from the SDK.
+       *
+       * Actual event shape (from console):
+       *   {
+       *     part: 1, nPart: 1,
+       *     idView: "MX-GJ-...",
+       *     attributes: [{ name: "...", role: "...", staff: 20, ... }],
+       *     point: { x, y },
+       *     lngLat: { lng, lat }
+       *   }
+       *
+       * The feature properties are in data.attributes[0].
+       */
+      function showInfobox(data) {
+        const box = document.getElementById("infobox");
+        const titleEl = document.getElementById("infobox-title");
+        const body = document.getElementById("infobox-body");
+        const closeBtn = document.getElementById("infobox-close");
+
+        if (!data || typeof data !== "object") {
+          box.style.display = "none";
+          return;
+        }
+
+        /*
+         * Extract feature properties using two strategies, tried in order:
+         *
+         * STRATEGY 1: data.attributes[0] — MapX-managed views
+         *   When the clicked layer is a MapX view (created via
+         *   view_geojson_create, or a native vt/rt/cc view), the SDK
+         *   populates data.attributes with an array of property objects.
+         *   Each object contains the feature's key/value data (e.g.
+         *   {name: "Dhaka Office", role: "Flood response", staff: 12}).
+         *   We take attributes[0] because single-feature clicks return
+         *   one element. We also handle the case where attributes is a
+         *   plain object (not wrapped in an array) for robustness.
+         *
+         * STRATEGY 2: Coordinate matching — Mapbox passthrough fallback
+         *   When the click lands on a Mapbox passthrough layer (added via
+         *   the map() resolver), data.attributes will be empty or missing
+         *   because MapX doesn't manage that layer. In this case, we fall
+         *   back to using data.lngLat coordinates to search our
+         *   customGeoJSONRegistry via findNearestFeature(). This finds
+         *   the nearest registered point or containing polygon and returns
+         *   its properties.
+         */
+        let props = null;
+
+        /* Strategy 1: extract directly from the SDK's attributes payload */
+        if (data.attributes && Array.isArray(data.attributes) && data.attributes.length > 0) {
+          props = data.attributes[0];
+        } else if (data.attributes && typeof data.attributes === "object" && !Array.isArray(data.attributes)) {
+          props = data.attributes;
+        }
+
+        /* Strategy 2: coordinate matching fallback for passthrough layers */
+        if (!props && data.lngLat) {
+          props = findNearestFeature(data.lngLat.lng, data.lngLat.lat);
+        }
+
+        if (!props || typeof props !== "object") {
+          box.style.display = "none";
+          return;
+        }
+
+        /* Filter out internal fields */
+        const skipKeys = ["gid", "mx_t0", "mx_t1", "geom", "geometry"];
+        const entries = Object.entries(props).filter(
+          ([k, v]) => !skipKeys.includes(k.toLowerCase()) && v != null && v !== ""
+        );
+
+        if (entries.length === 0) {
+          box.style.display = "none";
+          return;
+        }
+
+        /* Find a name/title for the feature */
+        const nameEntry = entries.find(([k]) =>
+          ["name", "title", "label"].includes(k.toLowerCase())
+        );
+        const featureName = nameEntry ? String(nameEntry[1]) : "Feature";
+        titleEl.textContent = featureName;
+
+        /* Build a property table */
+        let html = '<table style="width:100%;border-collapse:collapse;">';
+        for (const [key, value] of entries) {
+          const label = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+          html += `<tr>
+            <td style="padding:0.3rem 0.5rem 0.3rem 0;color:#666;white-space:nowrap;vertical-align:top;">${label}</td>
+            <td style="padding:0.3rem 0;font-weight:500;">${value}</td>
+          </tr>`;
+        }
+        html += "</table>";
+        body.innerHTML = html;
+
+        box.style.display = "block";
+        log(`Infobox: ${featureName}`);
+        closeBtn.onclick = () => { box.style.display = "none"; };
+
+        /* Toast notification on the parent page */
+        showToast(featureName);
+      }
+
+      /**
+       * Show a Mangrove-styled toast notification at the top of the page.
+       * Uses the mg-snackbar component pattern. Auto-dismisses after 4 seconds.
+       *
+       * Mangrove snackbar component (from the UNDRR design system):
+       * The snackbar is a brief notification that appears at the top of the
+       * viewport and auto-dismisses. We build it dynamically rather than
+       * keeping a hidden element in the DOM, because toasts are ephemeral.
+       *
+       * Mangrove snackbar classes used:
+       *   mg-snackbar-wrapper       — fixed-position top-center container;
+       *                               Mangrove CSS positions this at the top
+       *                               of the viewport with a slide-down animation
+       *   mg-snackbar-wrapper__open — modifier that triggers the visible/slide-down
+       *                               state; removing this class slides it back up
+       *   mg-snackbar               — the notification body (background, padding,
+       *                               shadow, border-radius)
+       *   mg-snackbar__info         — blue info variant (vs __success, __error, etc.)
+       *   mg-snackbar__content      — flex container for icon + message
+       *   mg-snackbar__message      — text content wrapper
+       *
+       * Animation pattern:
+       *   1. Create element with __open class → appears immediately (slides down)
+       *   2. After 4s, remove __open class → Mangrove CSS animates it back up
+       *   3. After 300ms transition, remove the DOM element entirely
+       *
+       * Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-snackbar--docs
+       */
+      function showToast(message) {
+        /* Remove any existing toast to avoid stacking multiple notifications */
+        const existing = document.getElementById("demo-toast");
+        if (existing) existing.remove();
+
+        /* Build the snackbar DOM structure matching Mangrove's component pattern */
+        const wrapper = document.createElement("div");
+        wrapper.id = "demo-toast";
+        wrapper.className = "mg-snackbar-wrapper mg-snackbar-wrapper__open";
+        wrapper.innerHTML = `
+          <div class="mg-snackbar mg-snackbar__info">
+            <div class="mg-snackbar__content">
+              <span class="mg-snackbar__message">Selected: <strong>${message}</strong></span>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(wrapper);
+
+        /* Auto-dismiss: remove the __open modifier to trigger the slide-up
+         * animation, then remove the element after the CSS transition completes */
+        setTimeout(() => {
+          wrapper.classList.remove("mg-snackbar-wrapper__open");
+          setTimeout(() => wrapper.remove(), 300);
+        }, 4000);
+      }
+
+      /*
        * ============================================================
        * SDK INITIALISATION
        * ============================================================
@@ -893,6 +1304,65 @@
         log("SDK ready — Eco-DRR project loaded");
         buildViewButtons();
         enableActionButtons();
+
+        /*
+         * Enable vector highlight so clicking features shows a visual
+         * highlight ring and triggers click_attributes events.
+         */
+        await mapx.ask("set_vector_highlight", { enable: true });
+      });
+
+      /*
+       * Listen for click_attributes events from the SDK.
+       * This fires when the user clicks a feature on the map — MapX
+       * sends the feature properties through postMessage. We use this
+       * to show a custom infobox in the parent page.
+       *
+       * This works for:
+       *   - GeoJSON views created via view_geojson_create (native)
+       *   - MapX vector tile views (vt)
+       *
+       * It does NOT work for:
+       *   - Raw Mapbox layers added via the map() passthrough, because
+       *     MapX doesn't know about those layers. For interactive custom
+       *     markers, use view_geojson_create instead.
+       */
+      mapx.on("click_attributes", (...args) => {
+        /*
+         * DIAGNOSTIC LOGGING — logs every argument the SDK passes to this
+         * callback. This is intentionally verbose because the click_attributes
+         * event shape is not fully documented in the SDK, and the structure
+         * can vary depending on the view type (vt, rt, cc, geojson).
+         *
+         * Observed event shape (from testing):
+         *   args.length = 1
+         *   args[0] = {
+         *     part: 1,            — current part index (for multi-part features)
+         *     nPart: 1,           — total number of parts
+         *     idView: "MX-GJ-…", — the view ID that was clicked
+         *     attributes: [{…}],  — array of feature property objects (the data)
+         *     point: {x, y},      — pixel coordinates of the click on screen
+         *     lngLat: {lng, lat}  — geographic coordinates of the click
+         *   }
+         *
+         * The attributes array contains the actual feature properties that
+         * we want to display. For GeoJSON views, attributes[0] has all the
+         * properties from the original GeoJSON feature. For native MapX
+         * views, the properties come from the server-side data source.
+         *
+         * We truncate each logged arg to 500 chars to keep the debug log readable.
+         */
+        log("click_attributes args count: " + args.length);
+        for (let i = 0; i < args.length; i++) {
+          try {
+            log("  arg[" + i + "]: " + JSON.stringify(args[i]).substring(0, 500));
+          } catch (e) {
+            log("  arg[" + i + "]: (not serializable) " + typeof args[i]);
+          }
+        }
+        /* Pass the first argument to showInfobox; the event is typically
+         * a single object, but we handle the multi-arg case defensively */
+        showInfobox(args.length === 1 ? args[0] : args);
       });
 
       /*
@@ -1259,6 +1729,7 @@
           .forEach((b) => b.classList.remove("disabled"));
 
         enableScenarios();
+        enableCustomData();
         enableSdkFeatures();
 
         /*
@@ -1403,6 +1874,558 @@
        *                             activates the story map player
        *   view_remove({idView})   — stops story map playback
        */
+
+      /*
+       * ============================================================
+       * CUSTOM DATA OVERLAYS
+       * ============================================================
+       *
+       * Two approaches for adding your own data on top of MapX:
+       *
+       * APPROACH 1: view_geojson_create (SDK-managed)
+       *   Creates a native MapX view from GeoJSON data. The view
+       *   integrates with MapX's layer system — it appears in the
+       *   view list, respects z-ordering, and click events flow
+       *   through MapX's built-in attribute popup system.
+       *
+       *   Key methods:
+       *     view_geojson_create({data, title, abstract, random})
+       *       data: a GeoJSON FeatureCollection
+       *       title: map legend label (supports {en, fr, ...} object)
+       *       abstract: description text
+       *       random: if true, randomises point styling
+       *       → returns {id} with the new view's ID
+       *
+       *     view_geojson_set_style({idView, paint, layout})
+       *       paint: Mapbox GL paint properties (circle-color, etc.)
+       *       layout: Mapbox GL layout properties (icon-image, etc.)
+       *
+       *     view_geojson_delete({idView})
+       *       Removes the GeoJSON view entirely
+       *
+       * APPROACH 2: map() passthrough (parent-controlled)
+       *   Calls Mapbox GL JS methods directly on the map instance
+       *   via mapx.ask("map", {method, parameters}). This bypasses
+       *   MapX's view system — the parent page has full control over
+       *   sources, layers, popups, and interaction.
+       *
+       *   Any Mapbox GL JS Map method can be called:
+       *     map({method: "addSource", parameters: ["id", {type, data}]})
+       *     map({method: "addLayer", parameters: [{id, type, source, paint}]})
+       *     map({method: "removeLayer", parameters: ["id"]})
+       *     map({method: "removeSource", parameters: ["id"]})
+       *
+       *   For click popups, we listen to the SDK's click_attributes
+       *   event or use set_features_click_sdk_only to route clicks.
+       */
+      function enableCustomData() {
+
+        /*
+         * ---- APPROACH 1: GeoJSON View ----
+         *
+         * Sample data: fictional DRR field offices in disaster-prone regions.
+         * Each point has properties that MapX will show when clicked.
+         */
+        const fieldOfficesGeoJSON = {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [90.41, 23.81] },
+              properties: { name: "Dhaka Field Office", role: "Flood response coordination", staff: 12, status: "Active" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [72.88, 19.08] },
+              properties: { name: "Mumbai Field Office", role: "Cyclone early warning", staff: 8, status: "Active" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [106.85, -6.21] },
+              properties: { name: "Jakarta Field Office", role: "Tsunami preparedness", staff: 15, status: "Active" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [-72.34, 18.54] },
+              properties: { name: "Port-au-Prince Office", role: "Earthquake recovery", staff: 6, status: "Active" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [36.82, -1.29] },
+              properties: { name: "Nairobi Regional Hub", role: "Drought monitoring", staff: 20, status: "Active" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [100.52, 13.76] },
+              properties: { name: "Bangkok Regional Hub", role: "Regional coordination", staff: 18, status: "Active" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [-79.52, 8.98] },
+              properties: { name: "Panama City Office", role: "Central America liaison", staff: 5, status: "Standby" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [178.44, -18.14] },
+              properties: { name: "Suva Pacific Office", role: "Pacific islands support", staff: 4, status: "Active" }
+            }
+          ]
+        };
+
+        let geojsonViewId = null;
+
+        document.getElementById("btn-geojson-add").addEventListener("click", async () => {
+          if (geojsonViewId) {
+            log("GeoJSON view already added");
+            return;
+          }
+
+          log("Creating GeoJSON view: DRR Field Offices...");
+
+          /*
+           * view_geojson_create pushes the GeoJSON into the MapX iframe
+           * and creates a native view. The returned object has an "id"
+           * property for the new view, which we need for styling/removal.
+           */
+          try {
+            const result = await mapx.ask("view_geojson_create", {
+              data: fieldOfficesGeoJSON,
+              title: { en: "DRR Field Offices (demo)" },
+              abstract: { en: "Fictional field office locations for demonstration purposes." },
+              random: false,
+            });
+
+            if (result && result.id) {
+              geojsonViewId = result.id;
+              log(`GeoJSON view created: ${geojsonViewId}`);
+
+              /* Register the data so click events can match features */
+              registerGeoJSON(geojsonViewId, fieldOfficesGeoJSON);
+
+              /*
+               * Style the points using Mapbox GL paint properties.
+               * view_geojson_set_style wraps Mapbox's setPaintProperty —
+               * any valid circle/fill/line paint props work here.
+               *
+               * Common circle paint properties:
+               *   circle-radius, circle-color, circle-stroke-width,
+               *   circle-stroke-color, circle-opacity
+               */
+              await mapx.ask("view_geojson_set_style", {
+                idView: geojsonViewId,
+                paint: {
+                  "circle-radius": 8,
+                  "circle-color": "#c10920",       /* Sendai red */
+                  "circle-stroke-width": 2,
+                  "circle-stroke-color": "#ffffff",
+                  "circle-opacity": 0.9,
+                },
+              });
+              log("Styled with Sendai red circles");
+            }
+          } catch (e) {
+            log("GeoJSON create error: " + e.message);
+          }
+        });
+
+        document.getElementById("btn-geojson-remove").addEventListener("click", async () => {
+          if (!geojsonViewId) {
+            log("No GeoJSON view to remove");
+            return;
+          }
+          log(`Removing GeoJSON view: ${geojsonViewId}`);
+          unregisterGeoJSON(geojsonViewId);
+          await mapx.ask("view_geojson_delete", { idView: geojsonViewId });
+          geojsonViewId = null;
+          document.getElementById("infobox").style.display = "none";
+        });
+
+        /*
+         * ---- APPROACH 2: Mapbox Passthrough ----
+         *
+         * Sample data: fictional environmental monitoring stations.
+         * Uses map() to call addSource/addLayer directly on the
+         * Mapbox GL JS instance inside the iframe.
+         *
+         * This data and its styling live entirely in the parent page —
+         * MapX doesn't know about it. This means:
+         *   + Full Mapbox GL JS styling (data-driven, expressions, etc.)
+         *   + Custom interaction handling from the parent page
+         *   - Doesn't appear in MapX's view list
+         *   - Won't be included in MapX exports or screenshots
+         */
+        const monitoringStations = {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [30.52, 50.45] },
+              properties: { name: "Kyiv Station", type: "Air Quality", reading: "AQI 42 — Good", installed: "2019" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [32.06, 49.44] },
+              properties: { name: "Cherkasy Station", type: "Water Level", reading: "2.4m — Normal", installed: "2020" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [35.05, 48.46] },
+              properties: { name: "Dnipro Station", type: "Seismic", reading: "0.2 mag — Quiet", installed: "2018" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [24.03, 49.84] },
+              properties: { name: "Lviv Station", type: "Air Quality", reading: "AQI 31 — Good", installed: "2021" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [36.23, 49.99] },
+              properties: { name: "Kharkiv Station", type: "Water Level", reading: "3.1m — Elevated", installed: "2017" }
+            },
+            {
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [30.73, 46.48] },
+              properties: { name: "Odesa Station", type: "Coastal", reading: "Wave 1.2m — Calm", installed: "2020" }
+            }
+          ]
+        };
+
+        /*
+         * NOTE ON CLICK INTERACTION:
+         * Layers added via the map() passthrough do NOT trigger MapX's
+         * click_attributes event — MapX doesn't know these layers exist.
+         * This means clicking these markers won't show an infobox.
+         *
+         * For interactive custom markers with click popups, use
+         * view_geojson_create (Approach 1) instead. The Mapbox passthrough
+         * is best for display-only overlays, base layer customisation,
+         * or cases where you need Mapbox-specific features like clustering.
+         *
+         * It IS possible to add click handlers inside the iframe using
+         * map.on("click", layer, callback), but callbacks can't be passed
+         * through the SDK's postMessage bridge.
+         */
+        const MARKERS_SOURCE = "demo-monitoring-stations";
+        const MARKERS_LAYER = "demo-monitoring-circles";
+        const MARKERS_LABEL_LAYER = "demo-monitoring-labels";
+        let markersAdded = false;
+
+        document.getElementById("btn-markers-add").addEventListener("click", async () => {
+          if (markersAdded) {
+            log("Monitoring stations already added");
+            return;
+          }
+
+          log("Adding monitoring stations via Mapbox passthrough...");
+
+          try {
+            /*
+             * Step 1: Add a GeoJSON source to the Mapbox map.
+             * map({method, parameters}) calls the method on the underlying
+             * Mapbox GL JS Map object. Parameters are passed as arguments.
+             *
+             * Equivalent to: map.addSource("demo-monitoring-stations", {...})
+             */
+            await mapx.ask("map", {
+              method: "addSource",
+              parameters: [MARKERS_SOURCE, {
+                type: "geojson",
+                data: monitoringStations,
+              }],
+            });
+            log("Source added");
+
+            /*
+             * Step 2: Add a circle layer for the points.
+             * Uses data-driven styling — color varies by station type.
+             *
+             * Equivalent to: map.addLayer({...})
+             */
+            await mapx.ask("map", {
+              method: "addLayer",
+              parameters: [{
+                id: MARKERS_LAYER,
+                type: "circle",
+                source: MARKERS_SOURCE,
+                paint: {
+                  "circle-radius": 10,
+                  "circle-color": [
+                    "match", ["get", "type"],
+                    "Air Quality", "#00afae",   /* Sendai turquoise */
+                    "Water Level", "#004f91",   /* UNDRR blue */
+                    "Seismic", "#eb752a",       /* Sendai orange */
+                    "Coastal", "#962987",       /* Sendai purple */
+                    "#808080"                   /* fallback gray */
+                  ],
+                  "circle-stroke-width": 3,
+                  "circle-stroke-color": "#ffffff",
+                  "circle-opacity": 0.9,
+                },
+              }],
+            });
+            log("Circle layer added with data-driven colors");
+
+            /*
+             * Step 3: Add a text label layer.
+             * Shows station name above each point.
+             */
+            await mapx.ask("map", {
+              method: "addLayer",
+              parameters: [{
+                id: MARKERS_LABEL_LAYER,
+                type: "symbol",
+                source: MARKERS_SOURCE,
+                layout: {
+                  "text-field": ["get", "name"],
+                  "text-size": 11,
+                  "text-offset": [0, -1.5],
+                  "text-anchor": "bottom",
+                  "text-font": ["Open Sans Bold"],
+                },
+                paint: {
+                  "text-color": "#1a1a1a",
+                  "text-halo-color": "#ffffff",
+                  "text-halo-width": 1.5,
+                },
+              }],
+            });
+            log("Label layer added");
+
+            markersAdded = true;
+
+            /*
+             * Register the monitoring stations data for coordinate-based
+             * click matching. This is especially important for passthrough
+             * layers because MapX has no knowledge of them — the SDK's
+             * click_attributes event will fire with lngLat coordinates
+             * but no attributes, since MapX can't query a layer it doesn't
+             * manage. By registering the GeoJSON here, our findNearestFeature()
+             * function can search these points when a click lands nearby,
+             * enabling the infobox to display station properties (name,
+             * type, reading) even though the layer was added outside MapX.
+             *
+             * We use MARKERS_SOURCE (the Mapbox source ID) as the registry
+             * key so it matches the unregisterGeoJSON call on removal.
+             */
+            registerGeoJSON(MARKERS_SOURCE, monitoringStations);
+
+            /* Fly to Ukraine to see the stations */
+            await mapx.ask("common_loc_fit_bbox", {
+              code: "UKR",
+              param: { duration: 2000 },
+            });
+
+          } catch (e) {
+            log("Mapbox passthrough error: " + e.message);
+          }
+        });
+
+        document.getElementById("btn-markers-remove").addEventListener("click", async () => {
+          if (!markersAdded) {
+            log("No markers to remove");
+            return;
+          }
+          log("Removing monitoring stations...");
+          try {
+            await mapx.ask("map", { method: "removeLayer", parameters: [MARKERS_LABEL_LAYER] });
+            await mapx.ask("map", { method: "removeLayer", parameters: [MARKERS_LAYER] });
+            await mapx.ask("map", { method: "removeSource", parameters: [MARKERS_SOURCE] });
+            unregisterGeoJSON(MARKERS_SOURCE);
+            markersAdded = false;
+            log("Monitoring stations removed");
+            document.getElementById("infobox").style.display = "none";
+          } catch (e) {
+            log("Remove error: " + e.message);
+          }
+        });
+
+        /*
+         * ---- POLYGON OVERLAY ----
+         *
+         * Demonstrates GeoJSON polygons via view_geojson_create.
+         * Same SDK method as points — MapX handles both geometry types.
+         * Polygons are styled with fill + stroke via view_geojson_set_style.
+         * Click interaction works the same as points (click_attributes event).
+         *
+         * Sample data: fictional DRR project zones in South/Southeast Asia.
+         *
+         * GeoJSON STRUCTURE FOR POLYGONS:
+         * Each feature uses geometry.type = "Polygon" with a coordinates
+         * array of rings. The first ring (coordinates[0]) is the outer
+         * boundary; subsequent rings would be holes (not used here).
+         * Each ring is an array of [lng, lat] pairs where the first and
+         * last coordinate MUST be identical to close the polygon.
+         *
+         * The properties object on each feature can contain any key/value
+         * pairs — these become the data shown in the infobox when the
+         * polygon is clicked, and they're also what the customGeoJSONRegistry
+         * stores for coordinate-based click matching.
+         */
+        const projectZonesGeoJSON = {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              geometry: {
+                type: "Polygon",
+                /* coordinates is an array of rings: [outerRing, hole1, hole2, ...]
+                 * Each ring is an array of [lng, lat] pairs.
+                 * The ring must be closed (first point === last point). */
+                coordinates: [[
+                  [88.0, 21.0], [92.5, 21.0], [92.5, 26.5],
+                  [88.0, 26.5], [88.0, 21.0]
+                ]]
+              },
+              properties: {
+                name: "Bangladesh Flood Resilience Zone",
+                programme: "Eco-DRR Pilot",
+                hazard: "River flooding",
+                status: "Active",
+                budget: "$2.4M",
+                partners: "UNEP, UNDP, Local Gov"
+              }
+            },
+            {
+              type: "Feature",
+              geometry: {
+                type: "Polygon",
+                coordinates: [[
+                  [95.0, 10.0], [107.0, 10.0], [107.0, 20.0],
+                  [95.0, 20.0], [95.0, 10.0]
+                ]]
+              },
+              properties: {
+                name: "Mekong Delta Coastal Zone",
+                programme: "Mangrove Restoration",
+                hazard: "Cyclone surge, sea level rise",
+                status: "Planning",
+                budget: "$5.1M",
+                partners: "UNEP, FAO, IUCN"
+              }
+            },
+            {
+              type: "Feature",
+              geometry: {
+                type: "Polygon",
+                coordinates: [[
+                  [34.0, -4.0], [42.0, -4.0], [42.0, 5.0],
+                  [34.0, 5.0], [34.0, -4.0]
+                ]]
+              },
+              properties: {
+                name: "East Africa Drought Watch",
+                programme: "Early Warning Systems",
+                hazard: "Drought, water stress",
+                status: "Active",
+                budget: "$1.8M",
+                partners: "WMO, IGAD, UNDRR"
+              }
+            },
+            {
+              type: "Feature",
+              geometry: {
+                type: "Polygon",
+                coordinates: [[
+                  [-75.0, 16.0], [-60.0, 16.0], [-60.0, 22.0],
+                  [-75.0, 22.0], [-75.0, 16.0]
+                ]]
+              },
+              properties: {
+                name: "Caribbean Hurricane Corridor",
+                programme: "Multi-Hazard EWS",
+                hazard: "Tropical cyclone, storm surge",
+                status: "Active",
+                budget: "$3.7M",
+                partners: "CDEMA, UNDRR, WMO"
+              }
+            }
+          ]
+        };
+
+        let polygonViewId = null;
+
+        document.getElementById("btn-polygons-add").addEventListener("click", async () => {
+          if (polygonViewId) {
+            log("Polygon layer already added");
+            return;
+          }
+
+          log("Creating GeoJSON polygon view: DRR Project Zones...");
+
+          try {
+            const result = await mapx.ask("view_geojson_create", {
+              data: projectZonesGeoJSON,
+              title: { en: "DRR Project Zones (demo)" },
+              abstract: { en: "Fictional project zones for demonstration purposes." },
+              random: false,
+            });
+
+            if (result && result.id) {
+              polygonViewId = result.id;
+              log(`Polygon view created: ${polygonViewId}`);
+
+              /*
+               * Style polygons with semi-transparent fill and visible border.
+               *
+               * view_geojson_set_style accepts Mapbox GL paint properties.
+               * For polygon (fill) layers, the key properties are:
+               *   fill-color          — the interior color of the polygon
+               *   fill-opacity        — 0 (transparent) to 1 (opaque);
+               *                         0.25 here so underlying map features
+               *                         remain visible through the zone
+               *   fill-outline-color  — the border/stroke color; only works
+               *                         when fill-antialias is true (default)
+               *
+               * Other fill properties not used here but available:
+               *   fill-antialias      — antialiased edges (default true)
+               *   fill-translate      — offset [x, y] in pixels
+               *   fill-pattern        — fill with a repeating image pattern
+               *
+               * Note: for thicker polygon borders, you would need a separate
+               * "line" layer type — fill-outline-color only renders a 1px
+               * border. The SDK's view_geojson_set_style applies to the
+               * primary layer type (fill for polygons, circle for points).
+               */
+              await mapx.ask("view_geojson_set_style", {
+                idView: polygonViewId,
+                paint: {
+                  "fill-color": "#962987",          /* Sendai purple */
+                  "fill-opacity": 0.25,
+                  "fill-outline-color": "#962987",
+                },
+              });
+              log("Styled with Sendai purple fill");
+
+              /*
+               * Register the polygon data in the customGeoJSONRegistry so that
+               * click_attributes events can be matched to polygon features.
+               * Without this registration, clicking a polygon would fire the
+               * event with coordinates but we'd have no way to look up which
+               * zone was clicked or display its properties (name, budget, etc.).
+               */
+              registerGeoJSON(polygonViewId, projectZonesGeoJSON);
+
+              /* Zoom out to see all zones */
+              await mapx.ask("map_fly_to", { center: { lng: 60, lat: 15 }, zoom: 2.5 });
+            }
+          } catch (e) {
+            log("Polygon create error: " + e.message);
+          }
+        });
+
+        document.getElementById("btn-polygons-remove").addEventListener("click", async () => {
+          if (!polygonViewId) {
+            log("No polygon layer to remove");
+            return;
+          }
+          log(`Removing polygon view: ${polygonViewId}`);
+          unregisterGeoJSON(polygonViewId);
+          await mapx.ask("view_geojson_delete", { idView: polygonViewId });
+          polygonViewId = null;
+          document.getElementById("infobox").style.display = "none";
+        });
+      }
+
       async function enableSdkFeatures() {
 
         /*

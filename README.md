@@ -68,6 +68,25 @@ The demo works around this by overlaying a second MapX iframe for story map
 playback. If your project has its own story maps, `view_add` works seamlessly.
 See [methodology.md](methodology.md) section 8 for the full investigation.
 
+## Custom Data Overlays
+
+The demo supports overlaying your own data on top of MapX layers using three approaches:
+
+| Approach | Method | Best for |
+|---|---|---|
+| **GeoJSON view** | `view_geojson_create` | Point overlays needing click interaction |
+| **Mapbox passthrough** | `map` method (`addSource`/`addLayer`) | Layers needing advanced Mapbox GL styling |
+| **Polygon overlay** | `map` method with `fill`/`line` layers | Area boundaries and project zones |
+
+**Click interaction:** GeoJSON views fire the `click_attributes` event natively
+when a feature is clicked, providing feature properties automatically. Mapbox
+passthrough layers cannot have click handlers (callbacks are not serializable
+through `postMessage`), so a coordinate matching fallback is used instead —
+nearest-point matching for points and ray-casting point-in-polygon for polygons.
+
+See [methodology.md](methodology.md) section 9 for the full technical details,
+trade-offs, and implementation patterns.
+
 ## Key SDK Methods
 
 | Method | What it does |

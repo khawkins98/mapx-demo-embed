@@ -201,3 +201,195 @@ Use `probe-views.html` to check — look for views with type `sm` in your projec
   entire MapX app state and would lose all current views/filters.
 - **Requesting story maps be added to the Eco-DRR project** — the cleanest
   solution if working with the MapX data administrators.
+
+## 9. Custom data overlays
+
+### The problem
+
+The curated MapX views (sections 4-5) are published datasets hosted on the MapX
+platform. For many integration scenarios, however, you need to overlay your own
+data — field office locations, monitoring stations, project boundaries — on top
+of the MapX basemap and its layers. The SDK provides two distinct mechanisms for
+this, plus a hybrid approach for polygon overlays.
+
+### Approach A: GeoJSON view (`view_geojson_create`)
+
+The SDK method `view_geojson_create` registers a first-class MapX view from a
+GeoJSON FeatureCollection. Because it goes through the MapX view system, the
+resulting layer gets:
+
+- An entry in the view list panel
+- Native click interaction via the `click_attributes` event
+- Style control (color, size, opacity) through the SDK
+
+```js
+await mapx.ask("view_geojson_create", {
+  idView: "custom-offices",
+  title: "DRR Field Offices",
+  data: featureCollection,
+  style: {
+    color: "#e74c3c",
+    size: 8,
+    opacity: 0.9
+  }
+});
+```
+
+When a user clicks a feature in this layer, MapX fires the `click_attributes`
+event with the feature's properties attached at `data.attributes[0]`. This is
+the simplest path for interactive point overlays.
+
+### Approach B: Mapbox passthrough (`map` method)
+
+The SDK exposes the underlying Mapbox GL JS instance through the `map` resolver.
+You can call any Mapbox method — `addSource`, `addLayer`, `setPaintProperty`,
+etc. — by passing the method name and arguments:
+
+```js
+await mapx.ask("map", {
+  method: "addSource",
+  args: ["monitoring-stations", {
+    type: "geojson",
+    data: featureCollection
+  }]
+});
+
+await mapx.ask("map", {
+  method: "addLayer",
+  args: [{
+    id: "monitoring-stations-layer",
+    type: "circle",
+    source: "monitoring-stations",
+    paint: {
+      "circle-radius": 6,
+      "circle-color": "#2ecc71"
+    }
+  }]
+});
+```
+
+This gives full Mapbox styling power (data-driven paint expressions, zoom
+interpolation, heatmaps, 3D extrusions, etc.) but has a critical limitation:
+**the layer has no click handler**. Mapbox GL normally supports `map.on("click",
+layerId, callback)`, but the SDK's `map` passthrough only accepts serializable
+arguments. Callbacks (functions) cannot be serialized through `postMessage`, so
+there is no way to attach a native click handler to a passthrough layer.
+
+### Approach C: Polygon overlays
+
+For polygon data (project zones, administrative boundaries), the `map`
+passthrough is used with `fill` and `line` layer types:
+
+```js
+await mapx.ask("map", {
+  method: "addLayer",
+  args: [{
+    id: "project-zones-fill",
+    type: "fill",
+    source: "project-zones",
+    paint: {
+      "fill-color": "#3498db",
+      "fill-opacity": 0.25
+    }
+  }]
+});
+```
+
+Polygon overlays share the same click limitation as Approach B — no native
+interaction through the passthrough. The coordinate matching fallback (below)
+uses a different algorithm for polygons than for points.
+
+### Click interaction and the coordinate matching fallback
+
+For GeoJSON views (Approach A), click interaction is straightforward:
+
+```js
+mapx.on("click_attributes", {
+  callback: function(data) {
+    const attrs = data.attributes[0];
+    showInfoBox(attrs.name, attrs.description, attrs.status);
+  }
+});
+```
+
+The `click_attributes` event fires with `data.attributes` containing an array of
+objects, where each object holds the properties of a clicked feature. The first
+element (`data.attributes[0]`) is the topmost feature under the click.
+
+For Mapbox passthrough layers (Approaches B and C), this event does **not** fire.
+To provide click interaction on passthrough layers, a coordinate matching
+fallback was implemented:
+
+1. **Register GeoJSON data locally.** When overlay data is added via the `map`
+   passthrough, the same FeatureCollection is also stored in a local JavaScript
+   variable in the parent page.
+
+2. **Listen for map clicks.** The `click_attributes` event is still registered,
+   but a secondary listener watches for click coordinates (available even when
+   no MapX feature is hit).
+
+3. **Nearest-point matching (for point layers).** When a click occurs and no
+   `click_attributes` data is returned, the parent page iterates over the
+   locally stored point features and finds the nearest one using Euclidean
+   distance on longitude/latitude. A tolerance of **0.5 degrees** is applied —
+   if no point is within this radius, the click is ignored. This tolerance is
+   deliberately generous because it must account for varying zoom levels.
+
+4. **Ray-casting point-in-polygon (for polygon layers).** For polygon overlays,
+   the fallback uses a ray-casting algorithm to determine whether the click
+   coordinate falls inside any of the locally stored polygons. The algorithm
+   casts a horizontal ray from the click point and counts how many polygon edges
+   it crosses — an odd count means the point is inside.
+
+### Infobox and toast notification pattern
+
+When a feature is identified (either through `click_attributes` or coordinate
+matching), the demo displays feature information using a custom UI panel in the
+parent page — not inside the MapX iframe:
+
+- **Infobox panel**: a styled card positioned over the map showing the feature's
+  properties (name, type, status, description). This is built from the
+  properties in `data.attributes[0]` for GeoJSON views, or from the locally
+  matched feature's properties for passthrough layers.
+
+- **Toast notification**: a brief notification confirming the click was
+  registered, shown at the top of the page.
+
+Both elements are standard DOM elements in the parent page, styled with the
+Mangrove component library. They are not injected into the MapX iframe (which
+would violate cross-origin restrictions).
+
+### Sample data
+
+All overlay data used in the demo is **fictional** and created solely for
+demonstration purposes:
+
+| Dataset | Type | Features | Description |
+|---|---|---|---|
+| DRR Field Offices | Points | 5 | Fictional UN field office locations |
+| Monitoring Stations | Points | 4 | Fictional environmental monitoring sites |
+| Project Zones | Polygons | 3 | Fictional DRR project intervention areas |
+
+The coordinates are placed in regions covered by the curated MapX layers
+(Caribbean, Southeast Asia, East Africa) so that overlay data can be viewed
+alongside the real hazard and ecosystem layers.
+
+### Trade-offs between the approaches
+
+| Aspect | GeoJSON view (A) | Mapbox passthrough (B/C) |
+|---|---|---|
+| Click interaction | Native — `click_attributes` fires automatically | Requires coordinate matching fallback |
+| Styling flexibility | Limited to SDK style options (color, size, opacity) | Full Mapbox GL paint/layout expressions |
+| View list integration | Appears in the MapX panel as a toggleable view | Invisible to the MapX view system |
+| Layer ordering | Managed by MapX — may be reordered by MapX internals | Explicit — you control z-order via `addLayer` |
+| Polygon support | Supported but styling is basic | Full fill, line, and extrusion support |
+| Data-driven styling | Not available | Fully supported (color by attribute, zoom interpolation) |
+| Removal | `view_remove` by view ID | Must call `map` with `removeLayer` and `removeSource` |
+| Complexity | Low — single SDK call | Higher — multiple calls, local data management, fallback logic |
+
+**Recommendation:** Use GeoJSON views (Approach A) when click interaction is
+important and styling needs are simple. Use Mapbox passthrough (Approach B/C)
+when you need advanced Mapbox styling or when the overlay is purely visual
+without click interaction. For interactive polygon overlays with advanced
+styling, the passthrough with coordinate matching fallback is the only option,
+but it adds significant complexity.
