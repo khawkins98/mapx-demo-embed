@@ -20,7 +20,7 @@
 import { log } from "../log.js";
 import { esc } from "../../lib/esc.js";
 import { queryRenderedFeatures } from "../../sdk/map-layers.js";
-import { showToolMessage, showToolResults, clearToolResults } from "./tool-helpers.js";
+import { showToolMessage, showToolResults, clearToolResults, filterBasemapFeatures } from "./tool-helpers.js";
 import { cancelBoxSelect, startBoxSelect, cleanupBoxSelectHighlight } from "./box-select.js";
 import { cancelPolygonSelect, startPolygonSelect, cleanupPolygonSelectHighlight } from "./polygon-select.js";
 import { highlightQueryResults, cleanupFeatureHighlight } from "./feature-highlight.js";
@@ -37,14 +37,15 @@ export function enableSpatialQuery() {
     cleanupFeatureHighlight();
 
     try {
-      const features = await queryRenderedFeatures();
+      const rawFeatures = await queryRenderedFeatures();
+      const features = filterBasemapFeatures(rawFeatures || []);
 
-      if (!features || features.length === 0) {
+      if (features.length === 0) {
         showToolMessage("bbox-message", "No features found in viewport.");
         return;
       }
 
-      log(`Viewport query: ${features.length} features found`);
+      log(`Viewport query: ${features.length} features (${(rawFeatures || []).length} before basemap filter)`);
       showToolMessage("bbox-message", `${features.length} features in viewport`);
 
       const byLayer = {};

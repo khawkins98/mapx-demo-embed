@@ -35,7 +35,7 @@ import { log } from "../log.js";
 import { esc } from "../../lib/esc.js";
 import * as store from "../../state/store.js";
 import { addSource, addLayer, removeLayer, removeSource, queryRenderedFeatures, unproject } from "../../sdk/map-layers.js";
-import { showToolMessage, showToolResults, clearToolResults } from "./tool-helpers.js";
+import { showToolMessage, showToolResults, clearToolResults, filterBasemapFeatures } from "./tool-helpers.js";
 import { highlightQueryResults } from "./feature-highlight.js";
 import { cancelPolygonSelect, cleanupPolygonSelectHighlight } from "./polygon-select.js";
 import { cleanupFeatureHighlight } from "./feature-highlight.js";
@@ -184,14 +184,15 @@ export async function startBoxSelect() {
       store.setBoxHighlightActive(true);
       log("Selection highlight added to map");
 
-      const features = await queryRenderedFeatures(queryBbox);
+      const rawFeatures = await queryRenderedFeatures(queryBbox);
+      const features = filterBasemapFeatures(rawFeatures || []);
 
-      if (!features || features.length === 0) {
-        showToolMessage("bbox-message", "No vector features found in selected area. (Raster layers are not queryable.)");
+      if (features.length === 0) {
+        showToolMessage("bbox-message", "No view features found in selected area. (Basemap and raster layers are excluded.)");
         return;
       }
 
-      log(`Box query: ${features.length} features in selection`);
+      log(`Box query: ${features.length} features (${(rawFeatures || []).length} before basemap filter)`);
       showToolMessage("bbox-message", `${features.length} features in selection`);
 
       const byLayer = {};

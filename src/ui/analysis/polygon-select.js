@@ -28,7 +28,7 @@ import { esc } from "../../lib/esc.js";
 import { pointInPolygon } from "../../lib/geo.js";
 import * as store from "../../state/store.js";
 import { addSource, addLayer, removeLayer, removeSource, queryRenderedFeatures, unproject } from "../../sdk/map-layers.js";
-import { showToolMessage, showToolResults, clearToolResults } from "./tool-helpers.js";
+import { showToolMessage, showToolResults, clearToolResults, filterBasemapFeatures } from "./tool-helpers.js";
 import { highlightQueryResults, cleanupFeatureHighlight } from "./feature-highlight.js";
 import { cancelBoxSelect, cleanupBoxSelectHighlight } from "./box-select.js";
 
@@ -201,10 +201,11 @@ export async function startPolygonSelect() {
       store.setPolygonHighlightActive(true);
       log("Polygon highlight added to map");
 
-      const allFeatures = await queryRenderedFeatures(queryBbox);
+      const rawFeatures = await queryRenderedFeatures(queryBbox);
+      const allFeatures = filterBasemapFeatures(rawFeatures || []);
 
-      if (!allFeatures || allFeatures.length === 0) {
-        showToolMessage("bbox-message", "No vector features found in polygon. (Raster layers are not queryable.)");
+      if (allFeatures.length === 0) {
+        showToolMessage("bbox-message", "No view features found in polygon. (Basemap and raster layers are excluded.)");
         return;
       }
 
