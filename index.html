@@ -159,6 +159,256 @@
       #log div {
         padding: 0.15rem 0;
       }
+
+      /*
+       * Analysis Tools — floating panel + tool sub-panels.
+       *
+       * The panel floats over the map area and is draggable by its
+       * header. It is opened/closed via the sidebar toggle button.
+       * This replaces the old sidebar-embedded layout to give the
+       * analysis results more room.
+       */
+
+      /* Floating panel container */
+      .analysis-panel {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        z-index: 14;
+        width: 360px;
+        min-width: 280px;
+        max-width: calc(100% - 2rem);
+        min-height: 180px;
+        max-height: calc(100% - 2rem);
+        background: #fff;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* Draggable header bar */
+      .analysis-panel-header {
+        background: #004f91;
+        color: #fff;
+        padding: 0.6rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: move;
+        user-select: none;
+        flex-shrink: 0;
+      }
+
+      /* Scrollable body containing all tools */
+      .analysis-panel-body {
+        padding: 1rem;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      /* Resize handle — bottom-right corner */
+      .analysis-panel-resize {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 18px;
+        height: 18px;
+        cursor: nwse-resize;
+        font-size: 1.2rem;
+        line-height: 18px;
+        text-align: center;
+        color: #999;
+        user-select: none;
+      }
+
+      /* Active view selector dropdown */
+      #analysis-view-select {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 1.3rem;
+        font-family: 'Roboto', sans-serif;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        margin-bottom: 1rem;
+      }
+
+      /* Collapsible tool panels */
+      .analysis-tool {
+        border: 1px solid #ccc;
+        margin-bottom: 0.8rem;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .analysis-tool summary {
+        padding: 0.6rem 0.8rem;
+        cursor: pointer;
+        font-size: 1.3rem;
+        font-weight: 500;
+        background: #f5f5f5;
+        user-select: none;
+      }
+      .analysis-tool summary:hover {
+        background: #eee;
+      }
+      .analysis-tool .tool-body {
+        padding: 0.8rem;
+      }
+
+      /* Inline form rows for filter inputs */
+      .tool-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+      .tool-row label {
+        font-size: 1.2rem;
+        min-width: 3.5rem;
+        color: #666;
+      }
+      .tool-row input,
+      .tool-row select {
+        flex: 1;
+        padding: 0.35rem 0.5rem;
+        font-size: 1.2rem;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        font-family: 'Roboto', sans-serif;
+      }
+
+      /* Results panel shared by all tools */
+      .analysis-results {
+        margin-top: 0.8rem;
+        padding: 0.6rem;
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 3px;
+        max-height: 400px;
+        overflow-y: auto;
+        font-size: 1.2rem;
+        line-height: 1.5;
+        display: none;    /* shown via JS when results arrive */
+      }
+      .analysis-results.has-results {
+        display: block;
+      }
+      .analysis-results h4 {
+        margin: 0 0 0.4rem;
+        font-size: 1.3rem;
+      }
+      .analysis-results table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .analysis-results td,
+      .analysis-results th {
+        padding: 0.2rem 0.4rem;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+      }
+      .analysis-results th {
+        font-weight: 600;
+        color: #333;
+      }
+
+      /* Status/info messages inside tools */
+      .tool-message {
+        font-size: 1.2rem;
+        color: #666;
+        font-style: italic;
+        margin-top: 0.4rem;
+      }
+      .tool-message.error {
+        color: #c10920;
+        font-style: normal;
+      }
+
+      /*
+       * Box select overlay — transparent div positioned over the map
+       * during box select mode. Provides the crosshair cursor and
+       * captures clicks for corner selection. Drag and wheel events
+       * are passed through to the iframe so zoom/pan still works.
+       */
+      .box-select-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 12;
+        cursor: crosshair;
+      }
+
+      /* Selection rectangle drawn while dragging between corners */
+      .box-select-rect {
+        position: absolute;
+        border: 2px dashed #004f91;
+        background: rgba(0, 79, 145, 0.08);
+        pointer-events: none;
+      }
+
+      /*
+       * Raster/unsupported view notice — shown when the selected view
+       * doesn't support certain analysis tools (e.g. raster views
+       * can't be filtered, queried spatially, or exported).
+       */
+      .analysis-notice {
+        display: none;
+        padding: 0.5rem 0.7rem;
+        margin-bottom: 0.8rem;
+        background: #fff3e0;            /* light orange background */
+        border: 1px solid #ffb74d;
+        border-radius: 3px;
+        font-size: 1.2rem;
+        line-height: 1.4;
+        color: #6d4c00;
+      }
+      .analysis-notice.visible {
+        display: block;
+      }
+
+      /* Disabled state for analysis tool panels */
+      .analysis-tool.tool-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      .analysis-tool.tool-disabled summary {
+        cursor: default;
+        color: #999;
+      }
+
+      /* Corner marker dots (box select) */
+      .box-select-corner {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #004f91;
+        border: 2px solid #fff;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        z-index: 1;
+      }
+
+      /* Polygon select overlay and vertex markers */
+      .polygon-select-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 12;
+        cursor: crosshair;
+      }
+      .polygon-select-vertex {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #962987;   /* Sendai purple */
+        border: 2px solid #fff;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        z-index: 1;
+      }
     </style>
   </head>
   <body>
@@ -541,6 +791,24 @@
         <hr />
 
         <!--
+          ANALYSIS TOOLS — sidebar toggle button only.
+          The tools themselves live in a floating panel (#analysis-panel)
+          inside .app-map so they have more room for results and don't
+          crowd the sidebar. See methodology.md section 10.
+        -->
+        <div class="sidebar-section">
+          <h2>Analysis Tools</h2>
+          <p class="mg-form-help">Filter, query, summarise, and export map data</p>
+          <div class="action-buttons">
+            <button class="mg-button mg-button-primary disabled" id="btn-toggle-analysis">
+              Open Analysis Panel
+            </button>
+          </div>
+        </div>
+
+        <hr />
+
+        <!--
           SDK FEATURES SECTION
           Other SDK controls: language switching, theme switching,
           and story map playback.
@@ -647,6 +915,99 @@
             <button id="infobox-close" style="background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;padding:0 0.3rem;">×</button>
           </div>
           <div id="infobox-body" style="padding:1rem;max-height:280px;overflow-y:auto;"></div>
+        </div>
+
+        <!--
+          ANALYSIS TOOLS — floating panel.
+          Positioned over the map, draggable by its header, resizable
+          via the corner handle. Contains all analysis tool controls.
+          Opened/closed by the sidebar toggle button (#btn-toggle-analysis).
+        -->
+        <div id="analysis-panel" class="analysis-panel" style="display:none;">
+          <div class="analysis-panel-header" id="analysis-panel-header">
+            <strong>Analysis Tools</strong>
+            <button id="analysis-panel-close" style="background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;padding:0 0.3rem;">×</button>
+          </div>
+          <div class="analysis-panel-body">
+
+            <p class="mg-form-help">Active View</p>
+            <select id="analysis-view-select" disabled>
+              <option value="">No views open</option>
+            </select>
+
+            <div id="analysis-notice" class="analysis-notice">
+              Raster layer selected — filtering, spatial query, and export are unavailable for raster data.
+            </div>
+
+            <details class="analysis-tool" id="tool-numeric-filter">
+              <summary>Numeric Range Filter</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">Filter a vector layer by numeric attribute range</p>
+                <div class="tool-row">
+                  <label>Attr</label>
+                  <select id="filter-attr-select">
+                    <option value="">Select a view first</option>
+                  </select>
+                </div>
+                <div class="tool-row">
+                  <label>From</label>
+                  <input type="number" id="filter-from" placeholder="min" disabled />
+                </div>
+                <div class="tool-row">
+                  <label>To</label>
+                  <input type="number" id="filter-to" placeholder="max" disabled />
+                </div>
+                <div class="action-buttons" style="flex-direction:row;gap:0.4rem;">
+                  <button class="mg-button mg-button-primary disabled" id="btn-filter-apply" style="flex:1">Apply</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-filter-clear" style="flex:1">Clear</button>
+                </div>
+                <div id="filter-message" class="tool-message"></div>
+                <div id="filter-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+            <details class="analysis-tool" id="tool-spatial-query">
+              <summary>Spatial Query</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">Query vector features by viewport, drawn box, or polygon. Raster layers are not queryable.</p>
+                <div class="action-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
+                  <button class="mg-button mg-button-primary disabled" id="btn-query-viewport" style="flex:1">Query Viewport</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-box-select" style="flex:1">Box Select</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-polygon-select" style="flex:1">Polygon Select</button>
+                  <button class="mg-button disabled" id="btn-clear-selection" style="flex-basis:100%;border-color:#c10920;color:#c10920;">Clear Selection</button>
+                </div>
+                <div id="bbox-message" class="tool-message"></div>
+                <div id="bbox-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+            <details class="analysis-tool" id="tool-statistics">
+              <summary>Feature Statistics</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">View attribute statistics for the selected layer</p>
+                <div class="action-buttons">
+                  <button class="mg-button mg-button-primary disabled" id="btn-get-stats">Get Statistics</button>
+                </div>
+                <div id="stats-message" class="tool-message"></div>
+                <div id="stats-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+            <details class="analysis-tool" id="tool-data-export">
+              <summary>Data Export</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">Export layer data as GeoJSON</p>
+                <div class="action-buttons" style="flex-direction:row;gap:0.4rem;">
+                  <button class="mg-button mg-button-primary disabled" id="btn-export-geojson" style="flex:1">Export GeoJSON</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-export-preview" style="flex:1">Preview</button>
+                </div>
+                <div id="export-message" class="tool-message"></div>
+                <div id="export-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+          </div>
+          <div class="analysis-panel-resize" id="analysis-panel-resize">⟳</div>
         </div>
       </div>
     </div>
@@ -1376,6 +1737,7 @@
             log("  arg[" + i + "]: (not serializable) " + typeof args[i]);
           }
         }
+
         /* Pass the first argument to showInfobox; the event is typically
          * a single object, but we handle the multi-arg case defensively */
         showInfobox(args.length === 1 ? args[0] : args);
@@ -1438,6 +1800,7 @@
             openViews.add(idView);
             btn.classList.add("is-active");
           }
+          updateAnalysisViewSelect();
         } catch (e) {
           log(`View toggle error (${idView}): ${e.message}`);
         }
@@ -1465,6 +1828,7 @@
           openViews.add(idView);
           const btn = document.querySelector(`#view-buttons .mg-button[title="${idView}"]`);
           if (btn) btn.classList.add("is-active");
+          updateAnalysisViewSelect();
         }
       }
 
@@ -1508,6 +1872,12 @@
           markersAdded = false;
         }
         document.getElementById("infobox").style.display = "none";
+        cancelBoxSelect();
+        cancelPolygonSelect();
+        cleanupBoxSelectHighlight();
+        cleanupPolygonSelectHighlight();
+        cleanupFeatureHighlight();
+        updateAnalysisViewSelect();
       }
 
       /*
@@ -1778,6 +2148,7 @@
         enableScenarios();
         enableCustomData();
         enableSdkFeatures();
+        enableAnalysisTools();
 
         /*
          * Zoom controls — use map_get_zoom() to read the current zoom level,
@@ -2066,6 +2437,7 @@
                 },
               });
               log("Styled with Sendai red circles");
+              updateAnalysisViewSelect();
             }
           } catch (e) {
             log("GeoJSON create error: " + e.message);
@@ -2082,6 +2454,7 @@
           await mapx.ask("view_geojson_delete", { idView: geojsonViewId });
           geojsonViewId = null;
           document.getElementById("infobox").style.display = "none";
+          updateAnalysisViewSelect();
         });
 
         /*
@@ -2444,6 +2817,7 @@
 
               /* Zoom out to see all zones */
               await mapx.ask("map_fly_to", { center: { lng: 60, lat: 15 }, zoom: 2.5 });
+              updateAnalysisViewSelect();
             }
           } catch (e) {
             log("Polygon create error: " + e.message);
@@ -2460,6 +2834,1810 @@
           await mapx.ask("view_geojson_delete", { idView: polygonViewId });
           polygonViewId = null;
           document.getElementById("infobox").style.display = "none";
+          updateAnalysisViewSelect();
+        });
+      }
+
+      /*
+       * ============================================================
+       * ANALYSIS TOOLS
+       * ============================================================
+       *
+       * Four analysis tools that operate on the currently selected view:
+       *
+       *   1. Numeric Range Filter — filter vt layers by numeric attribute
+       *   2. Spatial Query — query features by viewport or bounding box
+       *   3. Feature Statistics — summarise attribute values
+       *   4. Data Export — download layer data as GeoJSON
+       *
+       * All tools use the "Active View" selector dropdown to determine
+       * which layer to operate on. The dropdown is rebuilt whenever
+       * views are added or removed via updateAnalysisViewSelect().
+       *
+       * SDK methods used:
+       *   get_view_table_attribute_config({idView})
+       *     Returns {attributes, idSource, labels} — the view's data schema.
+       *     The attributes array lists column names; labels provides human-
+       *     readable names. Only works on vt views.
+       *
+       *   get_view_source_summary({idView, idAttr, stats})
+       *     Returns statistical summary for a view's attribute.
+       *     stats: array of summary types — "base" (count, min, max),
+       *     "attributes" (category distributions, histograms).
+       *     Requires map_wait_idle() first to avoid stale data.
+       *
+       *   set_view_layer_filter_numeric({idView, attribute, from, to})
+       *     Filters a vt layer to features where the attribute value
+       *     falls within [from, to]. Only works on vt views.
+       *     Use from/to params, not the deprecated value array.
+       *     Pass {idView, attribute, from: null, to: null} to clear.
+       *
+       *   download_view_source_geojson({idView, mode})
+       *     Returns GeoJSON for a view's data. mode: "data" (raw data)
+       *     or "view" (with current filters applied).
+       *     Only works for GeoJSON views created via view_geojson_create,
+       *     not native MapX vector tile or raster views.
+       *
+       *   map({method: "queryRenderedFeatures", parameters: [geometry]})
+       *     Mapbox GL JS passthrough — queries features currently rendered
+       *     on screen. geometry can be a [x,y] point, [[x1,y1],[x2,y2]]
+       *     bounding box, or omitted to query the full viewport.
+       *     Results are serialized through postMessage so large feature
+       *     sets may be truncated.
+       *
+       *   map({method: "unproject", parameters: [point]})
+       *     Mapbox GL JS passthrough — converts pixel coordinates {x, y}
+       *     on the map canvas to geographic coordinates {lng, lat}.
+       *     Used by box select to draw a geographic highlight polygon
+       *     from the pixel-space selection rectangle.
+       */
+
+      /*
+       * ============================================================
+       * BOX SELECT — overlay-based interactive rectangle drawing
+       * ============================================================
+       *
+       * WHY AN OVERLAY INSTEAD OF INTERCEPTING click_attributes:
+       * The original approach intercepted click_attributes events from
+       * the SDK, but this had poor UX — no crosshair cursor, no visual
+       * feedback while drawing, and the user couldn't see what area
+       * they were selecting. The overlay approach gives us:
+       *
+       *   - Crosshair cursor over the map during selection
+       *   - Real-time rectangle drawing between corner 1 and the mouse
+       *   - Visual corner markers at each click point
+       *   - Drag/zoom still works (drags pass through to the iframe)
+       *
+       * HOW IT WORKS:
+       * A transparent overlay div is positioned over the map container
+       * with cursor:crosshair. It distinguishes clicks from drags by
+       * measuring mouse movement between mousedown and mouseup. Drags
+       * (>5px movement) are passed through to the iframe by temporarily
+       * disabling pointer-events on the overlay. Wheel events for zoom
+       * are also passed through.
+       *
+       * Click 1 sets corner 1 (with a visual marker dot).
+       * Mousemove after corner 1 draws a live-updating dashed rectangle.
+       * Click 2 finalises the rectangle, runs queryRenderedFeatures with
+       * the pixel bounding box, and draws a geographic highlight polygon
+       * on the map via the Mapbox passthrough so it persists through
+       * zoom/pan.
+       *
+       * WHY NOT toggle_draw_mode:
+       * The SDK docs reference toggle_draw_mode for drawing shapes on
+       * the map, but this method does not exist in the current SDK
+       * version. Calling it throws an "unknown resolver" error.
+       *
+       * RASTER LIMITATION:
+       * queryRenderedFeatures only returns vector features (points,
+       * lines, polygons from vt views and GeoJSON overlays). Raster
+       * layers (rt) and custom-coded views (cc) are ignored because
+       * they don't have discrete queryable features.
+       */
+
+      /** Currently active box select overlay element (or null) */
+      let boxSelectOverlay = null;
+
+      /**
+       * Remove the box select overlay and clean up UI state.
+       * Called when box select completes, is cancelled, or when
+       * the user takes an action that should exit selection mode.
+       */
+      function cancelBoxSelect() {
+        if (boxSelectOverlay) {
+          boxSelectOverlay.remove();
+          boxSelectOverlay = null;
+        }
+        document.getElementById("btn-box-select").classList.remove("is-active");
+      }
+
+      /**
+       * Remove any previous box select highlight layers from the map.
+       * These are Mapbox passthrough layers added after a successful
+       * box select to show the selected area as a geographic polygon.
+       * Called before each new box select and during clearAllViews.
+       *
+       * Uses getLayer/getSource checks before removal to avoid Mapbox
+       * throwing "does not exist" errors (which are logged to the
+       * console even when caught, because the SDK's postMessage bridge
+       * reports the error before our catch handler runs).
+       */
+      /** Track whether box select highlight layers currently exist on the map */
+      let boxHighlightActive = false;
+
+      async function cleanupBoxSelectHighlight() {
+        if (!boxHighlightActive) return;
+        for (const id of ["box-select-bbox-line", "box-select-bbox-fill"]) {
+          try { await mapx.ask("map", { method: "removeLayer", parameters: [id] }); } catch (e) { /* ignore */ }
+        }
+        try { await mapx.ask("map", { method: "removeSource", parameters: ["box-select-bbox"] }); } catch (e) { /* ignore */ }
+        boxHighlightActive = false;
+      }
+
+      /** Currently active polygon select overlay element (or null) */
+      let polygonSelectOverlay = null;
+
+      /** Remove the polygon select overlay and clean up UI state */
+      function cancelPolygonSelect() {
+        if (polygonSelectOverlay) {
+          polygonSelectOverlay.remove();
+          polygonSelectOverlay = null;
+        }
+        const btn = document.getElementById("btn-polygon-select");
+        if (btn) btn.classList.remove("is-active");
+      }
+
+      /** Remove polygon select highlight layers from the map */
+      /** Track whether polygon select highlight layers currently exist on the map */
+      let polygonHighlightActive = false;
+
+      async function cleanupPolygonSelectHighlight() {
+        if (!polygonHighlightActive) return;
+        for (const id of ["polygon-select-line", "polygon-select-fill"]) {
+          try { await mapx.ask("map", { method: "removeLayer", parameters: [id] }); } catch (e) { /* ignore */ }
+        }
+        try { await mapx.ask("map", { method: "removeSource", parameters: ["polygon-select-area"] }); } catch (e) { /* ignore */ }
+        polygonHighlightActive = false;
+      }
+
+      /**
+       * Remove query result highlight layers from the map.
+       * Called before each new spatial query and during clearAllViews.
+       */
+      /** Track whether feature highlight layers currently exist on the map */
+      let featureHighlightActive = false;
+
+      async function cleanupFeatureHighlight() {
+        if (!featureHighlightActive) return;
+        for (const id of ["query-highlight-fill", "query-highlight-line", "query-highlight-outline", "query-highlight-circle"]) {
+          try { await mapx.ask("map", { method: "removeLayer", parameters: [id] }); } catch (e) { /* ignore */ }
+        }
+        try { await mapx.ask("map", { method: "removeSource", parameters: ["query-result-highlight"] }); } catch (e) { /* ignore */ }
+        featureHighlightActive = false;
+      }
+
+      /**
+       * Highlight query result features on the map.
+       *
+       * Takes the features returned by queryRenderedFeatures, extracts
+       * those with valid geometry, and adds them as a temporary Mapbox
+       * source + layers. Uses separate layer types for polygons (fill),
+       * lines, and points so each geometry type renders correctly.
+       *
+       * @param {Array} features — features from queryRenderedFeatures
+       */
+      async function highlightQueryResults(features) {
+        await cleanupFeatureHighlight();
+
+        /* Build a GeoJSON FeatureCollection from features that have geometry */
+        const validFeatures = [];
+        for (const f of features) {
+          if (f.geometry && f.geometry.type && f.geometry.coordinates) {
+            validFeatures.push({
+              type: "Feature",
+              geometry: f.geometry,
+              properties: {},
+            });
+          }
+        }
+
+        if (validFeatures.length === 0) {
+          log("No features with geometry to highlight");
+          return;
+        }
+
+        const geojson = {
+          type: "FeatureCollection",
+          features: validFeatures,
+        };
+
+        try {
+          await mapx.ask("map", {
+            method: "addSource",
+            parameters: ["query-result-highlight", { type: "geojson", data: geojson }],
+          });
+
+          /* Polygon fill — semi-transparent amber */
+          await mapx.ask("map", {
+            method: "addLayer",
+            parameters: [{
+              id: "query-highlight-fill",
+              type: "fill",
+              source: "query-result-highlight",
+              filter: ["any",
+                ["==", "$type", "Polygon"],
+              ],
+              paint: {
+                "fill-color": "#f39c12",
+                "fill-opacity": 0.25,
+              },
+            }],
+          });
+
+          /* Polygon outline — solid amber border */
+          await mapx.ask("map", {
+            method: "addLayer",
+            parameters: [{
+              id: "query-highlight-outline",
+              type: "line",
+              source: "query-result-highlight",
+              filter: ["==", "$type", "Polygon"],
+              paint: {
+                "line-color": "#f39c12",
+                "line-width": 2,
+              },
+            }],
+          });
+
+          /* Line features */
+          await mapx.ask("map", {
+            method: "addLayer",
+            parameters: [{
+              id: "query-highlight-line",
+              type: "line",
+              source: "query-result-highlight",
+              filter: ["==", "$type", "LineString"],
+              paint: {
+                "line-color": "#f39c12",
+                "line-width": 3,
+              },
+            }],
+          });
+
+          /* Point features — circles */
+          await mapx.ask("map", {
+            method: "addLayer",
+            parameters: [{
+              id: "query-highlight-circle",
+              type: "circle",
+              source: "query-result-highlight",
+              filter: ["==", "$type", "Point"],
+              paint: {
+                "circle-radius": 7,
+                "circle-color": "#f39c12",
+                "circle-stroke-width": 2,
+                "circle-stroke-color": "#fff",
+                "circle-opacity": 0.9,
+              },
+            }],
+          });
+
+          featureHighlightActive = true;
+          log(`Highlighted ${validFeatures.length} features on map`);
+        } catch (e) {
+          log("Feature highlight error: " + e.message);
+        }
+      }
+
+      /**
+       * Activate box select mode by creating a transparent overlay
+       * over the map area. The overlay captures clicks for corner
+       * selection while letting drags and wheel events pass through
+       * to the iframe for zoom/pan.
+       *
+       * The overlay contains:
+       *   - A dashed rectangle div (updated on mousemove)
+       *   - Corner marker dots (added on each click)
+       *
+       * Pixel coordinates from click events on the overlay correspond
+       * directly to map canvas pixel coordinates because the overlay
+       * has the same dimensions and position (both use inset:0 within
+       * .app-map). These pixel coords are passed directly to
+       * queryRenderedFeatures — no project/unproject needed.
+       */
+      async function startBoxSelect() {
+        const mapArea = document.querySelector(".app-map");
+
+        /* Clean up any previous selection — must await so Mapbox
+         * layers/sources are fully removed before we add new ones */
+        cancelBoxSelect();
+        cancelPolygonSelect();
+        clearToolResults("bbox-results");
+        await cleanupBoxSelectHighlight();
+        await cleanupPolygonSelectHighlight();
+        await cleanupFeatureHighlight();
+
+        /* State for this selection session */
+        let corner1Px = null;   /* pixel coords of first click */
+        let mouseDownPos = null;
+        let isDragging = false;
+
+        /* Create the overlay */
+        const overlay = document.createElement("div");
+        overlay.className = "box-select-overlay";
+        boxSelectOverlay = overlay;
+
+        /* Selection rectangle — hidden until corner 1 is placed */
+        const rectDiv = document.createElement("div");
+        rectDiv.className = "box-select-rect";
+        rectDiv.style.display = "none";
+        overlay.appendChild(rectDiv);
+
+        /**
+         * Update the visual rectangle between two pixel positions.
+         * Uses absolute positioning within the overlay. Math.min/max
+         * ensures correct rendering regardless of corner order.
+         */
+        function updateRect(p1, p2) {
+          rectDiv.style.display = "block";
+          rectDiv.style.left = Math.min(p1.x, p2.x) + "px";
+          rectDiv.style.top = Math.min(p1.y, p2.y) + "px";
+          rectDiv.style.width = Math.abs(p2.x - p1.x) + "px";
+          rectDiv.style.height = Math.abs(p2.y - p1.y) + "px";
+        }
+
+        /** Add a small marker dot at a pixel position in the overlay */
+        function addCornerMarker(px) {
+          const dot = document.createElement("div");
+          dot.className = "box-select-corner";
+          dot.style.left = px.x + "px";
+          dot.style.top = px.y + "px";
+          overlay.appendChild(dot);
+        }
+
+        /*
+         * DRAG DETECTION — distinguish clicks from drags.
+         * On mousedown, record the position. On mousemove, if the mouse
+         * travels more than 5px, it's a drag — temporarily disable
+         * pointer-events on the overlay so the iframe gets the drag
+         * for panning. On mouseup (listened on document), re-enable.
+         */
+        overlay.addEventListener("mousedown", (e) => {
+          mouseDownPos = { x: e.clientX, y: e.clientY };
+          isDragging = false;
+        });
+
+        overlay.addEventListener("mousemove", (e) => {
+          /* Detect drag and pass through to iframe */
+          if (mouseDownPos && !isDragging) {
+            const dx = Math.abs(e.clientX - mouseDownPos.x);
+            const dy = Math.abs(e.clientY - mouseDownPos.y);
+            if (dx > 5 || dy > 5) {
+              isDragging = true;
+              overlay.style.pointerEvents = "none";
+            }
+          }
+
+          /* Draw live rectangle from corner 1 to mouse position */
+          if (corner1Px && !isDragging) {
+            updateRect(corner1Px, { x: e.offsetX, y: e.offsetY });
+          }
+        });
+
+        /* Re-enable overlay after a drag ends */
+        function onDocMouseUp() {
+          if (isDragging) {
+            overlay.style.pointerEvents = "";
+          }
+          isDragging = false;
+          mouseDownPos = null;
+        }
+        document.addEventListener("mouseup", onDocMouseUp);
+
+        /*
+         * WHEEL PASSTHROUGH — temporarily disable pointer-events
+         * so scroll-zoom reaches the iframe. Re-enable after a
+         * short delay so the next click is captured.
+         */
+        overlay.addEventListener("wheel", () => {
+          overlay.style.pointerEvents = "none";
+          setTimeout(() => {
+            if (boxSelectOverlay === overlay) {
+              overlay.style.pointerEvents = "";
+            }
+          }, 150);
+        }, { passive: true });
+
+        /*
+         * CLICK HANDLER — the core of box select.
+         * Gets pixel coordinates relative to the overlay (which maps
+         * 1:1 to the map canvas pixel space).
+         */
+        overlay.addEventListener("click", async (e) => {
+          if (isDragging) return;
+
+          /* Use offsetX/Y — position relative to the overlay element,
+           * which matches the map canvas coordinate system */
+          const px = { x: e.offsetX, y: e.offsetY };
+
+          if (!corner1Px) {
+            /* ---- CORNER 1 ---- */
+            corner1Px = px;
+            addCornerMarker(px);
+            showToolMessage("bbox-message",
+              "Corner 1 set. Click again to complete the box."
+            );
+            log(`Box select corner 1: pixel (${px.x}, ${px.y})`);
+            return;
+          }
+
+          /* ---- CORNER 2 — finalise and query ---- */
+          const corner2Px = px;
+          addCornerMarker(corner2Px);
+          updateRect(corner1Px, corner2Px);
+          log(`Box select corner 2: pixel (${corner2Px.x}, ${corner2Px.y})`);
+
+          /* Build the pixel bounding box for queryRenderedFeatures.
+           * Format: [[minX, minY], [maxX, maxY]] in CSS pixels. */
+          const queryBbox = [
+            [Math.min(corner1Px.x, corner2Px.x), Math.min(corner1Px.y, corner2Px.y)],
+            [Math.max(corner1Px.x, corner2Px.x), Math.max(corner1Px.y, corner2Px.y)],
+          ];
+
+          showToolMessage("bbox-message", "Querying features in box...");
+
+          /* Remove the overlay now — the query is async but the user
+           * doesn't need to keep selecting. Clean up the document
+           * mouseup listener too. */
+          document.removeEventListener("mouseup", onDocMouseUp);
+          cancelBoxSelect();
+
+          try {
+            /*
+             * Draw a geographic highlight polygon on the map so the
+             * selected area is visible even after zoom/pan. We unproject
+             * the two pixel corners to get geographic coordinates.
+             *
+             * map.unproject(point) converts CSS pixel coordinates on
+             * the map canvas to {lng, lat} geographic coordinates.
+             */
+            const [c1LL, c2LL] = await Promise.all([
+              mapx.ask("map", { method: "unproject", parameters: [corner1Px] }),
+              mapx.ask("map", { method: "unproject", parameters: [corner2Px] }),
+            ]);
+
+            /* Add the highlight rectangle to the map as a Mapbox layer */
+            const bboxGeoJSON = {
+              type: "FeatureCollection",
+              features: [{
+                type: "Feature",
+                geometry: {
+                  type: "Polygon",
+                  coordinates: [[
+                    [c1LL.lng, c1LL.lat],
+                    [c2LL.lng, c1LL.lat],
+                    [c2LL.lng, c2LL.lat],
+                    [c1LL.lng, c2LL.lat],
+                    [c1LL.lng, c1LL.lat],
+                  ]],
+                },
+              }],
+            };
+
+            await cleanupBoxSelectHighlight();
+
+            await mapx.ask("map", {
+              method: "addSource",
+              parameters: ["box-select-bbox", { type: "geojson", data: bboxGeoJSON }],
+            });
+            await mapx.ask("map", {
+              method: "addLayer",
+              parameters: [{
+                id: "box-select-bbox-fill",
+                type: "fill",
+                source: "box-select-bbox",
+                paint: { "fill-color": "#004f91", "fill-opacity": 0.1 },
+              }],
+            });
+            await mapx.ask("map", {
+              method: "addLayer",
+              parameters: [{
+                id: "box-select-bbox-line",
+                type: "line",
+                source: "box-select-bbox",
+                paint: {
+                  "line-color": "#004f91",
+                  "line-width": 2,
+                  "line-dasharray": [4, 3],
+                },
+              }],
+            });
+
+            boxHighlightActive = true;
+            log("Selection highlight added to map");
+
+            /* Query features within the pixel bounding box */
+            const features = await mapx.ask("map", {
+              method: "queryRenderedFeatures",
+              parameters: [queryBbox],
+            });
+
+            if (!features || features.length === 0) {
+              showToolMessage("bbox-message", "No vector features found in selected area. (Raster layers are not queryable.)");
+              return;
+            }
+
+            log(`Box query: ${features.length} features in selection`);
+            showToolMessage("bbox-message", `${features.length} features in selection`);
+
+            /* Build results summary — group by layer */
+            const byLayer = {};
+            for (const f of features) {
+              const layer = f.layer?.id || f.sourceLayer || "(unknown)";
+              byLayer[layer] = (byLayer[layer] || 0) + 1;
+            }
+
+            let html = `<h4>${features.length} Features in Box</h4>`;
+            html += '<table><tr><th>Layer</th><th>Count</th></tr>';
+            for (const [layer, count] of Object.entries(byLayer).sort((a, b) => b[1] - a[1])) {
+              html += `<tr><td>${esc(layer)}</td><td>${count}</td></tr>`;
+            }
+            html += "</table>";
+
+            const samples = features.slice(0, 5);
+            if (samples.length > 0) {
+              html += `<h4>Sample Features (first ${samples.length})</h4>`;
+              for (const f of samples) {
+                const props = f.properties || {};
+                const keys = Object.keys(props).slice(0, 4);
+                const summary = keys.map((k) => `${k}: ${String(props[k]).substring(0, 30)}`).join(", ");
+                html += `<div style="padding:0.2rem 0;border-bottom:1px solid #eee;font-size:1.1rem;">${esc(summary)}</div>`;
+              }
+            }
+
+            showToolResults("bbox-results", html);
+            await highlightQueryResults(features);
+          } catch (e) {
+            log("Box query error: " + e.message);
+            showToolMessage("bbox-message", "Box query failed: " + e.message, true);
+          }
+        });
+
+        /* Add the overlay to the map area */
+        mapArea.appendChild(overlay);
+        document.getElementById("btn-box-select").classList.add("is-active");
+        showToolMessage("bbox-message", "Click on the map to set corner 1...");
+        log("Box select: overlay active — click two corners to define the area");
+      }
+
+      /**
+       * Activate polygon select mode.
+       *
+       * Works like box select but allows the user to click multiple
+       * points to define an arbitrary polygon. Double-click (or click
+       * near the first vertex) closes the polygon and runs the query.
+       *
+       * The polygon is drawn in real-time as an SVG overlay with
+       * pointer-events:none so mouse events pass to the outer overlay
+       * for click/drag handling.
+       *
+       * After closing, the polygon's bounding box is used for
+       * queryRenderedFeatures, then results are post-filtered using
+       * the pointInPolygon() function to keep only features actually
+       * inside the drawn polygon.
+       *
+       * A geographic highlight polygon is drawn on the map via the
+       * Mapbox passthrough so it persists through zoom/pan.
+       */
+      async function startPolygonSelect() {
+        const mapArea = document.querySelector(".app-map");
+
+        /* Clean up any previous selection */
+        cancelPolygonSelect();
+        cancelBoxSelect();
+        clearToolResults("bbox-results");
+        await cleanupPolygonSelectHighlight();
+        await cleanupBoxSelectHighlight();
+        await cleanupFeatureHighlight();
+
+        const vertices = [];  /* pixel coords [{x, y}, ...] */
+        let mouseDownPos = null;
+        let isDragging = false;
+
+        /* Create overlay */
+        const overlay = document.createElement("div");
+        overlay.className = "polygon-select-overlay";
+        polygonSelectOverlay = overlay;
+
+        /* SVG for drawing polygon lines — pointer-events:none so
+         * clicks pass through to the overlay div underneath */
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;";
+        overlay.appendChild(svg);
+
+        /* The polyline element for live drawing */
+        const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        polyline.setAttribute("fill", "rgba(150,41,135,0.08)");
+        polyline.setAttribute("stroke", "#962987");
+        polyline.setAttribute("stroke-width", "2");
+        polyline.setAttribute("stroke-dasharray", "6,4");
+        svg.appendChild(polyline);
+
+        /* Rubber-band line from last vertex to cursor */
+        const rubberLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        rubberLine.setAttribute("stroke", "#962987");
+        rubberLine.setAttribute("stroke-width", "1");
+        rubberLine.setAttribute("stroke-dasharray", "4,4");
+        rubberLine.style.display = "none";
+        svg.appendChild(rubberLine);
+
+        function updatePolyline(extraPoint) {
+          const pts = vertices.map((v) => `${v.x},${v.y}`);
+          if (extraPoint) pts.push(`${extraPoint.x},${extraPoint.y}`);
+          polyline.setAttribute("points", pts.join(" "));
+        }
+
+        function addVertexMarker(px) {
+          const dot = document.createElement("div");
+          dot.className = "polygon-select-vertex";
+          dot.style.left = px.x + "px";
+          dot.style.top = px.y + "px";
+          overlay.appendChild(dot);
+        }
+
+        /* Drag detection — same pattern as box select */
+        overlay.addEventListener("mousedown", (e) => {
+          mouseDownPos = { x: e.clientX, y: e.clientY };
+          isDragging = false;
+        });
+
+        overlay.addEventListener("mousemove", (e) => {
+          if (mouseDownPos && !isDragging) {
+            const dx = Math.abs(e.clientX - mouseDownPos.x);
+            const dy = Math.abs(e.clientY - mouseDownPos.y);
+            if (dx > 5 || dy > 5) {
+              isDragging = true;
+              overlay.style.pointerEvents = "none";
+            }
+          }
+
+          /* Rubber-band line + live polygon preview */
+          if (vertices.length > 0 && !isDragging) {
+            const cur = { x: e.offsetX, y: e.offsetY };
+            const last = vertices[vertices.length - 1];
+            rubberLine.setAttribute("x1", last.x);
+            rubberLine.setAttribute("y1", last.y);
+            rubberLine.setAttribute("x2", cur.x);
+            rubberLine.setAttribute("y2", cur.y);
+            rubberLine.style.display = "";
+            updatePolyline(cur);
+          }
+        });
+
+        function onDocMouseUp() {
+          if (isDragging) {
+            overlay.style.pointerEvents = "";
+          }
+          isDragging = false;
+          mouseDownPos = null;
+        }
+        document.addEventListener("mouseup", onDocMouseUp);
+
+        overlay.addEventListener("wheel", () => {
+          overlay.style.pointerEvents = "none";
+          setTimeout(() => {
+            if (polygonSelectOverlay === overlay) {
+              overlay.style.pointerEvents = "";
+            }
+          }, 150);
+        }, { passive: true });
+
+        /* CLICK HANDLER — add vertex or close polygon */
+        overlay.addEventListener("click", async (e) => {
+          if (isDragging) return;
+          const px = { x: e.offsetX, y: e.offsetY };
+
+          /* Close polygon if clicking near the first vertex (within 15px)
+           * or if we already have 3+ vertices and the user double-clicks
+           * (handled via the close-on-proximity check) */
+          if (vertices.length >= 3) {
+            const first = vertices[0];
+            const dist = Math.sqrt((px.x - first.x) ** 2 + (px.y - first.y) ** 2);
+            if (dist < 15) {
+              await closePolygon();
+              return;
+            }
+          }
+
+          /* Add vertex */
+          vertices.push(px);
+          addVertexMarker(px);
+          updatePolyline();
+          showToolMessage("bbox-message",
+            vertices.length < 3
+              ? `${vertices.length} point(s) placed. Need at least 3 to close.`
+              : `${vertices.length} points. Click near the first point to close, or keep adding.`
+          );
+          log(`Polygon vertex ${vertices.length}: (${px.x}, ${px.y})`);
+        });
+
+        /* Double-click to close polygon (alternative to clicking near first vertex) */
+        overlay.addEventListener("dblclick", async (e) => {
+          e.preventDefault();
+          if (vertices.length >= 3) {
+            await closePolygon();
+          }
+        });
+
+        /**
+         * Close the polygon, query features, and draw the highlight.
+         */
+        async function closePolygon() {
+          showToolMessage("bbox-message", "Querying features in polygon...");
+          document.removeEventListener("mouseup", onDocMouseUp);
+          cancelPolygonSelect();
+
+          /* Compute pixel bounding box for queryRenderedFeatures */
+          const xs = vertices.map((v) => v.x);
+          const ys = vertices.map((v) => v.y);
+          const queryBbox = [
+            [Math.min(...xs), Math.min(...ys)],
+            [Math.max(...xs), Math.max(...ys)],
+          ];
+
+          try {
+            /* Unproject all vertices to geographic coordinates */
+            const geoVerts = [];
+            for (const v of vertices) {
+              const ll = await mapx.ask("map", {
+                method: "unproject",
+                parameters: [v],
+              });
+              geoVerts.push([ll.lng, ll.lat]);
+            }
+            /* Close the ring */
+            geoVerts.push([geoVerts[0][0], geoVerts[0][1]]);
+
+            /* Draw geographic highlight polygon on the map */
+            const polyGeoJSON = {
+              type: "FeatureCollection",
+              features: [{
+                type: "Feature",
+                geometry: { type: "Polygon", coordinates: [geoVerts] },
+              }],
+            };
+
+            await cleanupPolygonSelectHighlight();
+            await mapx.ask("map", {
+              method: "addSource",
+              parameters: ["polygon-select-area", { type: "geojson", data: polyGeoJSON }],
+            });
+            await mapx.ask("map", {
+              method: "addLayer",
+              parameters: [{
+                id: "polygon-select-fill",
+                type: "fill",
+                source: "polygon-select-area",
+                paint: { "fill-color": "#962987", "fill-opacity": 0.1 },
+              }],
+            });
+            await mapx.ask("map", {
+              method: "addLayer",
+              parameters: [{
+                id: "polygon-select-line",
+                type: "line",
+                source: "polygon-select-area",
+                paint: {
+                  "line-color": "#962987",
+                  "line-width": 2,
+                  "line-dasharray": [4, 3],
+                },
+              }],
+            });
+            polygonHighlightActive = true;
+            log("Polygon highlight added to map");
+
+            /* Query features in the bounding box */
+            const allFeatures = await mapx.ask("map", {
+              method: "queryRenderedFeatures",
+              parameters: [queryBbox],
+            });
+
+            if (!allFeatures || allFeatures.length === 0) {
+              showToolMessage("bbox-message", "No vector features found in polygon. (Raster layers are not queryable.)");
+              return;
+            }
+
+            /*
+             * Post-filter: keep only features whose representative
+             * point falls inside the drawn polygon.
+             *
+             * For Point features, test the point itself.
+             * For Polygon/Line features, test the first coordinate
+             * as an approximation (full containment testing would
+             * require unprojecting every feature vertex).
+             *
+             * We unproject each candidate feature's pixel position
+             * and test against the geographic polygon ring.
+             */
+            const geoRing = geoVerts;
+            const filteredFeatures = [];
+            const byLayer = {};
+
+            for (const f of allFeatures) {
+              /* Try to get a representative coordinate */
+              let testLng, testLat;
+              if (f.geometry && f.geometry.coordinates) {
+                const coords = f.geometry.coordinates;
+                if (f.geometry.type === "Point") {
+                  [testLng, testLat] = coords;
+                } else if (f.geometry.type === "Polygon") {
+                  [testLng, testLat] = coords[0][0];
+                } else if (f.geometry.type === "MultiPolygon") {
+                  [testLng, testLat] = coords[0][0][0];
+                } else if (f.geometry.type === "LineString") {
+                  [testLng, testLat] = coords[0];
+                } else {
+                  /* Include features we can't test */
+                  testLng = null;
+                }
+              } else {
+                testLng = null;
+              }
+
+              /* If we can't determine coordinates, include the feature
+               * (conservative — better to include than exclude) */
+              const inside = testLng == null || pointInPolygon(testLng, testLat, geoRing);
+              if (inside) {
+                filteredFeatures.push(f);
+                const layer = f.layer?.id || f.sourceLayer || "(unknown)";
+                byLayer[layer] = (byLayer[layer] || 0) + 1;
+              }
+            }
+
+            const filteredCount = filteredFeatures.length;
+
+            if (filteredCount === 0) {
+              showToolMessage("bbox-message", "No features found inside the polygon.");
+              return;
+            }
+
+            log(`Polygon query: ${filteredCount} features (from ${allFeatures.length} in bbox)`);
+            showToolMessage("bbox-message", `${filteredCount} features in polygon`);
+
+            let html = `<h4>${filteredCount} Features in Polygon</h4>`;
+            html += '<table><tr><th>Layer</th><th>Count</th></tr>';
+            for (const [layer, count] of Object.entries(byLayer).sort((a, b) => b[1] - a[1])) {
+              html += `<tr><td>${esc(layer)}</td><td>${count}</td></tr>`;
+            }
+            html += "</table>";
+
+            /* Show sample features */
+            const samples = filteredFeatures.slice(0, 5);
+            if (samples.length > 0) {
+              html += `<h4>Sample Features (first ${samples.length})</h4>`;
+              for (const f of samples) {
+                const props = f.properties || {};
+                const keys = Object.keys(props).slice(0, 4);
+                const summary = keys.map((k) => `${k}: ${String(props[k]).substring(0, 30)}`).join(", ");
+                html += `<div style="padding:0.2rem 0;border-bottom:1px solid #eee;font-size:1.1rem;">${esc(summary)}</div>`;
+              }
+            }
+
+            showToolResults("bbox-results", html);
+            await highlightQueryResults(filteredFeatures);
+          } catch (e) {
+            log("Polygon query error: " + e.message);
+            showToolMessage("bbox-message", "Polygon query failed: " + e.message, true);
+          }
+        }
+
+        /* Add overlay to map */
+        mapArea.appendChild(overlay);
+        document.getElementById("btn-polygon-select").classList.add("is-active");
+        showToolMessage("bbox-message", "Click to add polygon vertices. Double-click or click near the first point to close.");
+        log("Polygon select: overlay active");
+      }
+
+      /**
+       * Rebuild the "Active View" dropdown with all currently open views.
+       * Called from toggleView, ensureView, clearAllViews, and the custom
+       * data add/remove handlers.
+       *
+       * The dropdown includes:
+       *   - Curated views from openViews (matched against CURATED_VIEWS for labels)
+       *   - Custom GeoJSON views (geojsonViewId, polygonViewId)
+       *   - The option value is the view ID, used by all analysis tools
+       */
+      function updateAnalysisViewSelect() {
+        const select = document.getElementById("analysis-view-select");
+        const previousValue = select.value;
+        select.innerHTML = "";
+
+        /* Collect all open views with labels */
+        const entries = [];
+
+        /* Curated MapX views */
+        for (const idView of openViews) {
+          const curated = CURATED_VIEWS.find((v) => v.id === idView);
+          const label = curated
+            ? `${curated.label} [${curated.type}]`
+            : `${idView}`;
+          entries.push({ id: idView, label });
+        }
+
+        /* Custom GeoJSON views */
+        if (geojsonViewId) {
+          entries.push({ id: geojsonViewId, label: "DRR Field Offices [geojson]" });
+        }
+        if (polygonViewId) {
+          entries.push({ id: polygonViewId, label: "DRR Project Zones [geojson]" });
+        }
+
+        if (entries.length === 0) {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "No views open";
+          select.appendChild(opt);
+          select.disabled = true;
+        } else {
+          entries.forEach(({ id, label }) => {
+            const opt = document.createElement("option");
+            opt.value = id;
+            opt.textContent = label;
+            select.appendChild(opt);
+          });
+          select.disabled = false;
+
+          /* Preserve previous selection if still available */
+          if (entries.some((e) => e.id === previousValue)) {
+            select.value = previousValue;
+          }
+        }
+
+        updateAnalysisToolState();
+      }
+
+      /**
+       * Enable/disable analysis tool panels based on the selected view type.
+       *
+       * View type compatibility:
+       *   vt (vector tiles) — all tools work
+       *   geojson (custom)  — statistics + export work; filter + spatial work partially
+       *   rt (raster)       — only statistics may partially work
+       *   cc (custom coded) — only statistics may partially work
+       *
+       * Disabled tools get the "tool-disabled" class which sets opacity:0.5
+       * and pointer-events:none so the user can see they exist but can't
+       * interact with them. The notice banner explains why.
+       */
+      function updateAnalysisToolState() {
+        const idView = document.getElementById("analysis-view-select").value;
+        const viewType = idView ? getViewType(idView) : null;
+        const notice = document.getElementById("analysis-notice");
+
+        const numericFilter = document.getElementById("tool-numeric-filter");
+        const spatialQuery = document.getElementById("tool-spatial-query");
+        const statistics = document.getElementById("tool-statistics");
+        const dataExport = document.getElementById("tool-data-export");
+
+        /* Reset all tools to enabled */
+        [numericFilter, spatialQuery, statistics, dataExport].forEach((el) => {
+          el.classList.remove("tool-disabled");
+        });
+        notice.classList.remove("visible");
+
+        if (!idView) return;
+
+        if (viewType === "rt" || viewType === "cc") {
+          /*
+           * Raster and custom-coded views:
+           *   - No attribute table → numeric filter disabled
+           *   - No vector features → spatial query disabled
+           *   - No downloadable GeoJSON → export disabled
+           *   - Statistics may partially work (get_view_source_summary
+           *     can sometimes return basic info for raster layers)
+           */
+          numericFilter.classList.add("tool-disabled");
+          spatialQuery.classList.add("tool-disabled");
+          dataExport.classList.add("tool-disabled");
+          notice.classList.add("visible");
+
+          if (viewType === "rt") {
+            notice.textContent = "Raster layer selected — filtering, spatial query, and export are not available for raster data.";
+          } else {
+            notice.textContent = "Custom-coded layer selected — filtering, spatial query, and export are not available for this view type.";
+          }
+        } else if (viewType === "geojson") {
+          /*
+           * Custom GeoJSON views: most tools work, but numeric filter
+           * relies on get_view_table_attribute_config which may not
+           * work for dynamically created views. Leave it enabled but
+           * it will show an appropriate message if it fails.
+           */
+          notice.classList.remove("visible");
+        }
+        /* vt views: everything works, no notice needed */
+      }
+
+      /**
+       * Show a message inside a tool's message element.
+       * @param {string} elId - DOM ID of the message element
+       * @param {string} text - message text
+       * @param {boolean} isError - if true, applies error styling
+       */
+      function showToolMessage(elId, text, isError) {
+        const el = document.getElementById(elId);
+        el.textContent = text;
+        el.className = isError ? "tool-message error" : "tool-message";
+      }
+
+      /**
+       * Show HTML content in a tool's results panel.
+       * @param {string} elId - DOM ID of the results element
+       * @param {string} html - HTML content to display
+       */
+      function showToolResults(elId, html) {
+        const el = document.getElementById(elId);
+        el.innerHTML = html;
+        el.classList.add("has-results");
+      }
+
+      /** Clear a tool's results panel */
+      function clearToolResults(elId) {
+        const el = document.getElementById(elId);
+        el.innerHTML = "";
+        el.classList.remove("has-results");
+      }
+
+      /**
+       * Look up the view type for a given view ID.
+       * Checks CURATED_VIEWS first, then falls back to checking if it's
+       * a custom GeoJSON view. Returns the type code or null.
+       */
+      function getViewType(idView) {
+        const curated = CURATED_VIEWS.find((v) => v.id === idView);
+        if (curated) return curated.type;
+        if (idView === geojsonViewId || idView === polygonViewId) return "geojson";
+        return null;
+      }
+
+      /**
+       * Compute basic statistics locally from a GeoJSON FeatureCollection.
+       * Used for custom overlays where get_view_source_summary won't work.
+       *
+       * Returns an object with:
+       *   - count: number of features
+       *   - attributes: object mapping attribute names to stats
+       *     Each attribute has: type ("numeric"|"text"), and either
+       *     {min, max, mean} for numeric or {categories} for text.
+       */
+      function computeLocalStats(geojson) {
+        const features = geojson.features || [];
+        const result = { count: features.length, attributes: {} };
+        if (features.length === 0) return result;
+
+        /* Collect all property keys across all features */
+        const allKeys = new Set();
+        for (const f of features) {
+          if (f.properties) {
+            Object.keys(f.properties).forEach((k) => allKeys.add(k));
+          }
+        }
+
+        for (const key of allKeys) {
+          const values = features
+            .map((f) => f.properties && f.properties[key])
+            .filter((v) => v != null && v !== "");
+
+          if (values.length === 0) continue;
+
+          /* Determine if numeric or text based on actual values */
+          const numericValues = values.filter((v) => typeof v === "number" || !isNaN(Number(v)));
+
+          if (numericValues.length > values.length / 2) {
+            /* Treat as numeric */
+            const nums = numericValues.map(Number);
+            result.attributes[key] = {
+              type: "numeric",
+              min: Math.min(...nums),
+              max: Math.max(...nums),
+              mean: nums.reduce((a, b) => a + b, 0) / nums.length,
+              count: nums.length,
+            };
+          } else {
+            /* Treat as categorical text */
+            const categories = {};
+            for (const v of values) {
+              const s = String(v);
+              categories[s] = (categories[s] || 0) + 1;
+            }
+            result.attributes[key] = {
+              type: "text",
+              categories,
+              count: values.length,
+            };
+          }
+        }
+
+        return result;
+      }
+
+      function enableAnalysisTools() {
+
+        /* Enable all analysis tool buttons (including toggle) */
+        document
+          .querySelectorAll(".analysis-tool .mg-button, #btn-toggle-analysis")
+          .forEach((b) => b.classList.remove("disabled"));
+
+        /* --------------------------------------------------------
+         * FLOATING PANEL — toggle, drag, resize
+         * -------------------------------------------------------- */
+        const panel = document.getElementById("analysis-panel");
+        const panelHeader = document.getElementById("analysis-panel-header");
+        const panelResize = document.getElementById("analysis-panel-resize");
+        const toggleBtn = document.getElementById("btn-toggle-analysis");
+        const panelCloseBtn = document.getElementById("analysis-panel-close");
+
+        function openAnalysisPanel() {
+          panel.style.display = "flex";
+          toggleBtn.textContent = "Close Analysis Panel";
+          toggleBtn.classList.add("is-active");
+        }
+        function closeAnalysisPanel() {
+          panel.style.display = "none";
+          toggleBtn.textContent = "Open Analysis Panel";
+          toggleBtn.classList.remove("is-active");
+        }
+
+        toggleBtn.addEventListener("click", () => {
+          if (panel.style.display === "none") {
+            openAnalysisPanel();
+          } else {
+            closeAnalysisPanel();
+          }
+        });
+        panelCloseBtn.addEventListener("click", closeAnalysisPanel);
+
+        /*
+         * DRAG — mousedown on the header starts dragging.
+         * Moves the panel by updating left/top. Clamped to
+         * stay within the .app-map container bounds.
+         */
+        panelHeader.addEventListener("mousedown", (e) => {
+          if (e.target === panelCloseBtn) return;
+          e.preventDefault();
+          const mapArea = panel.parentElement;
+          const startX = e.clientX;
+          const startY = e.clientY;
+          const startLeft = panel.offsetLeft;
+          const startTop = panel.offsetTop;
+
+          function onMove(ev) {
+            const dx = ev.clientX - startX;
+            const dy = ev.clientY - startY;
+            const maxLeft = mapArea.clientWidth - panel.offsetWidth;
+            const maxTop = mapArea.clientHeight - panel.offsetHeight;
+            panel.style.left = Math.max(0, Math.min(maxLeft, startLeft + dx)) + "px";
+            panel.style.top = Math.max(0, Math.min(maxTop, startTop + dy)) + "px";
+          }
+          function onUp() {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+          }
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        });
+
+        /*
+         * RESIZE — mousedown on the bottom-right handle resizes
+         * the panel by updating width/height. Clamped to min/max.
+         */
+        panelResize.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          const startX = e.clientX;
+          const startY = e.clientY;
+          const startW = panel.offsetWidth;
+          const startH = panel.offsetHeight;
+
+          function onMove(ev) {
+            const w = Math.max(280, startW + (ev.clientX - startX));
+            const h = Math.max(180, startH + (ev.clientY - startY));
+            panel.style.width = w + "px";
+            panel.style.height = h + "px";
+          }
+          function onUp() {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+          }
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        });
+
+        /* --------------------------------------------------------
+         * TOOL 1: Numeric Range Filter
+         * --------------------------------------------------------
+         *
+         * Workflow:
+         *   1. User selects a view in the dropdown
+         *   2. We call get_view_table_attribute_config to discover attributes
+         *   3. User selects an attribute and we fetch its min/max via
+         *      get_view_source_summary
+         *   4. User enters from/to values and clicks Apply
+         *   5. We call set_view_layer_filter_numeric to apply the filter
+         *
+         * Only works on vt (vector tile) views. Raster and custom-coded
+         * views don't have queryable attribute tables.
+         */
+        const filterAttrSelect = document.getElementById("filter-attr-select");
+        const filterFrom = document.getElementById("filter-from");
+        const filterTo = document.getElementById("filter-to");
+
+        /* When the active view changes, discover its attributes and
+         * update tool enable/disable state based on the view type */
+        document.getElementById("analysis-view-select").addEventListener("change", async () => {
+          const idView = document.getElementById("analysis-view-select").value;
+          updateAnalysisToolState();
+          filterAttrSelect.innerHTML = '<option value="">Loading...</option>';
+          filterFrom.value = "";
+          filterTo.value = "";
+          filterFrom.disabled = true;
+          filterTo.disabled = true;
+          clearToolResults("filter-results");
+          showToolMessage("filter-message", "");
+
+          if (!idView) {
+            filterAttrSelect.innerHTML = '<option value="">Select a view first</option>';
+            return;
+          }
+
+          const viewType = getViewType(idView);
+          if (viewType !== "vt") {
+            filterAttrSelect.innerHTML = '<option value="">N/A — not a vector view</option>';
+            showToolMessage("filter-message", "Numeric filter only works on vector tile (vt) views.", true);
+            return;
+          }
+
+          try {
+            log(`Discovering attributes for ${idView}...`);
+            const config = await mapx.ask("get_view_table_attribute_config", { idView });
+            log("Attribute config: " + JSON.stringify(config).substring(0, 300));
+
+            if (config && config.attributes && config.attributes.length > 0) {
+              filterAttrSelect.innerHTML = "";
+              const defaultOpt = document.createElement("option");
+              defaultOpt.value = "";
+              defaultOpt.textContent = "Choose attribute...";
+              filterAttrSelect.appendChild(defaultOpt);
+
+              for (const attr of config.attributes) {
+                const opt = document.createElement("option");
+                opt.value = attr;
+                /* Use the label if available, otherwise clean up the attr name */
+                const label = (config.labels && config.labels[attr]) || attr;
+                opt.textContent = label;
+                filterAttrSelect.appendChild(opt);
+              }
+            } else {
+              filterAttrSelect.innerHTML = '<option value="">No attributes found</option>';
+            }
+          } catch (e) {
+            log("Attribute discovery error: " + e.message);
+            filterAttrSelect.innerHTML = '<option value="">Error loading attributes</option>';
+            showToolMessage("filter-message", e.message, true);
+          }
+        });
+
+        /* When an attribute is selected, fetch its min/max */
+        filterAttrSelect.addEventListener("change", async () => {
+          const idView = document.getElementById("analysis-view-select").value;
+          const idAttr = filterAttrSelect.value;
+          filterFrom.value = "";
+          filterTo.value = "";
+          clearToolResults("filter-results");
+
+          if (!idAttr || !idView) {
+            filterFrom.disabled = true;
+            filterTo.disabled = true;
+            return;
+          }
+
+          try {
+            showToolMessage("filter-message", "Fetching attribute range...");
+            await mapx.ask("map_wait_idle");
+            const summary = await mapx.ask("get_view_source_summary", {
+              idView,
+              idAttr,
+              stats: ["attributes"],
+            });
+            log("Attribute summary: " + JSON.stringify(summary).substring(0, 400));
+
+            /*
+             * The summary object structure varies but typically contains:
+             *   attribute_stat.min, attribute_stat.max for numeric attributes
+             *   table for category distributions
+             */
+            if (summary && summary.attribute_stat) {
+              const stat = summary.attribute_stat;
+              if (stat.min != null) {
+                filterFrom.placeholder = `min: ${stat.min}`;
+                filterFrom.value = stat.min;
+              }
+              if (stat.max != null) {
+                filterTo.placeholder = `max: ${stat.max}`;
+                filterTo.value = stat.max;
+              }
+              filterFrom.disabled = false;
+              filterTo.disabled = false;
+              showToolMessage("filter-message", `Range: ${stat.min} to ${stat.max}`);
+            } else {
+              filterFrom.disabled = false;
+              filterTo.disabled = false;
+              showToolMessage("filter-message", "Could not determine range — enter values manually.");
+            }
+          } catch (e) {
+            log("Summary error: " + e.message);
+            filterFrom.disabled = false;
+            filterTo.disabled = false;
+            showToolMessage("filter-message", "Could not fetch range: " + e.message, true);
+          }
+        });
+
+        /* Apply numeric filter */
+        document.getElementById("btn-filter-apply").addEventListener("click", async () => {
+          const idView = document.getElementById("analysis-view-select").value;
+          const attribute = filterAttrSelect.value;
+          const from = parseFloat(filterFrom.value);
+          const to = parseFloat(filterTo.value);
+
+          if (!idView || !attribute) {
+            showToolMessage("filter-message", "Select a view and attribute first.", true);
+            return;
+          }
+          if (isNaN(from) || isNaN(to)) {
+            showToolMessage("filter-message", "Enter valid numeric from/to values.", true);
+            return;
+          }
+
+          try {
+            log(`Applying numeric filter: ${attribute} [${from}, ${to}] on ${idView}`);
+            await mapx.ask("set_view_layer_filter_numeric", {
+              idView,
+              attribute,
+              from,
+              to,
+            });
+            showToolMessage("filter-message", `Filter applied: ${attribute} between ${from} and ${to}`);
+            log("Numeric filter applied");
+          } catch (e) {
+            log("Filter error: " + e.message);
+            showToolMessage("filter-message", "Filter failed: " + e.message, true);
+          }
+        });
+
+        /* Clear numeric filter */
+        document.getElementById("btn-filter-clear").addEventListener("click", async () => {
+          const idView = document.getElementById("analysis-view-select").value;
+          const attribute = filterAttrSelect.value;
+
+          if (!idView || !attribute) {
+            showToolMessage("filter-message", "Select a view and attribute first.", true);
+            return;
+          }
+
+          try {
+            log(`Clearing numeric filter on ${idView}`);
+            await mapx.ask("set_view_layer_filter_numeric", {
+              idView,
+              attribute,
+              from: null,
+              to: null,
+            });
+            showToolMessage("filter-message", "Filter cleared.");
+            log("Numeric filter cleared");
+          } catch (e) {
+            log("Clear filter error: " + e.message);
+            showToolMessage("filter-message", "Clear failed: " + e.message, true);
+          }
+        });
+
+        /* --------------------------------------------------------
+         * TOOL 2: Spatial Query (Viewport + Box Select)
+         * --------------------------------------------------------
+         *
+         * Two sub-tools:
+         *
+         * A. Query Viewport — calls queryRenderedFeatures with no
+         *    geometry argument to get everything currently visible
+         *    on the map canvas. Simple one-click operation.
+         *
+         * B. Box Select — overlay-based interactive rectangle drawing:
+         *    1. Click "Box Select" — a transparent overlay with crosshair
+         *       cursor is created over the map area
+         *    2. Click on the map to set corner 1 (marker dot appears)
+         *    3. Mouse move draws a live dashed rectangle from corner 1
+         *    4. Click again for corner 2 — rectangle finalises
+         *    5. Pixel coordinates go directly to queryRenderedFeatures
+         *    6. Geographic coords (via map.unproject) draw a highlight
+         *       polygon on the map that persists through zoom/pan
+         *
+         *    The overlay passes through drag events (for panning) and
+         *    wheel events (for zoom) so the user can still navigate.
+         *    See startBoxSelect() for the full implementation.
+         *
+         *    RASTER LIMITATION: queryRenderedFeatures only returns
+         *    vector features — raster layers are not queryable.
+         */
+
+        /* Query Viewport — get all rendered features */
+        document.getElementById("btn-query-viewport").addEventListener("click", async () => {
+          showToolMessage("bbox-message", "Querying visible features...");
+          clearToolResults("bbox-results");
+          cancelBoxSelect();
+          cancelPolygonSelect();
+          cleanupBoxSelectHighlight();
+          cleanupPolygonSelectHighlight();
+          cleanupFeatureHighlight();
+
+          try {
+            /*
+             * queryRenderedFeatures with no arguments returns all features
+             * currently rendered on the map canvas. The results come through
+             * postMessage serialization, so very large feature sets may be
+             * truncated or slow.
+             */
+            const features = await mapx.ask("map", {
+              method: "queryRenderedFeatures",
+            });
+
+            if (!features || features.length === 0) {
+              showToolMessage("bbox-message", "No features found in viewport.");
+              return;
+            }
+
+            log(`Viewport query: ${features.length} features found`);
+            showToolMessage("bbox-message", `${features.length} features in viewport`);
+
+            /* Build a summary of features by layer/source */
+            const byLayer = {};
+            for (const f of features) {
+              const layer = f.layer?.id || f.sourceLayer || "(unknown)";
+              byLayer[layer] = (byLayer[layer] || 0) + 1;
+            }
+
+            let html = `<h4>${features.length} Features</h4>`;
+            html += '<table><tr><th>Layer</th><th>Count</th></tr>';
+            for (const [layer, count] of Object.entries(byLayer).sort((a, b) => b[1] - a[1])) {
+              html += `<tr><td>${esc(layer)}</td><td>${count}</td></tr>`;
+            }
+            html += "</table>";
+
+            /* Show first few feature properties as samples */
+            const samples = features.slice(0, 5);
+            if (samples.length > 0) {
+              html += `<h4>Sample Features (first ${samples.length})</h4>`;
+              for (const f of samples) {
+                const props = f.properties || {};
+                const keys = Object.keys(props).slice(0, 4);
+                const summary = keys.map((k) => `${k}: ${String(props[k]).substring(0, 30)}`).join(", ");
+                html += `<div style="padding:0.2rem 0;border-bottom:1px solid #eee;font-size:1.1rem;">${esc(summary)}</div>`;
+              }
+            }
+
+            showToolResults("bbox-results", html);
+            await highlightQueryResults(features);
+          } catch (e) {
+            log("Viewport query error: " + e.message);
+            showToolMessage("bbox-message", "Query failed: " + e.message, true);
+          }
+        });
+
+        /* Box Select — toggle overlay-based interactive rectangle */
+        document.getElementById("btn-box-select").addEventListener("click", async () => {
+          if (boxSelectOverlay) {
+            cancelBoxSelect();
+            showToolMessage("bbox-message", "Box select cancelled.");
+            return;
+          }
+          await startBoxSelect();
+        });
+
+        /* Polygon Select — multi-click polygon, double-click to close */
+        document.getElementById("btn-polygon-select").addEventListener("click", async () => {
+          if (polygonSelectOverlay) {
+            cancelPolygonSelect();
+            showToolMessage("bbox-message", "Polygon select cancelled.");
+            return;
+          }
+          await startPolygonSelect();
+        });
+
+        /* Clear Selection — remove all highlights and selection boundaries */
+        document.getElementById("btn-clear-selection").addEventListener("click", async () => {
+          cancelBoxSelect();
+          cancelPolygonSelect();
+          await cleanupBoxSelectHighlight();
+          await cleanupPolygonSelectHighlight();
+          await cleanupFeatureHighlight();
+          clearToolResults("bbox-results");
+          showToolMessage("bbox-message", "");
+          log("Selection cleared");
+        });
+
+        /* --------------------------------------------------------
+         * TOOL 3: Feature Statistics
+         * --------------------------------------------------------
+         *
+         * For MapX vt views: calls get_view_source_summary with
+         * stats: ["base", "attributes"] to get count, min/max, and
+         * category distributions.
+         *
+         * For custom GeoJSON overlays: computes statistics locally
+         * from the customGeoJSONRegistry using computeLocalStats().
+         *
+         * The attribute to summarise is either the first attribute
+         * from the view's config, or all attributes for local data.
+         */
+        document.getElementById("btn-get-stats").addEventListener("click", async () => {
+          const idView = document.getElementById("analysis-view-select").value;
+          if (!idView) {
+            showToolMessage("stats-message", "Select a view first.", true);
+            return;
+          }
+
+          showToolMessage("stats-message", "Loading statistics...");
+          clearToolResults("stats-results");
+
+          const viewType = getViewType(idView);
+
+          /* For custom GeoJSON views, compute stats locally */
+          if (viewType === "geojson") {
+            const entry = customGeoJSONRegistry.find((r) => r.id === idView);
+            if (!entry) {
+              showToolMessage("stats-message", "No local data found for this view.", true);
+              return;
+            }
+
+            const stats = computeLocalStats(entry.geojson);
+            log(`Local stats: ${stats.count} features, ${Object.keys(stats.attributes).length} attributes`);
+            showToolMessage("stats-message", `${stats.count} features (local data)`);
+
+            let html = `<h4>${stats.count} Features</h4>`;
+            for (const [attr, info] of Object.entries(stats.attributes)) {
+              const label = attr.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+              html += `<div style="margin-top:0.5rem;"><strong>${esc(label)}</strong>`;
+              if (info.type === "numeric") {
+                html += `<table>
+                  <tr><td>Min</td><td>${info.min}</td></tr>
+                  <tr><td>Max</td><td>${info.max}</td></tr>
+                  <tr><td>Mean</td><td>${info.mean.toFixed(2)}</td></tr>
+                  <tr><td>Count</td><td>${info.count}</td></tr>
+                </table>`;
+              } else {
+                html += "<table><tr><th>Value</th><th>Count</th></tr>";
+                for (const [val, cnt] of Object.entries(info.categories).sort((a, b) => b[1] - a[1])) {
+                  html += `<tr><td>${esc(val)}</td><td>${cnt}</td></tr>`;
+                }
+                html += "</table>";
+              }
+              html += "</div>";
+            }
+
+            showToolResults("stats-results", html);
+            return;
+          }
+
+          /* For MapX views, use the SDK */
+          try {
+            await mapx.ask("map_wait_idle");
+
+            /* First, try to get the view's attribute config to find a good attribute */
+            let idAttr = null;
+            try {
+              const config = await mapx.ask("get_view_table_attribute_config", { idView });
+              if (config && config.attributes && config.attributes.length > 0) {
+                idAttr = config.attributes[0];
+                log(`Using attribute: ${idAttr}`);
+              }
+            } catch (e) {
+              log("Attribute config not available: " + e.message);
+            }
+
+            const summaryParams = {
+              idView,
+              stats: ["base", "attributes"],
+            };
+            if (idAttr) summaryParams.idAttr = idAttr;
+
+            const summary = await mapx.ask("get_view_source_summary", summaryParams);
+            log("Source summary: " + JSON.stringify(summary).substring(0, 500));
+
+            let html = "<h4>View Statistics</h4>";
+
+            if (summary) {
+              /* Base statistics (count, extent, etc.) */
+              if (summary.extent_sp) {
+                html += `<div><strong>Spatial Extent</strong></div>`;
+              }
+              if (summary.row_count != null) {
+                html += `<table><tr><td>Feature Count</td><td>${summary.row_count}</td></tr></table>`;
+              }
+
+              /* Attribute statistics */
+              if (summary.attribute_stat) {
+                const stat = summary.attribute_stat;
+                html += `<div style="margin-top:0.5rem;"><strong>Attribute: ${esc(idAttr || "primary")}</strong></div>`;
+                html += "<table>";
+                if (stat.min != null) html += `<tr><td>Min</td><td>${stat.min}</td></tr>`;
+                if (stat.max != null) html += `<tr><td>Max</td><td>${stat.max}</td></tr>`;
+                if (stat.mean != null) html += `<tr><td>Mean</td><td>${Number(stat.mean).toFixed(4)}</td></tr>`;
+                if (stat.median != null) html += `<tr><td>Median</td><td>${stat.median}</td></tr>`;
+                if (stat.sum != null) html += `<tr><td>Sum</td><td>${stat.sum}</td></tr>`;
+                html += "</table>";
+              }
+
+              /* Category table if available */
+              if (summary.table && Array.isArray(summary.table) && summary.table.length > 0) {
+                html += '<div style="margin-top:0.5rem;"><strong>Categories</strong></div>';
+                html += "<table><tr><th>Value</th><th>Count</th></tr>";
+                for (const row of summary.table.slice(0, 20)) {
+                  const val = row.value || row.category || Object.values(row)[0];
+                  const cnt = row.count || row.frequency || Object.values(row)[1] || "";
+                  html += `<tr><td>${esc(val)}</td><td>${esc(cnt)}</td></tr>`;
+                }
+                if (summary.table.length > 20) {
+                  html += `<tr><td colspan="2" style="color:#666;">...and ${summary.table.length - 20} more</td></tr>`;
+                }
+                html += "</table>";
+              }
+            } else {
+              html += "<p>No summary data returned for this view.</p>";
+            }
+
+            showToolMessage("stats-message", "Statistics loaded.");
+            showToolResults("stats-results", html);
+          } catch (e) {
+            log("Statistics error: " + e.message);
+            showToolMessage("stats-message", "Failed: " + e.message, true);
+          }
+        });
+
+        /* --------------------------------------------------------
+         * TOOL 4: Data Export
+         * --------------------------------------------------------
+         *
+         * For GeoJSON views (created via view_geojson_create):
+         *   Calls download_view_source_geojson to get the data,
+         *   creates a Blob, and triggers a browser file download.
+         *
+         * For custom overlays in the registry:
+         *   Exports the local GeoJSON copy directly — no SDK call needed.
+         *
+         * For native MapX views (vt/rt/cc):
+         *   download_view_source_geojson does NOT work — these views are
+         *   served as vector/raster tiles, not as downloadable GeoJSON.
+         *   Shows an explanatory message instead.
+         *
+         * The "Preview" button logs sample data to the debug panel
+         * without triggering a download.
+         */
+
+        /* Helper: trigger a GeoJSON file download in the browser */
+        function downloadGeoJSON(data, filename) {
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/geo+json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+
+        document.getElementById("btn-export-geojson").addEventListener("click", async () => {
+          const idView = document.getElementById("analysis-view-select").value;
+          if (!idView) {
+            showToolMessage("export-message", "Select a view first.", true);
+            return;
+          }
+
+          /* Check if this is a custom overlay — export local copy */
+          const registryEntry = customGeoJSONRegistry.find((r) => r.id === idView);
+          if (registryEntry) {
+            log(`Exporting local GeoJSON for ${idView}`);
+            downloadGeoJSON(registryEntry.geojson, `${idView}.geojson`);
+            showToolMessage("export-message", "Downloaded local GeoJSON data.");
+            return;
+          }
+
+          /* Check view type — only GeoJSON views support SDK export */
+          const viewType = getViewType(idView);
+          if (viewType !== "geojson" && viewType !== "vt") {
+            showToolMessage("export-message",
+              "Export only works for GeoJSON views and some vector views. " +
+              "Raster and custom-coded views cannot be exported as GeoJSON.",
+              true
+            );
+            return;
+          }
+
+          showToolMessage("export-message", "Downloading data...");
+
+          try {
+            const data = await mapx.ask("download_view_source_geojson", {
+              idView,
+              mode: "data",
+            });
+
+            if (data && (data.type === "FeatureCollection" || data.features)) {
+              log(`Export: ${(data.features || []).length} features`);
+              downloadGeoJSON(data, `${idView}.geojson`);
+              showToolMessage("export-message", `Downloaded ${(data.features || []).length} features.`);
+            } else {
+              log("Export returned unexpected data: " + JSON.stringify(data).substring(0, 200));
+              showToolMessage("export-message",
+                "Export did not return valid GeoJSON. This view may not support GeoJSON export.",
+                true
+              );
+            }
+          } catch (e) {
+            log("Export error: " + e.message);
+            showToolMessage("export-message", "Export failed: " + e.message, true);
+          }
+        });
+
+        /* Preview — show sample data in the debug log and results panel */
+        document.getElementById("btn-export-preview").addEventListener("click", async () => {
+          const idView = document.getElementById("analysis-view-select").value;
+          if (!idView) {
+            showToolMessage("export-message", "Select a view first.", true);
+            return;
+          }
+
+          /* Check local registry first */
+          const registryEntry = customGeoJSONRegistry.find((r) => r.id === idView);
+          if (registryEntry) {
+            const features = registryEntry.geojson.features || [];
+            log(`Preview: ${features.length} local features`);
+            log("Sample: " + JSON.stringify(features.slice(0, 2), null, 2));
+
+            let html = `<h4>Local Data Preview (${features.length} features)</h4>`;
+            html += '<pre style="white-space:pre-wrap;font-size:1.1rem;max-height:200px;overflow:auto;">';
+            html += esc(JSON.stringify(features.slice(0, 3), null, 2));
+            html += "</pre>";
+            showToolResults("export-results", html);
+            showToolMessage("export-message", `${features.length} features in local registry.`);
+            return;
+          }
+
+          /* Try SDK export for preview */
+          showToolMessage("export-message", "Loading preview...");
+
+          try {
+            const data = await mapx.ask("download_view_source_geojson", {
+              idView,
+              mode: "data",
+            });
+
+            if (data && data.features) {
+              const sample = data.features.slice(0, 3);
+              log(`Preview: ${data.features.length} features total, showing ${sample.length}`);
+              log("Sample: " + JSON.stringify(sample, null, 2));
+
+              let html = `<h4>Data Preview (${data.features.length} features)</h4>`;
+              html += '<pre style="white-space:pre-wrap;font-size:1.1rem;max-height:200px;overflow:auto;">';
+              html += esc(JSON.stringify(sample, null, 2));
+              html += "</pre>";
+              showToolResults("export-results", html);
+              showToolMessage("export-message", `${data.features.length} features available for export.`);
+            } else {
+              showToolMessage("export-message", "No previewable data for this view type.", true);
+            }
+          } catch (e) {
+            log("Preview error: " + e.message);
+            showToolMessage("export-message", "Preview failed: " + e.message, true);
+          }
         });
       }
 

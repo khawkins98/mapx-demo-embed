@@ -392,3 +392,197 @@ interaction and simple styling. The Mapbox passthrough (Approach B/C) makes more
 sense for advanced styling or for overlays that are purely visual. If you need
 interactive polygon overlays with advanced styling, the passthrough plus
 coordinate matching fallback is the way to go, though it does add complexity.
+
+## 10. Analysis tools
+
+### What we built
+
+Four lightweight analysis tools that run in the parent page and operate on
+whichever MapX or custom layer the user selects from a dropdown:
+
+| Tool | SDK methods used | View type requirement |
+|---|---|---|
+| Numeric Range Filter | `get_view_table_attribute_config`, `get_view_source_summary`, `set_view_layer_filter_numeric` | `vt` only |
+| Spatial Query | `map({method: "queryRenderedFeatures"})`, `map({method: "project"})` | Any |
+| Feature Statistics | `get_view_source_summary`, `get_view_table_attribute_config` | `vt` (local compute for GeoJSON) |
+| Data Export | `download_view_source_geojson` | GeoJSON views only |
+
+### Floating panel
+
+The analysis tools live in a floating panel that overlays the map area rather
+than in the sidebar. This was changed because the sidebar's fixed width (320px)
+made results tables and sample data difficult to read, especially for the
+spatial query tool which can return many features.
+
+The panel is:
+- **Draggable** — grab the header bar to reposition it over the map
+- **Resizable** — grab the bottom-right corner handle
+- **Toggled** from the sidebar via the "Open Analysis Panel" button
+- Positioned at `z-index: 14`, above the map iframe but below the infobox (15)
+  and story map overlay (20)
+
+### Active view selector
+
+A `<select>` dropdown lists all currently open views (both curated MapX views
+and custom GeoJSON overlays). It is rebuilt whenever views are added or removed.
+Tools 1, 3, and 4 pass the selected view ID to SDK methods that require `idView`.
+
+When a raster (`rt`) or custom-coded (`cc`) view is selected, an orange notice
+banner appears and the incompatible tools (numeric filter, spatial query, data
+export) are visually disabled. This is because raster layers don't have
+attribute tables or discrete queryable features.
+
+### Numeric range filter
+
+Discovers a vector view's attribute columns via `get_view_table_attribute_config`,
+fetches min/max ranges from `get_view_source_summary`, then applies a numeric
+range filter via `set_view_layer_filter_numeric({idView, attribute, from, to})`.
+
+Key findings:
+- Only works on `vt` (vector tile) views — raster and custom-coded views
+  don't have queryable attribute tables
+- Use `from`/`to` params, not the deprecated `value` array
+- Pass `from: null, to: null` to clear the filter
+- `get_view_source_summary` requires `map_wait_idle()` first to avoid
+  getting stale or empty results
+
+### Spatial query and the `toggle_draw_mode` problem
+
+The SDK docs and some wiki examples reference `toggle_draw_mode` for drawing
+shapes on the map. This method **does not exist** in the current SDK version.
+Calling it throws an "unknown resolver" error.
+
+#### First attempt: `click_attributes` interception
+
+The initial workaround intercepted `click_attributes` events to capture two
+click coordinates. This worked functionally but had poor UX — no crosshair
+cursor, no visual rectangle while selecting, and no visual feedback on the map
+about what area was being selected.
+
+#### Current approach: transparent overlay
+
+The working approach uses a transparent overlay div positioned over the map
+container during box select mode:
+
+1. User clicks "Box Select" — a transparent overlay is created over the map
+   with `cursor: crosshair`
+2. **Drag passthrough** — the overlay distinguishes clicks from drags by
+   measuring mouse movement between mousedown and mouseup. If movement exceeds
+   5px, pointer-events are temporarily disabled so the iframe receives the drag
+   for panning. Wheel events are also passed through for zoom.
+3. **Click 1** — stores pixel coordinates and adds a visual corner marker dot
+4. **Mousemove** — draws a live-updating dashed rectangle from corner 1 to
+   the current mouse position (pure DOM, no async calls)
+5. **Click 2** — finalises the rectangle, adds a second corner marker
+6. The overlay is removed and the pixel bounding box is passed to
+   `queryRenderedFeatures`
+7. Both pixel corners are unprojected to geographic coordinates via
+   `map({method: "unproject"})`, and a highlight polygon is drawn on the map
+   via the Mapbox passthrough so the selection area persists through zoom/pan
+
+**Why the overlay approach works:** The overlay div and the `#mapx` iframe are
+both positioned with `inset: 0` within the same parent (`.app-map`), so pixel
+coordinates from click events on the overlay correspond directly to map canvas
+pixel coordinates. No projection/unprojection is needed for the
+`queryRenderedFeatures` call — only for drawing the geographic highlight
+polygon afterward.
+
+The "Query Viewport" sub-tool is simpler — it calls `queryRenderedFeatures`
+with no geometry argument to get everything currently rendered on screen.
+
+#### Polygon select
+
+The polygon select tool extends the box select approach to arbitrary polygons:
+
+1. The user clicks multiple points to define polygon vertices
+2. An SVG overlay draws the polygon outline and a rubber-band line in real-time
+3. Double-click (or clicking near the first vertex) closes the polygon
+4. The polygon's bounding box is used for `queryRenderedFeatures`
+5. Results are **post-filtered client-side** using the existing `pointInPolygon()`
+   function — only features whose representative point falls inside the drawn
+   polygon are kept in the final results
+6. A geographic highlight polygon is drawn on the map via Mapbox passthrough
+
+The post-filtering step is necessary because `queryRenderedFeatures` only
+accepts rectangular bounding boxes, not arbitrary polygons. The bounding box
+query returns a superset of the actual results, and the polygon containment
+test narrows it down. For polygon-type features, the first coordinate of the
+outer ring is used as the representative point (a simplification, but adequate
+for a demo).
+
+#### Feature highlighting
+
+After a spatial query completes, the matched features are highlighted on the
+map using a temporary Mapbox source and layers added via the passthrough. The
+highlight uses amber/gold (`#f39c12`) styling so it stands out against both the
+blue box select boundary and the purple polygon select boundary:
+
+- Polygon features get a semi-transparent fill with a solid outline
+- Line features get a thick stroke
+- Point features get circles with white borders
+
+The highlight layers are added alongside the selection boundary (box or polygon)
+so the user can see both the area they selected and the features within it.
+Starting a new query or clicking "Clear Selection" removes all highlights and
+boundaries.
+
+The highlight source (`query-result-highlight`) uses geometry from the
+`queryRenderedFeatures` results, which include GeoJSON geometry for each
+feature serialized through `postMessage`. Features without valid geometry are
+skipped. Separate Mapbox layer types (`fill`, `line`, `circle`) with geometry
+type filters (`["==", "$type", "Polygon"]` etc.) handle the different feature
+types in a single source.
+
+#### Selection lifecycle and cleanup
+
+Starting a new selection (box or polygon) automatically clears the previous
+one — including the selection boundary, feature highlights, and results panel.
+All three Mapbox source/layer groups use fixed IDs so they can be reliably
+cleaned up:
+
+| Group | Source ID | Layer IDs |
+|---|---|---|
+| Box boundary | `box-select-bbox` | `box-select-bbox-fill`, `box-select-bbox-line` |
+| Polygon boundary | `polygon-select-area` | `polygon-select-fill`, `polygon-select-line` |
+| Feature highlights | `query-result-highlight` | `query-highlight-fill`, `query-highlight-outline`, `query-highlight-line`, `query-highlight-circle` |
+
+Cleanup calls `removeLayer` then `removeSource` via the SDK passthrough,
+swallowing errors for layers/sources that don't exist. The `getLayer`/`getSource`
+pre-check approach was abandoned because the serialized return values through
+`postMessage` were unreliable — sometimes returning truthy objects for
+non-existent layers.
+
+Important considerations:
+- `queryRenderedFeatures` returns features serialized through `postMessage`,
+  so very large result sets may be slow or truncated
+- The results include features from **all** rendered layers, not just the
+  selected view — results are grouped by layer in the UI
+- **Raster layers are not queryable** — `queryRenderedFeatures` only returns
+  vector features (points, lines, polygons from vt views and GeoJSON overlays).
+  Raster (rt) and custom-coded (cc) views don't have discrete features to query.
+
+### Feature statistics
+
+For MapX vector views, calls `get_view_source_summary({idView, idAttr,
+stats: ["base", "attributes"]})` which returns count, min/max, mean, and
+category distributions depending on the attribute type.
+
+For custom GeoJSON overlays (created via `view_geojson_create`), the SDK
+summary methods may not return useful data because the view was created
+dynamically. Instead, statistics are computed locally from the parent page's
+`customGeoJSONRegistry`, which stores a copy of the GeoJSON data. Local
+computation handles both numeric attributes (min/max/mean) and categorical
+text (frequency counts).
+
+### Data export
+
+`download_view_source_geojson({idView, mode: "data"})` returns a GeoJSON
+FeatureCollection for views that support it. The parent page creates a Blob
+and triggers a file download via a temporary `<a>` element.
+
+Limitations:
+- Only works for GeoJSON views created via `view_geojson_create`
+- Native MapX views (vector tiles, raster tiles) cannot be bulk-exported
+  this way — they are served as tiled data, not downloadable files
+- For custom overlays stored in the `customGeoJSONRegistry`, the local
+  copy is exported directly without making an SDK call

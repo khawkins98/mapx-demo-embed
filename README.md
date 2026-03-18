@@ -87,6 +87,19 @@ nearest-point matching for points and ray-casting point-in-polygon for polygons.
 See [methodology.md](methodology.md) section 9 for technical details,
 trade-offs, and implementation patterns.
 
+## Analysis Tools
+
+The demo includes lightweight analysis tools in the sidebar that operate on whichever layer is selected in the "Active View" dropdown:
+
+| Tool | What it does |
+|---|---|
+| **Numeric Range Filter** | Filter vector layers by numeric attribute range |
+| **Spatial Query** | Query features in the current viewport or a two-click bounding box |
+| **Feature Statistics** | View count, min/max, mean, and category distributions |
+| **Data Export** | Download GeoJSON view data as a file |
+
+Not all tools work on all view types — numeric filtering requires vector tile (`vt`) views, and export only works for GeoJSON views. See [methodology.md](methodology.md) section 10 for details and the `toggle_draw_mode` workaround.
+
 ## Key SDK Methods
 
 | Method | What it does |
