@@ -1,3 +1,28 @@
+/*
+ * Polygon-select spatial query
+ *
+ * Like box-select but for arbitrary polygon regions. The user clicks to place
+ * vertices on a transparent overlay. An SVG polyline draws the shape in real
+ * time as vertices are added, with a rubber-band line from the last vertex to
+ * the current cursor position.
+ *
+ * Closing the polygon:
+ *   - Click within 15px of the first vertex (close-on-proximity), or
+ *   - Double-click anywhere (as long as >= 3 vertices exist)
+ *
+ * Once closed, we query features in two steps:
+ *   1. Bounding-box pre-filter: queryRenderedFeatures with the polygon's
+ *      pixel bounding box to get a candidate set quickly.
+ *   2. Point-in-polygon refinement: each candidate's representative point
+ *      is tested against the actual polygon ring using pointInPolygon().
+ *      This filters out features that fall inside the bbox but outside the
+ *      polygon shape.
+ *
+ * The polygon is then unprojected to geographic coordinates and added as a
+ * Mapbox source + fill/line layer so it persists through zoom and pan. Same
+ * raster limitation as box-select applies here.
+ */
+
 import { log } from "../log.js";
 import { esc } from "../../lib/esc.js";
 import { pointInPolygon } from "../../lib/geo.js";

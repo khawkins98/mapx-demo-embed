@@ -1,10 +1,36 @@
-/** Which MapX views are currently displayed on the map */
+/*
+ * Track which views are currently displayed on the map.
+ * Needed because view_add/view_remove are fire-and-forget —
+ * there's no synchronous "is this view open?" check.
+ * (get_views_id_open() exists but it's async.)
+ */
 export const openViews = new Set();
 
-/** Registry of custom GeoJSON datasets for click matching */
+/*
+ * Registry of custom GeoJSON datasets added to the map.
+ *
+ * WHY THIS EXISTS:
+ * The MapX SDK's click_attributes event tells us WHERE a click happened
+ * (lng/lat coordinates) and WHICH view was clicked (idView), but for
+ * GeoJSON views created via view_geojson_create or layers added via the
+ * Mapbox passthrough, the event may not include the actual feature
+ * properties (e.g. name, status, budget). The feature data lives in
+ * the parent page's JavaScript — not inside the MapX iframe.
+ *
+ * So we keep a local copy: when we add GeoJSON data to the map, we
+ * also push it into this array. When a click event arrives, we use
+ * the click coordinates to search the registry and find the matching
+ * feature, then display its properties in our custom infobox.
+ *
+ * PATTERN:
+ *   1. Call view_geojson_create (or map.addSource) to put data on the map
+ *   2. Call registerGeoJSON(id, geojson) to store the data for click matching
+ *   3. On click_attributes, findNearestFeature() searches the registry
+ *   4. On removal, call unregisterGeoJSON(id) to clean up
+ */
 export const customGeoJSONRegistry = [];
 
-/** Custom data overlay state */
+/* Custom data overlay state — hoisted so clearAllViews can reset them */
 export let geojsonViewId = null;
 export let polygonViewId = null;
 export let markersAdded = false;
@@ -22,8 +48,13 @@ export let featureHighlightActive = false;
 export let boxSelectOverlay = null;
 export let polygonSelectOverlay = null;
 
-/* Setter functions (needed because ES modules export live bindings but
- * reassignment must happen in the declaring module) */
+/*
+ * Setter functions — why these exist:
+ * ES modules export live read-only bindings. Importing modules can read
+ * an exported `let` variable and will see updates, but they can't
+ * reassign it directly — only the declaring module can do that. These
+ * thin setters give other modules a way to mutate the shared state.
+ */
 
 export function setGeojsonViewId(id) { geojsonViewId = id; }
 export function setPolygonViewId(id) { polygonViewId = id; }
@@ -34,10 +65,21 @@ export function setFeatureHighlightActive(val) { featureHighlightActive = val; }
 export function setBoxSelectOverlay(val) { boxSelectOverlay = val; }
 export function setPolygonSelectOverlay(val) { polygonSelectOverlay = val; }
 
+/**
+ * Register a GeoJSON dataset so clicks can be matched to features.
+ * Call this after view_geojson_create (or map.addSource for passthrough
+ * layers) with the same GeoJSON data. The id should match the view ID
+ * or source ID used with the SDK, so we can clean up on removal.
+ */
 export function registerGeoJSON(id, geojson) {
   customGeoJSONRegistry.push({ id, geojson });
 }
 
+/**
+ * Unregister a GeoJSON dataset (call on view_geojson_delete or
+ * map.removeSource). Removes the dataset from the registry so stale
+ * features are no longer matched on click.
+ */
 export function unregisterGeoJSON(id) {
   const idx = customGeoJSONRegistry.findIndex((r) => r.id === id);
   if (idx !== -1) customGeoJSONRegistry.splice(idx, 1);

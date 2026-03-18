@@ -5,6 +5,53 @@ import { setViewLayerTransparency, setViewLayerFilterText } from "../sdk/filters
 import { hasDashboard, setDashboardVisibility } from "../sdk/ui.js";
 import { getViewTableAttribute } from "../sdk/data-query.js";
 
+/**
+ * Pre-built scenarios that demonstrate chaining multiple SDK calls into
+ * cohesive workflows. Each scenario clears the map, loads specific views,
+ * flies to a region, and optionally applies filters or opens dashboards.
+ *
+ * Key SDK methods used across scenarios:
+ *   - common_loc_fit_bbox(code)        — fly to a country by ISO 3166 alpha-3
+ *   - set_view_layer_transparency(id, %) — blend a layer for overlay stacking
+ *   - has_dashboard() / set_dashboard_visibility() — check and toggle dashboards
+ *   - get_view_table_attribute(id)     — fetch the attribute table for a vt view
+ *   - set_view_layer_filter_text(id, values) — filter a vt layer by category values
+ *   - map_wait_idle()                  — wait for tiles to finish loading before
+ *                                         querying dashboards or attribute data
+ *
+ * Scenario 1 — India: Active Fires + Dashboard
+ *   The Active Fires view (MX-OU7NG-ZNZGA-ZX3K0) is a vector tile layer
+ *   with an attached dashboard showing fire counts by admin region. We
+ *   call has_dashboard() to check before opening it — not every view has
+ *   one. The dashboard is built into the MapX view configuration; we just
+ *   toggle its visibility. To adapt this for other views, swap the idView
+ *   and country code, and check whether the new view has a dashboard.
+ *
+ * Scenario 2 — Caribbean: Cyclone Exposure + Flood Hazard
+ *   Two raster layers stacked on top of each other. The cyclone layer is
+ *   set to 50% transparency so the flood hazard layer shows through
+ *   underneath. Layer ordering follows the order of ensureView calls —
+ *   the second view renders on top. Transparency blending lets users see
+ *   where multiple hazards overlap, which is the whole point of multi-
+ *   hazard risk analysis.
+ *
+ * Scenario 3 — SE Asia: Tsunami Exposure + Mangrove Restoration
+ *   Demonstrates the Eco-DRR (Ecosystem-based Disaster Risk Reduction)
+ *   use case: pairing a natural hazard layer (tsunami exposure) with a
+ *   nature-based solution layer (mangrove restoration potential for
+ *   cyclone surge protection). The tsunami layer gets 40% transparency
+ *   so the mangrove restoration priorities are visible underneath.
+ *
+ * Scenario 4 — Water Stress 2030 (RCP 8.5)
+ *   The water stress view (MX-1L2TA-6FXPV-N3QMX) is a vector tile layer
+ *   with a text attribute column called "ws3028cl" that contains category
+ *   labels like "Significant increase", "Moderate decrease", "Near normal".
+ *   We fetch all rows via get_view_table_attribute, extract unique category
+ *   values, then split them into "high stress" (categories containing
+ *   "increase") and "low stress" (categories containing "decrease" or
+ *   "normal"). The two sub-buttons apply different text filters to show
+ *   only the relevant polygons.
+ */
 export function enableScenarios() {
   /* Scenario 1: India — Active Fires + Dashboard */
   document.getElementById("sc-fires-india").addEventListener("click", async () => {

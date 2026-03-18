@@ -2,6 +2,29 @@ import { log } from "./log.js";
 import { setLanguage, getLanguage, setTheme, getThemesId, getThemeId } from "../sdk/ui.js";
 import { playStoryMap } from "./story-overlay.js";
 
+/**
+ * Wire up the SDK feature controls: language, theme, and story maps.
+ *
+ * Language switching:
+ *   The buttons use ISO 639-1 two-letter codes (en, fr, es, de, ru, zh,
+ *   ar). set_language changes labels, legends, and metadata inside the
+ *   MapX iframe. We read get_language on startup to highlight whichever
+ *   button matches the current state.
+ *
+ * Theme switching:
+ *   Theme buttons are built dynamically — we call get_themes_id to fetch
+ *   the list of available theme IDs from the MapX instance, then create
+ *   a button for each. The IDs look like "color_default", "color_dark",
+ *   etc.; we strip the "color_" prefix and title-case the rest for the
+ *   button label. get_theme_id tells us which one is active so we can
+ *   mark it with is-active on load.
+ *
+ * Story map buttons:
+ *   These call playStoryMap() which opens an overlay iframe (see
+ *   story-overlay.js for the rationale). The story views belong to
+ *   a different project, so they can't be loaded via view_add on
+ *   our SDK instance.
+ */
 export async function enableSdkFeatures() {
   /* Language buttons */
   document.querySelectorAll(".btn-lang").forEach((btn) => {

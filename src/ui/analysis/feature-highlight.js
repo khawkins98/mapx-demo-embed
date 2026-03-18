@@ -1,3 +1,19 @@
+/*
+ * Feature highlight — temporary visualization of query results
+ *
+ * After a spatial query returns features, we add them back to the map as a
+ * temporary Mapbox source ("query-result-highlight") with geometry-specific
+ * layers so the user can see exactly what was selected:
+ *
+ *   - Polygons:  semi-transparent fill + solid outline
+ *   - Lines:     thicker stroke so they stand out
+ *   - Points:    circles with a white stroke halo
+ *
+ * All layers use amber (#f39c12) for high visibility against typical basemap
+ * colors. The highlight is cleaned up before each new query and when the user
+ * clicks "Clear Selection".
+ */
+
 import { log } from "../log.js";
 import * as store from "../../state/store.js";
 import { addSource, addLayer, removeLayer, removeSource } from "../../sdk/map-layers.js";

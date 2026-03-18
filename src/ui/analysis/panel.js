@@ -1,3 +1,25 @@
+/*
+ * Analysis tools — floating panel architecture
+ *
+ * Four tools live behind the "Active View" dropdown:
+ *   1. Numeric filter  — set_view_layer_filter_numeric on a chosen attribute
+ *   2. Spatial query    — queryRenderedFeatures by viewport, box, or polygon
+ *   3. Statistics       — get_view_source_summary (server) or computeLocalStats (local)
+ *   4. Data export      — download_view_source_geojson or local GeoJSON copy
+ *
+ * Every tool targets whichever layer is selected in the "Active View" dropdown.
+ * What's available depends on the view type:
+ *   - vt (vector tile):  all four tools work
+ *   - geojson (custom):  spatial query, statistics, and export work; numeric filter is N/A
+ *   - rt (raster):       statistics only — no attribute table, no vector features to query
+ *   - cc (custom code):  statistics only — same limitations as raster
+ *
+ * We use a floating, draggable panel rather than embedding in the sidebar because the
+ * analysis output (tables, sample features, stat breakdowns) needs more room than a
+ * narrow sidebar column can comfortably provide. The panel is drag-to-move from the
+ * header and resize from the bottom-right corner grip.
+ */
+
 import { enableNumericFilter } from "./numeric-filter.js";
 import { enableSpatialQuery } from "./spatial-query.js";
 import { enableStatistics } from "./statistics.js";

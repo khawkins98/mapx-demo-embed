@@ -3,7 +3,36 @@ import { findNearestFeature } from "../lib/geo.js";
 import { log } from "./log.js";
 import { showToast } from "./toast.js";
 
-/** Handle click_attributes from the SDK and display an infobox. */
+/**
+ * Handle click_attributes from the SDK and display an infobox.
+ *
+ * There are two strategies for extracting feature properties from the
+ * click event, and which one works depends on who owns the layer:
+ *
+ *   Strategy 1 — data.attributes[0]
+ *     For MapX-managed views (GeoJSON, vt, rt, cc), the SDK includes
+ *     the clicked feature's attribute table row in data.attributes as
+ *     an array of objects. We grab the first element. This is the happy
+ *     path for any view that was added via view_add or view_geojson_create.
+ *
+ *   Strategy 2 — Coordinate matching fallback (data.lngLat)
+ *     For Mapbox passthrough layers added via the map() method (e.g.
+ *     our monitoring stations), MapX doesn't know about the layer's
+ *     data — it just proxied addSource/addLayer to the underlying
+ *     Mapbox GL instance. So data.attributes comes back empty. Instead,
+ *     we use the click coordinates (data.lngLat) and search our local
+ *     GeoJSON registry via findNearestFeature() to find the closest
+ *     feature within tolerance.
+ *
+ *   Why two strategies?
+ *     Passthrough layers bypass MapX's view management entirely. MapX
+ *     only tracks views it created (view_add, view_geojson_create), so
+ *     it can attach attribute data to click events for those. Passthrough
+ *     layers are invisible to MapX's click handler — it reports the click
+ *     location but has no attributes to send. Our coordinate-matching
+ *     fallback covers those cases using the local GeoJSON registry
+ *     (see state/store.js).
+ */
 export function showInfobox(data) {
   const box = document.getElementById("infobox");
   const titleEl = document.getElementById("infobox-title");

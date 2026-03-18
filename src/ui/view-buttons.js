@@ -30,6 +30,17 @@ export function buildViewButtons() {
   });
 }
 
+/**
+ * Toggle a curated view on or off.
+ *
+ * Under the hood this calls the SDK's view_add or view_remove, both of
+ * which return Promise<Boolean>. The idView must belong to the current
+ * project (MX-2LD-FBB-58N-ROK-8RH) — view_add silently fails if you
+ * pass an ID from a different project (no error thrown, just nothing
+ * happens). We track open/closed state locally in store.openViews
+ * because there's no cheap synchronous way to ask MapX "is this view
+ * currently displayed?"
+ */
 export async function toggleView(idView, btn) {
   dismissStoryOverlay();
   try {
@@ -50,6 +61,12 @@ export async function toggleView(idView, btn) {
   }
 }
 
+/**
+ * Idempotent view activation — adds the view only if it isn't already
+ * open. Scenarios call this so they can list the views they need without
+ * worrying about double-adding. Safe to call multiple times with the
+ * same idView; it's a no-op if the view is already in store.openViews.
+ */
 export async function ensureView(idView) {
   dismissStoryOverlay();
   if (!store.openViews.has(idView)) {
@@ -62,6 +79,22 @@ export async function ensureView(idView) {
   }
 }
 
+/**
+ * Remove everything from the map and reset all UI state.
+ *
+ * This cleans up three categories of layers:
+ *   1. Curated views — removed via view_remove for each ID in store.openViews
+ *   2. Custom GeoJSON views — the field offices and project zones created
+ *      via view_geojson_create. We unregister them from the GeoJSON click
+ *      registry and call view_geojson_delete.
+ *   3. Mapbox passthrough layers — the monitoring stations added via
+ *      map.addSource/addLayer. We remove the label layer, circle layer,
+ *      and source individually, plus unregister from the click registry.
+ *
+ * After layer cleanup: hides the infobox, cancels any active box/polygon
+ * selection, tears down spatial highlight layers, and refreshes the
+ * analysis view dropdown.
+ */
 export async function clearAllViews() {
   dismissStoryOverlay();
 

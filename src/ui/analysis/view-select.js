@@ -1,3 +1,30 @@
+/*
+ * View selection and tool-state logic for the analysis panel
+ *
+ * getViewType(idView)
+ *   Resolves a view ID to its type string. Checks CURATED_VIEWS first (the
+ *   pre-configured MapX layers we know about), then falls back to checking
+ *   whether idView matches one of the custom GeoJSON views the user added
+ *   at runtime. Returns null for anything unrecognized.
+ *
+ * updateAnalysisViewSelect()
+ *   Rebuilds the "Active View" dropdown from scratch. Sources are the
+ *   openViews set (MapX views the user has toggled on) plus any custom
+ *   GeoJSON overlays currently registered. Preserves the previous selection
+ *   when possible so switching a different view on/off doesn't reset the
+ *   user's analysis context.
+ *
+ * updateAnalysisToolState()
+ *   Enables or disables individual tool sections based on the selected view's
+ *   type. Raster (rt) and custom-coded (cc) views disable numeric filter,
+ *   spatial query, and data export because:
+ *     - rt: no attribute table to filter, no vector features for
+ *       queryRenderedFeatures, and no downloadable GeoJSON source
+ *     - cc: same story — the data is generated client-side by custom code
+ *       and has no server-side source to query or export
+ *   A notice banner explains the limitation when it kicks in.
+ */
+
 import { CURATED_VIEWS } from "../../config/views.js";
 import * as store from "../../state/store.js";
 
@@ -47,6 +74,9 @@ export function updateAnalysisViewSelect() {
   }
 
   updateAnalysisToolState();
+
+  // Dispatch change so listeners (e.g. numeric filter) pick up the new value
+  select.dispatchEvent(new Event("change"));
 }
 
 /** Enable/disable analysis tool panels based on the selected view type. */

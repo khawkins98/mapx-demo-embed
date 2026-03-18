@@ -1,3 +1,23 @@
+/*
+ * View statistics — two paths depending on data source
+ *
+ * For MapX vector tile (vt) views:
+ *   We call get_view_source_summary with stats: ["base", "attributes"]. The
+ *   server returns row counts, and if we can discover an attribute via
+ *   get_view_table_attribute_config, we also get min/max/mean/median/sum for
+ *   that attribute plus a category breakdown table.
+ *
+ * For custom GeoJSON views (our locally-added overlays):
+ *   There's no server-side source to query, so we compute stats locally with
+ *   computeLocalStats from the customGeoJSONRegistry. That function walks
+ *   every feature, classifies each property as numeric or categorical, and
+ *   produces the same kind of summary (min/max/mean for numbers, frequency
+ *   counts for strings).
+ *
+ * Raster and custom-code views also go through the server path. They may
+ * return limited data depending on what the MapX backend can extract.
+ */
+
 import { log } from "../log.js";
 import { esc } from "../../lib/esc.js";
 import { computeLocalStats } from "../../lib/stats.js";

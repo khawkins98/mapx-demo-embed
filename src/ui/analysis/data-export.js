@@ -1,3 +1,28 @@
+/*
+ * Data export — download view data as GeoJSON
+ *
+ * Three cases depending on the data source:
+ *
+ *   1. Custom overlays (entries in customGeoJSONRegistry):
+ *      We already have the GeoJSON in memory, so we just hand it to
+ *      downloadGeoJSON() — no network round-trip needed.
+ *
+ *   2. GeoJSON views (MapX-hosted):
+ *      We call download_view_source_geojson with mode "data", which asks
+ *      the MapX backend to serialize the source as a GeoJSON file and send
+ *      it back through the SDK bridge.
+ *
+ *   3. Native MapX views (vt, rt, cc):
+ *      NOT supported for export. Vector tiles are sliced server-side and
+ *      have no single GeoJSON source to download. Raster and custom-coded
+ *      views don't have a GeoJSON representation at all. The UI shows an
+ *      explanatory message instead of attempting a download.
+ *
+ * The "Preview" button uses the same fetch path but only renders the first
+ * three features as formatted JSON so the user can inspect the schema before
+ * committing to a full download.
+ */
+
 import { log } from "../log.js";
 import { esc } from "../../lib/esc.js";
 import { downloadGeoJSON } from "../../lib/download.js";

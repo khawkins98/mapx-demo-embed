@@ -1,3 +1,36 @@
+/*
+ * Box-select spatial query
+ *
+ * Why an overlay instead of intercepting click_attributes or the SDK's own
+ * draw tools?  The SDK's click_attributes gives us feature info on click, but
+ * there's no crosshair cursor and no visual feedback while selecting an area.
+ * The SDK method toggle_draw_mode doesn't exist in the current build, so we
+ * can't ask MapX to handle rectangle drawing for us. An overlay gives us full
+ * control over the UX.
+ *
+ * How it works:
+ *   - We append a transparent div (cursor:crosshair) over the map area.
+ *   - We need to tell clicks apart from drags (the user might be panning).
+ *     A 5px movement threshold distinguishes the two. When a drag is detected,
+ *     we set pointerEvents = "none" on the overlay so the gesture falls
+ *     through to the iframe and Mapbox handles the pan normally.
+ *   - Click 1 sets corner 1 and drops a marker dot.
+ *   - While the mouse moves after click 1, we draw a live dashed rectangle
+ *     between corner 1 and the current cursor position.
+ *   - Click 2 finalizes the box, fires the query, and removes the overlay.
+ *
+ * After click 2:
+ *   - The pixel-coordinate bounding box goes to queryRenderedFeatures, which
+ *     returns every vector feature whose rendered geometry intersects the box.
+ *   - We also unproject both corners to geographic coordinates and draw a
+ *     highlight polygon on the map so the user can see the area they selected
+ *     even after the overlay is gone.
+ *
+ * RASTER LIMITATION: queryRenderedFeatures only returns vector features.
+ * Raster tiles are just images — there are no discrete features to query.
+ * The UI shows a message explaining this when the result set is empty.
+ */
+
 import { log } from "../log.js";
 import { esc } from "../../lib/esc.js";
 import * as store from "../../state/store.js";

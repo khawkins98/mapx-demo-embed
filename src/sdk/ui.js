@@ -1,3 +1,33 @@
+/**
+ * UI controls -- language, theme, dashboard, and display features.
+ *
+ * Language:
+ *   set_language({lang})  -- switch interface language using ISO 639-1
+ *                            codes (e.g. "en", "fr", "es", "ar")
+ *   get_language()        -- returns current language code
+ *   get_languages()       -- returns list of supported language codes
+ *
+ * Theme:
+ *   set_theme({idTheme})  -- switch map visual theme
+ *   get_themes_id()       -- returns available theme IDs
+ *   get_theme_id()        -- returns current theme ID
+ *
+ * Dashboard:
+ *   has_dashboard()       -- returns true if a dashboard panel is
+ *                            currently available (dashboards are
+ *                            attached to views that have chart/graph
+ *                            widgets)
+ *   set_dashboard_visibility({show})
+ *                         -- opens or closes the dashboard slide-out
+ *                            panel; also supports {toggle: true}
+ *
+ * Vector highlight:
+ *   set_vector_highlight({enable})
+ *     Enables or disables the click highlight ring on vector features.
+ *     When enabled, clicking a feature shows a visual highlight and
+ *     triggers click_attributes events through the SDK.
+ */
+
 import { getSDK } from "./client.js";
 
 export function setLanguage(lang) {

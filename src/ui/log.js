@@ -9,7 +9,17 @@ export function log(msg) {
   console.log(msg);
 }
 
-/** Update the status badge in the header. */
+/**
+ * Update the status badge in the header.
+ *
+ * The badge uses Mangrove tag classes to communicate connection state:
+ *   - "ok"    → mg-tag--outline with white text/border. Normal connected state.
+ *   - "error" → mg-tag--accent. Red-ish highlight for failures.
+ *   - (other) → mg-tag--secondary. Muted/gray, used during loading/init.
+ *
+ * We reset className to the bare "mg-tag" first, then layer on the
+ * variant class, so previous states don't bleed through.
+ */
 export function setStatus(msg, variant) {
   const el = document.getElementById("status");
   el.textContent = msg;

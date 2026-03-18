@@ -1,3 +1,22 @@
+/*
+ * Spatial query — three modes for selecting features on the map
+ *
+ *   1. Query viewport:  calls queryRenderedFeatures with no geometry argument,
+ *      which returns every vector feature currently visible in the viewport.
+ *      Quick way to see what's on screen without drawing anything.
+ *
+ *   2. Box select:  overlay-based interactive rectangle tool (see box-select.js).
+ *      User clicks two corners; features inside the pixel bbox are returned.
+ *
+ *   3. Polygon select:  overlay-based interactive polygon tool (see polygon-select.js).
+ *      User clicks multiple vertices to define an arbitrary region.
+ *
+ * All three modes go through queryRenderedFeatures under the hood. Results are
+ * serialized through the SDK's postMessage bridge, so very large feature sets
+ * may be truncated by the browser's message-size limits. The results table
+ * shows a layer-by-layer breakdown and a handful of sample features.
+ */
+
 import { log } from "../log.js";
 import { esc } from "../../lib/esc.js";
 import { queryRenderedFeatures } from "../../sdk/map-layers.js";

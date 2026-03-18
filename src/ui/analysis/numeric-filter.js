@@ -1,3 +1,21 @@
+/*
+ * Numeric attribute filter
+ *
+ * Three-step workflow:
+ *   1. User selects a view in the dropdown. We call get_view_table_attribute_config
+ *      to discover which attributes the view exposes. This populates the
+ *      attribute dropdown.
+ *   2. User picks an attribute. We call get_view_source_summary with
+ *      stats: ["attributes"] to fetch the min/max range from the server,
+ *      then pre-fill the from/to inputs so the user knows the valid domain.
+ *   3. User adjusts from/to and clicks Apply. We call
+ *      set_view_layer_filter_numeric to push a Mapbox filter expression
+ *      onto the view's layer. "Clear" resets it by passing null bounds.
+ *
+ * Only works on vt (vector tile) views — GeoJSON and raster views don't
+ * expose server-side attribute metadata through these SDK methods.
+ */
+
 import { log } from "../log.js";
 import { getViewTableAttributeConfig } from "../../sdk/data-query.js";
 import { getSDK } from "../../sdk/client.js";
