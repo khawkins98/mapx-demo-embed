@@ -1,0 +1,91 @@
+import { log } from "../log.js";
+import { esc } from "../../lib/esc.js";
+import { queryRenderedFeatures } from "../../sdk/map-layers.js";
+import { showToolMessage, showToolResults, clearToolResults } from "./tool-helpers.js";
+import { cancelBoxSelect, startBoxSelect, cleanupBoxSelectHighlight } from "./box-select.js";
+import { cancelPolygonSelect, startPolygonSelect, cleanupPolygonSelectHighlight } from "./polygon-select.js";
+import { highlightQueryResults, cleanupFeatureHighlight } from "./feature-highlight.js";
+import * as store from "../../state/store.js";
+
+export function enableSpatialQuery() {
+  document.getElementById("btn-query-viewport").addEventListener("click", async () => {
+    showToolMessage("bbox-message", "Querying visible features...");
+    clearToolResults("bbox-results");
+    cancelBoxSelect();
+    cancelPolygonSelect();
+    cleanupBoxSelectHighlight();
+    cleanupPolygonSelectHighlight();
+    cleanupFeatureHighlight();
+
+    try {
+      const features = await queryRenderedFeatures();
+
+      if (!features || features.length === 0) {
+        showToolMessage("bbox-message", "No features found in viewport.");
+        return;
+      }
+
+      log(`Viewport query: ${features.length} features found`);
+      showToolMessage("bbox-message", `${features.length} features in viewport`);
+
+      const byLayer = {};
+      for (const f of features) {
+        const layer = f.layer?.id || f.sourceLayer || "(unknown)";
+        byLayer[layer] = (byLayer[layer] || 0) + 1;
+      }
+
+      let html = `<h4>${features.length} Features</h4>`;
+      html += "<table><tr><th>Layer</th><th>Count</th></tr>";
+      for (const [layer, count] of Object.entries(byLayer).sort((a, b) => b[1] - a[1])) {
+        html += `<tr><td>${esc(layer)}</td><td>${count}</td></tr>`;
+      }
+      html += "</table>";
+
+      const samples = features.slice(0, 5);
+      if (samples.length > 0) {
+        html += `<h4>Sample Features (first ${samples.length})</h4>`;
+        for (const f of samples) {
+          const props = f.properties || {};
+          const keys = Object.keys(props).slice(0, 4);
+          const summary = keys.map((k) => `${k}: ${String(props[k]).substring(0, 30)}`).join(", ");
+          html += `<div style="padding:0.2rem 0;border-bottom:1px solid #eee;font-size:1.1rem;">${esc(summary)}</div>`;
+        }
+      }
+
+      showToolResults("bbox-results", html);
+      await highlightQueryResults(features);
+    } catch (e) {
+      log("Viewport query error: " + e.message);
+      showToolMessage("bbox-message", "Query failed: " + e.message, true);
+    }
+  });
+
+  document.getElementById("btn-box-select").addEventListener("click", async () => {
+    if (store.boxSelectOverlay) {
+      cancelBoxSelect();
+      showToolMessage("bbox-message", "Box select cancelled.");
+      return;
+    }
+    await startBoxSelect();
+  });
+
+  document.getElementById("btn-polygon-select").addEventListener("click", async () => {
+    if (store.polygonSelectOverlay) {
+      cancelPolygonSelect();
+      showToolMessage("bbox-message", "Polygon select cancelled.");
+      return;
+    }
+    await startPolygonSelect();
+  });
+
+  document.getElementById("btn-clear-selection").addEventListener("click", async () => {
+    cancelBoxSelect();
+    cancelPolygonSelect();
+    await cleanupBoxSelectHighlight();
+    await cleanupPolygonSelectHighlight();
+    await cleanupFeatureHighlight();
+    clearToolResults("bbox-results");
+    showToolMessage("bbox-message", "");
+    log("Selection cleared");
+  });
+}

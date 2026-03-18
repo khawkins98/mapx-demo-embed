@@ -14,13 +14,21 @@ const MIME = {
   ".ico": "image/x-icon",
 };
 
+/*
+ * Serve from dist/ (Vite build output) if it exists, otherwise
+ * fall back to the project root for development without Vite.
+ */
+const distDir = path.join(__dirname, "dist");
+const rootDir = __dirname;
+const baseDir = fs.existsSync(distDir) ? distDir : rootDir;
+
 const server = http.createServer((req, res) => {
   const filePath = path.join(
-    __dirname,
+    baseDir,
     req.url === "/" ? "index.html" : req.url
   );
 
-  if (!filePath.startsWith(__dirname)) {
+  if (!filePath.startsWith(baseDir)) {
     res.writeHead(403, { "Content-Type": "text/plain" });
     res.end("Forbidden");
     return;
@@ -40,5 +48,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Serving at http://localhost:${PORT}`);
+  console.log(`Serving from ${baseDir} at http://localhost:${PORT}`);
 });
