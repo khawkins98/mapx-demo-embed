@@ -28,11 +28,21 @@
 import { CURATED_VIEWS } from "../../config/views.js";
 import * as store from "../../state/store.js";
 
-/** Look up the view type for a given view ID. */
+/**
+ * Look up the view type for a given view ID or source ID.
+ * Checks curated MapX views first, then custom GeoJSON views,
+ * then the local GeoJSON registry (which includes Mapbox passthrough
+ * layers like monitoring stations).
+ */
 export function getViewType(idView) {
   const curated = CURATED_VIEWS.find((v) => v.id === idView);
   if (curated) return curated.type;
   if (idView === store.geojsonViewId || idView === store.polygonViewId) return "geojson";
+  /* Passthrough layers registered in the GeoJSON registry (e.g. monitoring
+   * stations added via map.addSource) don't have a MapX view ID, but we
+   * use their source ID as a pseudo-view ID so the analysis tools can
+   * target them for statistics and export. */
+  if (store.customGeoJSONRegistry.some((r) => r.id === idView)) return "geojson";
   return null;
 }
 
@@ -53,6 +63,11 @@ export function updateAnalysisViewSelect() {
 
   if (store.geojsonViewId) entries.push({ id: store.geojsonViewId, label: "DRR Field Offices [geojson]" });
   if (store.polygonViewId) entries.push({ id: store.polygonViewId, label: "DRR Project Zones [geojson]" });
+
+  /* Passthrough layers (added via map.addSource, not view_geojson_create)
+   * don't have a MapX view ID. We add them using their source ID so the
+   * user can run statistics and export on them too. */
+  if (store.markersAdded) entries.push({ id: store.MARKERS_SOURCE, label: "Monitoring Stations [passthrough]" });
 
   if (entries.length === 0) {
     const opt = document.createElement("option");

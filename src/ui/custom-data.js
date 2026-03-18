@@ -134,6 +134,7 @@ export function enableCustomData() {
 
       store.setMarkersAdded(true);
       store.registerGeoJSON(store.MARKERS_SOURCE, monitoringStationsGeoJSON);
+      updateAnalysisViewSelect();
       await commonLocFitBbox("UKR", { duration: 2000 });
     } catch (e) {
       log("Mapbox passthrough error: " + e.message);
@@ -151,6 +152,7 @@ export function enableCustomData() {
       store.setMarkersAdded(false);
       log("Monitoring stations removed");
       document.getElementById("infobox").style.display = "none";
+      updateAnalysisViewSelect();
     } catch (e) {
       log("Remove error: " + e.message);
     }
