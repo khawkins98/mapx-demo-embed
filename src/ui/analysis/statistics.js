@@ -22,8 +22,7 @@ import { log } from "../log.js";
 import { esc } from "../../lib/esc.js";
 import { computeLocalStats } from "../../lib/stats.js";
 import { customGeoJSONRegistry } from "../../state/store.js";
-import { getViewTableAttributeConfig } from "../../sdk/data-query.js";
-import { getSDK } from "../../sdk/client.js";
+import { getViewTableAttributeConfig, getViewSourceSummary } from "../../sdk/data-query.js";
 import { mapWaitIdle } from "../../sdk/map-control.js";
 import { showToolMessage, showToolResults, clearToolResults } from "./tool-helpers.js";
 import { getViewType } from "./view-select.js";
@@ -91,10 +90,7 @@ export function enableStatistics() {
         log("Attribute config not available: " + e.message);
       }
 
-      const summaryParams = { idView, stats: ["base", "attributes"] };
-      if (idAttr) summaryParams.idAttr = idAttr;
-
-      const summary = await getSDK().ask("get_view_source_summary", summaryParams);
+      const summary = await getViewSourceSummary(idView, idAttr, ["base", "attributes"]);
       log("Source summary: " + JSON.stringify(summary).substring(0, 500));
 
       let html = "<h4>View Statistics</h4>";

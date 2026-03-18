@@ -18,8 +18,8 @@
 
 import { log } from "../log.js";
 import { getViewTableAttributeConfig } from "../../sdk/data-query.js";
-import { getSDK } from "../../sdk/client.js";
 import { mapWaitIdle } from "../../sdk/map-control.js";
+import { getViewSourceSummary } from "../../sdk/data-query.js";
 import { setViewLayerFilterNumeric } from "../../sdk/filters.js";
 import { showToolMessage, clearToolResults } from "./tool-helpers.js";
 import { getViewType, updateAnalysisToolState } from "./view-select.js";
@@ -97,11 +97,7 @@ export function enableNumericFilter() {
     try {
       showToolMessage("filter-message", "Fetching attribute range...");
       await mapWaitIdle();
-      const summary = await getSDK().ask("get_view_source_summary", {
-        idView,
-        idAttr,
-        stats: ["attributes"],
-      });
+      const summary = await getViewSourceSummary(idView, idAttr, ["attributes"]);
       log("Attribute summary: " + JSON.stringify(summary).substring(0, 400));
 
       if (summary && summary.attribute_stat) {

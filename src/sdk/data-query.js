@@ -40,10 +40,6 @@ export function getViewTableAttribute(idView) {
 export function getViewSourceSummary(idView, idAttr, stats) {
   const params = { idView, stats };
   if (idAttr) params.idAttr = idAttr;
-  return params;
-}
-
-export function getViewSourceSummaryFull(params) {
   return getSDK().ask("get_view_source_summary", params);
 }
 
