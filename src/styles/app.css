@@ -1,0 +1,709 @@
+/*
+ * Layout overrides — Mangrove is a component library, not an app framework,
+ * so it doesn't ship a sidebar+main layout. We build the page shell here
+ * using Mangrove color tokens where possible.
+ *
+ * Color reference (from Mangrove _variables.scss):
+ *   #004f91 = $mg-color-blue-900 (primary interactive)
+ *   #3372a7 = $mg-color-blue-700 (hover)
+ *   #1a1a1a = $mg-color-neutral-800 (text/dark bg)
+ *   #ccc    = $mg-color-neutral-100 (borders)
+ *   #c10920 = $mg-color-red-900 / Sendai red (danger/destructive)
+ *   #eb752a = $mg-color-orange-900 / Sendai orange (accent)
+ *   #962987 = Sendai purple
+ *   #00afae = Sendai turquoise
+ *   #333    = PageHeader toolbar background
+ */
+html,
+body {
+  margin: 0;
+}
+
+/*
+ * App title bar — sits between the UNDRR page header and the map.
+ * Uses mg-container for consistent horizontal alignment with the
+ * card sections below the map.
+ */
+.app-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.2rem;
+  padding-bottom: 1.2rem;
+}
+.app-title-bar h1 {
+  margin: 0;
+  font-size: 2.3rem; /* mg-font-size-500 */
+}
+
+/*
+ * Main split: sidebar + map.
+ * Uses a fixed height (75vh) instead of flex:1 so the page can scroll
+ * down to the info card sections and footer below the map.
+ */
+.app-body {
+  display: flex;
+  height: 75vh;
+  min-height: 500px;
+}
+
+/* --- Sidebar --- */
+.app-sidebar {
+  width: 320px;
+  min-width: 320px;
+  background: #fff;
+  border-right: 1px solid #ccc; /* mg-color-neutral-100 */
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .app-body { flex-direction: column; height: auto; }
+  .app-sidebar { width: 100%; min-width: auto; max-height: 50vh; }
+}
+.app-sidebar h2 {
+  margin-top: 0;
+}
+
+/*
+ * Collapsible sidebar sections — uses native <details>/<summary>.
+ * Only "DRR Views" is open by default (via the `open` attribute).
+ * Eliminates the vertical scrolling problem (~2000px of content
+ * in ~675px of visible space) without structural rework.
+ */
+.sidebar-section {
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+.sidebar-section:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+.sidebar-section > summary {
+  cursor: pointer;
+  list-style: none;        /* Remove default triangle */
+  padding: 0.4rem 0;
+  user-select: none;
+}
+.sidebar-section > summary::-webkit-details-marker {
+  display: none;            /* Chrome/Safari */
+}
+.sidebar-section > summary::before {
+  content: "▸ ";
+  font-size: 1.2rem;
+  color: #666;
+  transition: transform 0.15s;
+}
+.sidebar-section[open] > summary::before {
+  content: "▾ ";
+}
+.sidebar-section > summary h2 {
+  display: inline;
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+/* View toggle buttons — stacked vertically */
+#view-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+#view-buttons .mg-button {
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+/*
+ * Active state for view buttons — uses the "is-active" class pattern
+ * borrowed from Mangrove's tab component (mg-tabs__link.is-active).
+ * We toggle this class in JS when a view is added/removed.
+ */
+#view-buttons .mg-button.is-active,
+.mg-button.is-active {
+  background-color: #004f91;
+  color: #fff;
+  border-color: #004f91;
+}
+
+/* Small type tag (live/raster/vector) inside each view button */
+.view-type-tag {
+  font-size: 1rem;
+  padding: 0.1rem 0.4rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* Generic vertical button stack for actions/scenarios/regions */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.action-buttons .mg-button {
+  width: 100%;
+  justify-content: center;
+}
+
+/* --- Map container --- */
+.app-map {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+/*
+ * The #mapx div is where the SDK creates its iframe.
+ * position:absolute + inset:0 makes it fill the entire .app-map container.
+ */
+#mapx {
+  position: absolute;
+  inset: 0;
+}
+
+/*
+ * Floating map controls toolbar — compact vertical icon bar.
+ * Pinned to bottom-left of the map area. Contains zoom, projection,
+ * 3D, terrain, aerial, and immersive buttons moved out of the sidebar
+ * so they're always visible regardless of sidebar scroll position.
+ */
+.map-toolbar {
+  position: absolute;
+  bottom: 4rem;         /* Above the coordinate bar */
+  left: 1rem;
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 4px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+  padding: 4px;
+}
+.map-toolbar-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  padding: 0;
+}
+.map-toolbar-btn:hover {
+  background: #e8f0fe;
+}
+.map-toolbar-btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.map-toolbar-btn.is-active {
+  background: #004f91;
+  color: #fff;
+  border-color: #004f91;
+}
+.map-toolbar-sep {
+  height: 1px;
+  background: #ddd;
+  margin: 2px 4px;
+}
+
+/*
+ * Country/region dropdown — styled to match the analysis view select.
+ * Populated dynamically from common_loc_get_list_codes().
+ */
+.country-select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1.3rem;
+  font-family: 'Roboto', sans-serif;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+}
+
+/*
+ * Legends panel — floating panel in the bottom-right of the map area.
+ * Shows legend images for each active view. Hidden when no views are
+ * active. Scrollable body for multiple legends.
+ */
+.legends-panel {
+  position: absolute;
+  bottom: 4rem;
+  right: 1rem;
+  z-index: 13;
+  max-width: 260px;
+  max-height: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  display: none;          /* Shown via JS when legends exist */
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 1.2rem;
+}
+.legends-panel-header {
+  background: #004f91;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+}
+.legends-collapse-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 0.2rem;
+}
+.legends-panel-body {
+  padding: 0.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+.legend-entry {
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+.legend-entry:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.legend-entry-title {
+  font-weight: 500;
+  font-size: 1.1rem;
+  margin-bottom: 0.3rem;
+  color: #333;
+}
+.legend-entry-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/*
+ * Coordinate + zoom display bar — bottom of the map area.
+ * Shows current lat, lng, and zoom. Updated on camera move.
+ */
+.coord-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 13;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 1.1rem;
+  font-family: 'Roboto Condensed', monospace;
+  padding: 0.3rem 1rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+/*
+ * Transparency slider — shown inline with each active view button.
+ * Range input styled to be compact and unobtrusive.
+ */
+.view-transparency-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 1.1rem;
+  color: #666;
+}
+.view-transparency-row label {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+.view-transparency-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+  cursor: pointer;
+  accent-color: #004f91;
+}
+.view-transparency-row .transparency-value {
+  min-width: 2.5rem;
+  text-align: right;
+  font-size: 1rem;
+  font-family: 'Roboto Condensed', monospace;
+}
+
+/*
+ * View info button — small "i" icon on each view button row.
+ * Opens a metadata popup for the view.
+ */
+.view-info-btn {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  background: #f5f5f5;
+  color: #004f91;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, serif;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 0.3rem;
+  transition: background 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+.view-info-btn:hover {
+  background: #004f91;
+  color: #fff;
+  border-color: #004f91;
+}
+
+/*
+ * View metadata modal — displayed when "i" button is clicked.
+ * Simple overlay with the view's title, abstract, source, and dates.
+ */
+.view-meta-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.view-meta-content {
+  background: #fff;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+.view-meta-header {
+  background: #004f91;
+  color: #fff;
+  padding: 0.8rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.view-meta-header button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 0 0.3rem;
+}
+.view-meta-body {
+  padding: 1.2rem;
+  font-size: 1.3rem;
+  line-height: 1.6;
+}
+.view-meta-body dt {
+  font-weight: 600;
+  color: #004f91;
+  margin-top: 0.8rem;
+}
+.view-meta-body dt:first-child {
+  margin-top: 0;
+}
+.view-meta-body dd {
+  margin-left: 0;
+  margin-bottom: 0.4rem;
+  color: #333;
+}
+
+/*
+ * Scenario loading state — button shows spinner during execution.
+ */
+.mg-button.is-loading {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+}
+.mg-button.is-loading::after {
+  content: "";
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+#log div {
+  padding: 0.15rem 0;
+}
+
+/*
+ * Analysis Tools — floating panel + tool sub-panels.
+ *
+ * The panel floats over the map area and is draggable by its
+ * header. It is opened/closed via the sidebar toggle button.
+ * This replaces the old sidebar-embedded layout to give the
+ * analysis results more room.
+ */
+
+/* Floating panel container */
+.analysis-panel {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 14;
+  width: 360px;
+  min-width: 280px;
+  max-width: calc(100% - 2rem);
+  min-height: 180px;
+  max-height: calc(100% - 2rem);
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Draggable header bar */
+.analysis-panel-header {
+  background: #004f91;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: move;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Scrollable body containing all tools */
+.analysis-panel-body {
+  padding: 1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Resize handle — bottom-right corner */
+.analysis-panel-resize {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  font-size: 1.2rem;
+  line-height: 18px;
+  text-align: center;
+  color: #999;
+  user-select: none;
+}
+
+/* Active view selector dropdown */
+#analysis-view-select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1.3rem;
+  font-family: 'Roboto', sans-serif;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-bottom: 1rem;
+}
+
+/* Collapsible tool panels */
+.analysis-tool {
+  border: 1px solid #ccc;
+  margin-bottom: 0.8rem;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.analysis-tool summary {
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  font-size: 1.3rem;
+  font-weight: 500;
+  background: #f5f5f5;
+  user-select: none;
+}
+.analysis-tool summary:hover {
+  background: #eee;
+}
+.analysis-tool .tool-body {
+  padding: 0.8rem;
+}
+
+/* Inline form rows for filter inputs */
+.tool-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.tool-row label {
+  font-size: 1.2rem;
+  min-width: 3.5rem;
+  color: #666;
+}
+.tool-row input,
+.tool-row select {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  font-size: 1.2rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Results panel shared by all tools */
+.analysis-results {
+  margin-top: 0.8rem;
+  padding: 0.6rem;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  display: none;    /* shown via JS when results arrive */
+}
+.analysis-results.has-results {
+  display: block;
+}
+.analysis-results h4 {
+  margin: 0 0 0.4rem;
+  font-size: 1.3rem;
+}
+.analysis-results table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.analysis-results td,
+.analysis-results th {
+  padding: 0.2rem 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+.analysis-results th {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Status/info messages inside tools */
+.tool-message {
+  font-size: 1.2rem;
+  color: #666;
+  font-style: italic;
+  margin-top: 0.4rem;
+}
+.tool-message.error {
+  color: #c10920;
+  font-style: normal;
+}
+
+/*
+ * Box select overlay — transparent div positioned over the map
+ * during box select mode. Provides the crosshair cursor and
+ * captures clicks for corner selection. Drag and wheel events
+ * are passed through to the iframe so zoom/pan still works.
+ */
+.box-select-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  cursor: crosshair;
+}
+
+/* Selection rectangle drawn while dragging between corners */
+.box-select-rect {
+  position: absolute;
+  border: 2px dashed #004f91;
+  background: rgba(0, 79, 145, 0.08);
+  pointer-events: none;
+}
+
+/*
+ * Raster/unsupported view notice — shown when the selected view
+ * doesn't support certain analysis tools (e.g. raster views
+ * can't be filtered, queried spatially, or exported).
+ */
+.analysis-notice {
+  display: none;
+  padding: 0.5rem 0.7rem;
+  margin-bottom: 0.8rem;
+  background: #fff3e0;            /* light orange background */
+  border: 1px solid #ffb74d;
+  border-radius: 3px;
+  font-size: 1.2rem;
+  line-height: 1.4;
+  color: #6d4c00;
+}
+.analysis-notice.visible {
+  display: block;
+}
+
+/* Disabled state for analysis tool panels */
+.analysis-tool.tool-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.analysis-tool.tool-disabled summary {
+  cursor: default;
+  color: #999;
+}
+
+/* Corner marker dots (box select) */
+.box-select-corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #004f91;
+  border: 2px solid #fff;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+/* Polygon select overlay and vertex markers */
+.polygon-select-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  cursor: crosshair;
+}
+.polygon-select-vertex {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #962987;   /* Sendai purple */
+  border: 2px solid #fff;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}

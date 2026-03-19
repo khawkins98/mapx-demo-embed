@@ -22,20 +22,40 @@ Enter this when prompted. The PIN is stored in `localStorage` so you only need t
 
 ## Running It
 
-No dependencies — just Node:
-
 ```bash
-node server.js
+npm install
+npm run dev
 ```
 
-Open **http://localhost:3001**. To change the port: `PORT=8080 node server.js`.
+Open **http://localhost:3001**. Vite handles module bundling and hot reload.
+
+For production:
+
+```bash
+npm run build          # outputs to dist/
+npm run preview        # preview the production build
+node server.js         # serves dist/ (falls back to root if no build)
+```
+
+## Testing
+
+```bash
+npm test               # unit tests (Vitest)
+npm run test:e2e       # E2E tests (Playwright, requires chromium)
+npm run test:all       # both
+```
+
+Install Playwright browsers on first run: `npx playwright install --with-deps chromium`
 
 ## What's In Here
 
-| File | Purpose |
+| Path | Purpose |
 |---|---|
-| `index.html` | Demo page — embeds MapX with curated DRR views and map controls |
-| `server.js` | Zero-dependency Node static file server |
+| `index.html` | HTML structure — embeds MapX with curated DRR views and map controls |
+| `src/` | ES modules — config, data, lib (pure functions), SDK wrappers, state, UI |
+| `tests/unit/` | Vitest unit tests for pure logic (esc, geo, stats, store) |
+| `tests/e2e/` | Playwright E2E tests (smoke, views, scenarios, controls, analysis) |
+| `server.js` | Node static file server (serves `dist/` in production) |
 | `probe-views.html` | Utility page — connects to MapX projects and dumps their view catalogs |
 | `methodology.md` | Documents how views and data sources were discovered and selected |
 
