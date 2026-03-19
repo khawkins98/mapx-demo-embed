@@ -1,4 +1,11 @@
 /*
+ * Shared styles (renamed from app.css).
+ * Imported by all pages as the shared style foundation. Provides the
+ * sidebar+map layout, button/card overrides, analysis panel, and all
+ * other UI components that are common across demo pages.
+ */
+
+/*
  * Layout overrides — Mangrove is a component library, not an app framework,
  * so it doesn't ship a sidebar+main layout. We build the page shell here
  * using Mangrove color tokens where possible.

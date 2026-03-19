@@ -10,6 +10,19 @@ import { getDamageGeoJSON } from "./damage-overlay.js";
 import { esc } from "../../src/lib/esc.js";
 import { log } from "../../src/ui/log.js";
 
+/**
+ * Create preset query buttons and bind click handlers.
+ *
+ * Expects two DOM elements to already exist in the page:
+ *
+ * - `#preset-buttons` — container `<div>` where buttons are appended.
+ *   Its contents are cleared first so this function is idempotent.
+ * - `#preset-results` — results panel `<div>` with the shared
+ *   `.analysis-results` class. Query output is injected here and the
+ *   `.has-results` class is toggled to make it visible.
+ *
+ * If either element is missing the function returns silently.
+ */
 export function wirePresetQueries() {
   const container = document.getElementById("preset-buttons");
   const resultsEl = document.getElementById("preset-results");
@@ -27,6 +40,21 @@ export function wirePresetQueries() {
   });
 }
 
+/**
+ * Execute a single preset query against the damage GeoJSON.
+ *
+ * Filters the FeatureCollection using the query's `filter` predicate,
+ * computes summary statistics (total damage, affected people, countries),
+ * and renders an HTML summary table plus a per-event detail table into
+ * the results element. Adds the `.has-results` class so the panel
+ * becomes visible via the shared `.analysis-results.has-results` rule
+ * in shared.css.
+ *
+ * @param {object}      query           Preset query definition from PRESET_QUERIES.
+ * @param {string}      query.label     Human-readable name shown in output headings.
+ * @param {Function}    query.filter    Predicate `(feature) => boolean`.
+ * @param {HTMLElement} resultsEl       The DOM element to render results into.
+ */
 function runPresetQuery(query, resultsEl) {
   const geojson = getDamageGeoJSON();
   const matches = geojson.features.filter(query.filter);

@@ -2,7 +2,17 @@
  * Story demo entry point.
  *
  * Initialises the MapX SDK, wires the step engine to the narrative
- * panel, and starts at step 0.
+ * panel, and starts at step 0. The init sequence is:
+ *
+ *   1. PIN gate (synchronous — blocks interaction until dismissed)
+ *   2. SDK initialisation (creates iframe, connects to MapX app)
+ *   3. Step-change callback registered (updates narrative panel
+ *      whenever the engine transitions to a new step)
+ *   4. Narrative panel initialised (caches DOM refs, wires
+ *      Prev/Next click handlers to the step engine)
+ *   5. On SDK "ready":
+ *      - Set status to "Connected"
+ *      - Navigate to step 0 to kick off the story
  */
 
 import "../../src/styles/shared.css";

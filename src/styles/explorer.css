@@ -1,5 +1,17 @@
 /*
  * Explorer demo — preset query bar, damage legend, results panel.
+ *
+ * Color reference (from Mangrove _variables.scss / Sendai palette):
+ *   #004f91 = $mg-color-blue-900 (primary interactive / sidebar headings)
+ *   #ccc    = $mg-color-neutral-100 (sidebar border)
+ *   #333    = body text / heading text
+ *   #c10920 = Sendai red (Critical severity)
+ *   #eb752a = Sendai orange (High severity)
+ *   #f0c808 = warning yellow (Medium severity)
+ *   #00afae = Sendai turquoise (Low severity)
+ *
+ * NOTE: The results panel reuses `.analysis-results` from shared.css
+ * rather than defining its own `.explorer-results` duplicate.
  */
 
 .explorer-body {
@@ -68,38 +80,8 @@
   border: 1px solid rgba(0, 0, 0, 0.15);
 }
 
-/* Explorer results panel */
-.explorer-results {
-  margin-top: 1rem;
-  padding: 0.6rem;
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 3px;
-  max-height: 400px;
-  overflow-y: auto;
-  font-size: 1.2rem;
-  line-height: 1.5;
-  display: none;
-}
-.explorer-results.has-results {
-  display: block;
-}
-.explorer-results h4 {
-  margin: 0 0 0.4rem;
-  font-size: 1.3rem;
-}
-.explorer-results table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.explorer-results td,
-.explorer-results th {
-  padding: 0.2rem 0.4rem;
-  text-align: left;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 1.1rem;
-}
-.explorer-results th {
-  font-weight: 600;
-  color: #333;
-}
+/*
+ * Results panel — reuses .analysis-results from shared.css.
+ * No additional rules needed; shared.css provides the base
+ * styles and the .has-results visibility toggle.
+ */

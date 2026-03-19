@@ -8,7 +8,6 @@
  *   - views: array of MapX view IDs to display
  *   - camera: either {center, zoom} for mapFlyTo, or {code, param} for commonLocFitBbox
  *   - transparency: optional map of viewId → transparency value (0=opaque, 100=invisible)
- *   - controls: which UI controls to show for this step
  */
 
 export const STORY_STEPS = [
@@ -22,7 +21,6 @@ export const STORY_STEPS = [
       "can build resilience. Use the Next button to begin.",
     views: [],
     camera: { center: { lng: 20, lat: 15 }, zoom: 2.5 },
-    controls: {},
   },
   {
     id: "hazard",
@@ -34,8 +32,6 @@ export const STORY_STEPS = [
       "Southeast Asia face the greatest flood hazard.",
     views: ["MX-V07LO-829XA-4BIZ8"],
     camera: { center: { lng: 90, lat: 23 }, zoom: 5 },
-    transparency: {},
-    controls: { transparency: true, legend: true },
   },
   {
     id: "exposure",
@@ -48,7 +44,6 @@ export const STORY_STEPS = [
     views: ["MX-V07LO-829XA-4BIZ8", "MX-6YLMU-U4WXC-2JJD7"],
     camera: { center: { lng: 90, lat: 23 }, zoom: 6 },
     transparency: { "MX-V07LO-829XA-4BIZ8": 40 },
-    controls: { transparency: true, legend: true },
   },
   {
     id: "vulnerability",
@@ -60,8 +55,6 @@ export const STORY_STEPS = [
       "which block drainage and cause further flooding.",
     views: ["MX-04E66-2E550-81068"],
     camera: { code: "NPL", param: { duration: 2000 } },
-    transparency: {},
-    controls: { transparency: true, legend: true },
   },
   {
     id: "compound-risk",
@@ -81,7 +74,6 @@ export const STORY_STEPS = [
       "MX-6YLMU-U4WXC-2JJD7": 30,
       "MX-V07LO-829XA-4BIZ8": 40,
     },
-    controls: { transparency: true, legend: true },
   },
   {
     id: "nbs",
@@ -95,7 +87,6 @@ export const STORY_STEPS = [
     views: ["MX-DC56E-6ABC9-3C768", "MX-559C5-58858-96A69"],
     camera: { center: { lng: 100, lat: 10 }, zoom: 4.5 },
     transparency: { "MX-559C5-58858-96A69": 30 },
-    controls: { transparency: true, legend: true },
   },
   {
     id: "monitoring",
@@ -107,8 +98,6 @@ export const STORY_STEPS = [
       "communities prepare and respond to emerging threats.",
     views: ["MX-YLZJG-JAIID-V27X5", "MX-OU7NG-ZNZGA-ZX3K0"],
     camera: { center: { lng: 20, lat: 15 }, zoom: 2.5 },
-    transparency: {},
-    controls: { legend: true },
   },
   {
     id: "resilience",
@@ -121,7 +110,5 @@ export const STORY_STEPS = [
       "build a more resilient future. Explore the other demos to dive deeper.",
     views: [],
     camera: { center: { lng: 20, lat: 15 }, zoom: 2.5 },
-    transparency: {},
-    controls: {},
   },
 ];

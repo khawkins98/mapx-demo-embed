@@ -4,9 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MapX Embed — Disaster Risk Reduction Demos</title>
+
+    <!--
+      UNDRR Mangrove Component Library (v1.3.3)
+      Provides Roboto font family, button styles (mg-button, mg-button-primary,
+      mg-button-secondary), tags (mg-tag), form helpers (mg-form-help), the
+      page header with UNDRR black bar (mg-page-header), Sendai decoration
+      stripe (mg-page-header__decoration), container layout (mg-container),
+      grid system (mg-grid), card components (mg-card), footer (mg-footer),
+      utility classes (mg-u-*), and other UN-consistent UI patterns.
+
+      Source & docs: https://unisdr.github.io/undrr-mangrove/
+      GitHub: https://github.com/unisdr/undrr-mangrove
+      CDN base: https://assets.undrr.org/static/mangrove/{version}/css/style.css
+
+      Note: Mangrove sets html font-size to 10px and uses rem units throughout,
+      so 1.6rem = 16px, 2.3rem = 23px, etc.
+    -->
     <link rel="stylesheet" href="https://assets.undrr.org/static/mangrove/1.3.3/css/style.css" />
   </head>
   <body>
+    <!--
+      PIN GATE OVERLAY
+      Basic PIN gate so people know this is an unofficial preview.
+      Requires entering a 4-digit PIN (5498) to dismiss the overlay
+      and access the demo. Not a real security measure — just a
+      speed bump. PIN is in the README.
+
+      Once entered correctly, the PIN is stored in localStorage so
+      returning visitors skip the gate. The JS logic lives in
+      src/ui/pin-gate.js and is initialised by src/landing.js.
+    -->
     <div id="pin-gate" style="
       position:fixed;inset:0;z-index:9999;
       background:rgba(0,79,145,0.95);
@@ -37,6 +65,24 @@
         <p id="pin-error" style="color:#c10920;font-size:1.4rem;margin-top:1rem;min-height:1.4rem;"></p>
       </div>
     </div>
+
+    <!--
+      UNDRR Page Header (mg-page-header)
+      Standard UNDRR "black bar" used across all UNDRR family sites
+      (undrr.org, preventionweb.net, mcr2030.undrr.org, etc.).
+
+      Structure:
+        mg-page-header__decoration     — Sendai Framework four-colour stripe
+                                          (red #c10920, purple #962987,
+                                           orange #eb752a, turquoise #00afae).
+                                          Needs exactly 4 child divs, each 25% wide x 7px.
+        mg-page-header__toolbar-wrapper — dark toolbar background (#333)
+        mg-page-header__container       — wraps content in mg-container for centering
+        mg-page-header__region--toolbar — flex row holding logo + optional controls
+        mg-page-header__block--logo     — UNDRR horizontal logo (SVG from assets CDN)
+
+      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-pageheader--docs
+    -->
     <header class="mg-page-header mg-page-header--default">
       <div class="mg-page-header__decoration">
         <div></div><div></div><div></div><div></div>
@@ -57,12 +103,27 @@
       </div>
     </header>
 
+    <!--
+      Title Bar — uses Mangrove utility classes:
+        mg-u-background-color--blue-900  → UNDRR primary blue background (#004f91)
+        mg-container                     → centered content with responsive max-width
+        mg-u-color--white                → white text on the <h1>
+
+      The landing page title bar is simpler than the kitchen-sink version —
+      no back link or status badge, just the project heading.
+    -->
     <div class="mg-u-background-color--blue-900">
       <div class="mg-container app-title-bar">
         <h1 class="mg-u-color--white" style="margin:0;">Eco-DRR MapX Demos</h1>
       </div>
     </div>
 
+    <!--
+      LANDING HERO SECTION
+      Full-width centered introduction to the project. Contains a large
+      heading and descriptive paragraph linking to the MapX platform.
+      Styled by src/styles/landing.css (.landing-hero).
+    -->
     <section class="landing-hero">
       <div class="mg-container">
         <h1>Explore Disaster Risk Reduction Data</h1>
@@ -74,6 +135,24 @@
       </div>
     </section>
 
+    <!--
+      DEMO CARDS GRID
+      Each card links to a demo page. Uses Mangrove components:
+        mg-grid mg-grid__col-3  — CSS Grid, 3 columns at desktop,
+                                   responsive down to 1 column on mobile
+        mg-card mg-card__vc     — vertical card layout (Mangrove component)
+        mg-card__content        — card body wrapper
+        mg-card__title          — card heading
+        mg-card__summary        — card description text
+
+      Cards are wrapped in <a> tags for full-card clickability. Each card
+      has a coloured tag (demo-card-tag) identifying the demo type:
+        kitchen-sink → blue   (mg-color-blue-900)
+        story        → purple (Sendai purple)
+        explorer     → teal   (derived from Sendai turquoise)
+
+      Hover lift effect (translateY + shadow) is in landing.css.
+    -->
     <section class="demo-cards">
       <div class="mg-container">
         <div class="mg-grid mg-grid__col-3">
@@ -116,6 +195,24 @@
       </div>
     </section>
 
+    <!--
+      ABOUT THIS PROJECT SECTION — Mangrove icon cards (mg-card__icon)
+      in a 3-column grid.
+
+      Mangrove layout components used:
+        mg-u-background-color--neutral-25 — light grey section background
+        mg-container                      — responsive centered content
+        mg-container--padded              — adds padding-top/bottom: 2rem
+        mg-container--spacer              — adds vertical spacing between children
+        mg-grid mg-grid__col-3            — CSS Grid, 3 columns at tablet+
+        mg-card mg-card__icon             — icon card layout
+        mg-card__content                  — card body wrapper
+        mg-card__title                    — card heading
+        mg-card__summary                  — card description text
+        mg-u-text-wrap-pretty             — CSS text-wrap: pretty for better typography
+
+      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-icon-card--docs
+    -->
     <section class="mg-u-background-color--neutral-25">
       <div class="mg-container mg-container--padded mg-container--spacer">
         <h2>About This Project</h2>
@@ -158,12 +255,30 @@
       </div>
     </section>
 
+    <!--
+      GLOBAL FOOTER (UNDRR syndicated via PreventionWeb widget)
+
+      The mg-footer class provides footer container styling from Mangrove.
+      The #pw-widget-footer div is the target for the PW_Widget syndication
+      script, which dynamically injects the standard UNDRR global footer
+      (links, copyright, social media, etc.) — the same footer used across
+      undrr.org, preventionweb.net, and other UNDRR family sites.
+
+      Syndication config:
+        contenttype: "landingpage"  — fetches the landing page footer variant
+        pageid: "83835"             — UNDRR footer content ID
+        activedomain: "www.undrr.org" — which site's footer to pull
+
+      Widget endpoint: https://publish.preventionweb.net/widget.js
+      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-footer--docs
+    -->
     <footer class="mg-footer">
       <div id="pw-widget-footer"></div>
     </footer>
 
     <script type="module" src="/src/landing.js"></script>
 
+    <!-- PreventionWeb footer syndication widget -->
     <script src="https://publish.preventionweb.net/widget.js"></script>
     <script>
       try {

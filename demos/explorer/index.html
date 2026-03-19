@@ -4,9 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Data Explorer — MapX Analysis Demo</title>
+    <!--
+      Mangrove CSS — UNDRR's design-system component library.
+      Provides .mg-page-header, .mg-button, .mg-tag, .mg-container,
+      .mg-form-help, and utility classes used throughout this page.
+      https://unisdr.github.io/undrr-mangrove/
+    -->
     <link rel="stylesheet" href="https://assets.undrr.org/static/mangrove/1.3.3/css/style.css" />
   </head>
   <body>
+    <!--
+      PIN gate — full-screen overlay that blocks access until a
+      numeric preview PIN is entered. Removed from the DOM by
+      src/ui/pin-gate.js once the correct code is submitted.
+    -->
     <div id="pin-gate" style="
       position:fixed;inset:0;z-index:9999;
       background:rgba(0,79,145,0.95);
@@ -37,6 +48,12 @@
         <p id="pin-error" style="color:#c10920;font-size:1.4rem;margin-top:1rem;min-height:1.4rem;"></p>
       </div>
     </div>
+
+    <!--
+      Page header — standard Mangrove page-header component with the
+      UNDRR logo. The four decoration <div>s render the coloured
+      Sendai-palette stripe at the top of every UNDRR page.
+    -->
     <header class="mg-page-header mg-page-header--default">
       <div class="mg-page-header__decoration">
         <div></div><div></div><div></div><div></div>
@@ -57,6 +74,11 @@
       </div>
     </header>
 
+    <!--
+      Title bar — blue-900 banner with a back-link to the demo index
+      and the SDK connection status tag. The #status span is updated
+      by src/ui/log.js once the SDK fires its "ready" event.
+    -->
     <div class="mg-u-background-color--blue-900">
       <div class="mg-container app-title-bar">
         <div style="display:flex;align-items:center;gap:1rem;">
@@ -67,6 +89,11 @@
       </div>
     </div>
 
+    <!--
+      Explorer body — flexbox layout with a sidebar on the left
+      (legend, preset queries, results) and the full-width map on
+      the right. Styled by explorer.css (.explorer-body).
+    -->
     <div class="explorer-body">
       <aside class="explorer-sidebar">
         <h2>Data Explorer</h2>
@@ -75,6 +102,11 @@
           Use the preset queries to filter and analyse the data.
         </p>
 
+        <!--
+          Severity legend — colour-coded dots matching the Sendai
+          palette used by DAMAGE_CIRCLE_PAINT in explorer-layers.js.
+          Colours: Critical=#c10920, High=#eb752a, Medium=#f0c808, Low=#00afae.
+        -->
         <h3>Severity Legend</h3>
         <div class="damage-legend">
           <div class="damage-legend-item">
@@ -91,19 +123,35 @@
           </div>
         </div>
 
+        <!--
+          Preset query buttons — populated dynamically by
+          preset-queries.js from the PRESET_QUERIES config.
+          The placeholder "Loading..." button is replaced once
+          wirePresetQueries() runs after SDK init.
+        -->
         <h3>Preset Queries</h3>
         <div class="preset-buttons" id="preset-buttons">
           <button class="mg-button mg-button-secondary disabled">Loading...</button>
         </div>
 
-        <div class="explorer-results" id="preset-results"></div>
+        <!--
+          Results panel — reuses the shared .analysis-results class
+          from shared.css. Hidden by default; shown via the
+          .has-results class toggle when a query produces output.
+        -->
+        <div class="analysis-results" id="preset-results"></div>
       </aside>
 
+      <!-- Map container — the SDK creates its iframe inside #mapx -->
       <div class="app-map">
         <div id="mapx"></div>
       </div>
     </div>
 
+    <!--
+      SDK script — the MapX UMD bundle must load before the ES module
+      entry point so that `new mxsdk.Manager()` is available at import time.
+    -->
     <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
     <script type="module" src="/demos/explorer/main.js"></script>
   </body>

@@ -5,7 +5,17 @@
  * Damage events are loaded via viewGeojsonCreate from the local dataset.
  */
 
-/** Hazard layers to pre-load in the explorer */
+/**
+ * Hazard layers to pre-load in the explorer.
+ *
+ * Each entry is added via `viewAdd(id)` during init.
+ *
+ * - `id`    — MapX view identifier used by the SDK.
+ * - `label` — Human-readable name shown in the debug log.
+ * - `type`  — MapX view type code for reference ("rt" = raster-tile).
+ *             Not consumed by runtime code; kept as documentation
+ *             metadata so developers know what kind of layer this is.
+ */
 export const EXPLORER_HAZARD_LAYERS = [
   { id: "MX-V07LO-829XA-4BIZ8", label: "Flood Hazard 25yr", type: "rt" },
   { id: "MX-10AE5-746D1-76777", label: "Tropical Cyclone Exposure", type: "rt" },
@@ -19,7 +29,27 @@ export const SEVERITY_COLORS = {
   Low: "#00afae",
 };
 
-/** Paint spec for the damage event circles */
+/**
+ * Mapbox GL Style Spec paint properties for damage-event circles.
+ *
+ * The values below use **Mapbox expression syntax** — JSON arrays that
+ * the Mapbox GL renderer evaluates at render time. They are NOT plain
+ * JavaScript; they are declarative style expressions passed through the
+ * SDK to the underlying Mapbox GL map.
+ *
+ * - `circle-radius`: an `["interpolate", ["linear"], ...]` expression
+ *   that linearly scales the circle radius based on the feature's
+ *   `damage_usd` property ($400 K -> 6 px, $5 M -> 12 px, $12 M -> 20 px).
+ *
+ * - `circle-color`: a `["match", ["get", "severity"], ...]` expression
+ *   that maps the feature's `severity` string to a Sendai-palette color.
+ *   Falls back to `#808080` (grey) for unrecognised values.
+ *
+ * - `circle-stroke-*` / `circle-opacity`: static values for the white
+ *   outline and 85 % fill opacity.
+ *
+ * @see https://docs.mapbox.com/style-spec/reference/expressions/
+ */
 export const DAMAGE_CIRCLE_PAINT = {
   "circle-radius": [
     "interpolate", ["linear"], ["get", "damage_usd"],

@@ -3,6 +3,20 @@
  *
  * Used by the Explorer demo to exercise analysis tools:
  * numeric filter (damage_usd), spatial query, statistics, export.
+ *
+ * ## GeoJSON schema
+ *
+ * Each Feature is a `Point` with the following properties:
+ *
+ * | Property          | Type   | Description                                       |
+ * |-------------------|--------|---------------------------------------------------|
+ * | name              | string | Short event name (e.g. "Port-au-Prince Flood 2024") |
+ * | event_type        | string | Category: "Flood", "Cyclone", "Earthquake", "Landslide" |
+ * | severity          | string | "Critical", "High", "Medium", or "Low"            |
+ * | damage_usd        | number | Estimated damage in US dollars                     |
+ * | affected_people   | number | Number of people affected                          |
+ * | country           | string | Country or territory name                          |
+ * | date              | string | ISO 8601 date (YYYY-MM-DD) of the event            |
  */
 
 export const damageEventsGeoJSON = {

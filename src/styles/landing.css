@@ -1,9 +1,23 @@
 /*
- * Landing page — hero section, demo cards, PIN gate.
- * Uses Mangrove components (mg-card, mg-grid, mg-container)
- * with minimal overrides.
+ * Landing page styles — hero section, demo cards, tag colour variants.
+ * Uses Mangrove components (mg-card, mg-grid, mg-container) with minimal
+ * overrides for the landing-specific layout.
+ *
+ * Colour reference (cross-referenced with Mangrove tokens and shared.css):
+ *   #004f91 = mg-color-blue-900 (primary interactive — card titles, links)
+ *   #1a1a1a = mg-color-neutral-800 (hero heading text)
+ *   #4d4d4d = text secondary (hero body, card summaries)
+ *   #962987 = Sendai purple (story card tag background)
+ *   #00807e = derived from Sendai turquoise #00afae (explorer card tag text,
+ *             darkened for WCAG contrast on light background)
  */
 
+/*
+ * Hero section — full-width centered intro block above the demo cards.
+ * Large heading + descriptive paragraph introduce the project and link
+ * to MapX. Padding is generous to give the landing page visual weight
+ * without a map.
+ */
 .landing-hero {
   padding: 4rem 0 3rem;
   text-align: center;
@@ -21,7 +35,13 @@
   line-height: 1.6;
 }
 
-/* Demo cards grid */
+/*
+ * Demo cards grid — each card links to a demo page.
+ * Cards are Mangrove vertical cards (mg-card__vc) in a 3-column grid
+ * (mg-grid__col-3). The <a> wrapper makes the entire card clickable.
+ * Hover lift effect (translateY + shadow) gives affordance without
+ * colour change, keeping the Mangrove palette intact.
+ */
 .demo-cards {
   padding: 2rem 0 4rem;
 }
@@ -48,6 +68,15 @@
   line-height: 1.6;
   color: #4d4d4d;
 }
+
+/*
+ * Demo card tags — small coloured labels above each card title.
+ * Each demo type has a distinct colour pair (background + text) drawn
+ * from the Sendai/Mangrove palette for visual differentiation:
+ *   kitchen-sink  → blue  (primary, matches mg-color-blue-900)
+ *   story         → purple (Sendai purple #962987)
+ *   explorer      → teal  (derived from Sendai turquoise, darkened)
+ */
 .demo-card-tag {
   display: inline-block;
   font-size: 1.1rem;
