@@ -69,7 +69,7 @@ export function setProjection(name) {
 }
 
 export function getProjection() {
-  return getSDK().ask("map", { method: "getProjection" });
+  return getSDK().ask("map", { method: "getProjection", parameters: [] });
 }
 
 export function set3dTerrain(action) {
@@ -105,5 +105,5 @@ export function commonLocGetListCodes() {
  *   passthrough. Used by the coordinate display bar.
  */
 export function mapGetCenter() {
-  return getSDK().ask("map", { method: "getCenter" });
+  return getSDK().ask("map", { method: "getCenter", parameters: [] });
 }

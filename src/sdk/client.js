@@ -17,7 +17,7 @@
  *   style     -- CSS applied to the iframe element
  *   static    -- if true, loads /static.html (fewer features, faster)
  *
- * Full options: https://github.com/unep-grid/mapx/tree/master/app/src/js/sdk
+ * Full options: https://github.com/unep-grid/mapx/tree/main/app/src/js/sdk
  */
 
 let _mapx = null;
