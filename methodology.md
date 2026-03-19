@@ -400,29 +400,69 @@ Each item links to the relevant source file.
 
 ### queryRenderedFeatures requires explicit `parameters: []`
 
-Omitting `parameters` entirely (vs passing an empty array) causes the bridge
-to skip invocation and silently return nothing. Always pass `parameters: []`
-for a full-viewport query. See `src/sdk/map-layers.js`.
+> **Resolved (2026-03-19):** The "silently returns nothing" behavior is real
+> but the root cause is **the demo's `mapMethod` wrapper**, not the SDK
+> bridge. In `src/sdk/map-layers.js:57`:
+> ```js
+> if (parameters) opts.parameters = parameters;
+> ```
+> An empty array `[]` is falsy in JavaScript, so `mapMethod("queryRenderedFeatures", [])`
+> strips `parameters` from the request entirely. The SDK's `map` resolver
+> has `opt.parameters = opt.parameters || []` which would default gracefully,
+> but it never fires because the wrapper removes the field before it reaches
+> the SDK. A direct `mapx.ask("map", {method: "queryRenderedFeatures"})`
+> works without `parameters`. The fix would be
+> `if (parameters !== undefined)` or `if (Array.isArray(parameters))`.
+
+Omitting `parameters` when using the `mapMethod` wrapper causes the bridge
+to receive no `parameters` field, which silently returns nothing. Always pass
+`parameters: []` for a full-viewport query (or fix the wrapper's falsy
+check). See `src/sdk/map-layers.js`.
 
 ```js
-// WRONG — silently returns nothing
+// WRONG via mapMethod — [] is falsy, gets stripped
 mapMethod("queryRenderedFeatures");
-// CORRECT
+// CORRECT via mapMethod
 mapMethod("queryRenderedFeatures", []);
+// ALSO CORRECT — direct SDK call works without parameters
+mapx.ask("map", { method: "queryRenderedFeatures" });
 ```
 
 ### get_view_source_summary hangs for raster/cc views
 
-The server has no attribute table for these types, so the request stalls
-indefinitely. Always wrap in a timeout (15 s in this codebase). See
+> **Resolved (2026-03-19):** The hang was observed in practice — commit
+> `e77a752` added the timeout reactively, with commit message *"Timeouts on
+> SDK calls that hang for raster views"*. The SDK source shows `rt` views
+> trigger a WMS `GetCapabilities` call (20 s internal timeout) and `cc`
+> views return `{}` immediately — so neither should hang *per the source*.
+> The most likely explanation is the **FrameManager Promise bug**: if the
+> WMS call throws an exception (e.g. malformed response), `FrameManager`
+> removes the request from its queue but never resolves or rejects the
+> Promise (`frameManager.js` only calls `req.onResponse()` when
+> `message.success` is `true`). The timeout wrapper remains the correct
+> defense.
+
+The call occasionally hangs for `rt` and `cc` views — likely due to a
+FrameManager bug where resolver exceptions leave the Promise unresolved.
+Always wrap in a timeout (15 s in this codebase). See
 `src/ui/analysis/statistics.js`.
 
-### view_geojson_set_style replaces paint — not a merge
+### view_geojson_set_style — paint spreading recommended
 
-Passing only `{"circle-opacity": 0.5}` loses all other paint properties.
-Always spread the base paint and override specific keys. This is why the
-GeoJSON registry stores the original `paint` alongside the data. See
-`src/ui/analysis/numeric-filter.js`.
+> **Resolved (2026-03-19):** The SDK source (`mapx_resolvers/static.js`)
+> uses per-key `map.setPaintProperty()` calls, which is a **merge** — omitted
+> properties should be left untouched. The demo observed paint loss in
+> practice, but this may have been version-specific, a timing/race condition,
+> or an interaction with how MapX manages GeoJSON view layer state internally.
+> Regardless, the paint spreading pattern in `numeric-filter.js` is **still
+> correct** because filter restoration requires the full original paint
+> (clearing a filter needs to reset *all* properties to their original
+> values, not just the ones the filter changed). The registry's `paint`
+> storage serves this restore purpose independent of merge vs replace.
+
+Always spread the base paint and override specific keys when applying
+filters. The GeoJSON registry stores the original `paint` so it can be
+restored on filter clear. See `src/ui/analysis/numeric-filter.js`.
 
 ### queryRenderedFeatures returns Mapbox-internal fields
 
@@ -441,7 +481,7 @@ timeout and encourages box/polygon selection for smaller regions. See
 | Operation | Timeout | Rationale |
 |---|---|---|
 | `get_view_table_attribute_config` | 10 s | Quick metadata lookup; should respond fast or not at all |
-| `get_view_source_summary` | 15 s | Heavier server-side computation; rt/cc views hang forever without this |
+| `get_view_source_summary` | 15 s | Heavier server-side computation; observed hangs likely caused by FrameManager Promise bug on resolver exceptions |
 | Viewport `queryRenderedFeatures` | 15 s | Large viewports stall serialization |
 
 ---
@@ -509,6 +549,18 @@ in the registry and restored on "Clear". See `src/ui/analysis/numeric-filter.js`
 The SDK docs and some wiki examples reference `toggle_draw_mode` for drawing
 shapes on the map. This method **does not exist** in the current SDK version.
 Calling it throws an "unknown resolver" error.
+
+> **Resolved (2026-03-19):** `toggle_draw_mode` was added in
+> [commit aee274a (June 2020)](https://github.com/unep-grid/mapx/commit/aee274a)
+> but has since been removed from the deployed SDK (v1.13.19). The
+> underlying `drawModeToggle()` still exists internally in
+> `app/src/js/draw/helper.js` but is no longer exposed through the SDK
+> resolvers. Even when it existed, it would not have helped here — it
+> toggled the internal MapboxDraw UI and returned only a boolean. There
+> was no SDK method to retrieve drawn geometry back to the parent page,
+> no rectangle drawing mode, and the drawn shapes were saved as internal
+> MapX views rather than returned via postMessage. The overlay approach
+> below remains the correct solution.
 
 #### First attempt: `click_attributes` interception
 
