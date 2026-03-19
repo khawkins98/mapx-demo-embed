@@ -71,28 +71,25 @@
 
 /*
  * Demo card tags — small coloured labels above each card title.
- * Each demo type has a distinct colour pair (background + text) drawn
- * from the Sendai/Mangrove palette for visual differentiation:
+ * Uses Mangrove's mg-tag component as the base, with per-demo colour
+ * overrides via BEM modifier classes. Colours are drawn from the
+ * Sendai/Mangrove palette:
  *   kitchen-sink  → blue  (primary, matches mg-color-blue-900)
  *   story         → purple (Sendai purple #962987)
  *   explorer      → teal  (derived from Sendai turquoise, darkened)
  */
-.demo-card-tag {
-  display: inline-block;
-  font-size: 1.1rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 3px;
+.demo-card .mg-tag {
   margin-bottom: 0.8rem;
 }
-.demo-card-tag--kitchen-sink {
+.mg-tag--kitchen-sink {
   background: #e8f0fe;
   color: #004f91;
 }
-.demo-card-tag--story {
+.mg-tag--story {
   background: #f3e8fd;
   color: #962987;
 }
-.demo-card-tag--explorer {
+.mg-tag--explorer {
   background: #e0f7f6;
   color: #00807e;
 }

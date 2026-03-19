@@ -27,6 +27,44 @@ body {
 }
 
 /*
+ * PIN gate overlay — full-screen modal blocking access until preview PIN
+ * is entered. Duplicated across all 4 HTML pages; styles extracted here
+ * so the markup uses classes instead of inline styles.
+ */
+.pin-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 79, 145, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pin-gate__card {
+  background: #fff;
+  max-width: 440px;
+  width: 90%;
+  padding: 3rem 2.5rem;
+  text-align: center;
+}
+.pin-gate__input {
+  font-size: 2.4rem;
+  text-align: center;
+  letter-spacing: 0.8rem;
+  width: 12rem;
+  padding: 0.75rem;
+  border: 2px solid #ccc;
+  outline: none;
+  font-family: 'Roboto Condensed', monospace;
+}
+.pin-gate__error {
+  color: #c10920;
+  font-size: 1.4rem;
+  margin-top: 1rem;
+  min-height: 1.4rem;
+}
+
+/*
  * App title bar — sits between the UNDRR page header and the map.
  * Uses mg-container for consistent horizontal alignment with the
  * card sections below the map.
@@ -603,19 +641,35 @@ body {
   margin: 0 0 0.4rem;
   font-size: 1.3rem;
 }
-.analysis-results table {
-  width: 100%;
-  border-collapse: collapse;
+
+/*
+ * Sample feature rows — compact list items used in spatial query results.
+ * Replaces the inline-styled <div> snippets in spatial-query.js,
+ * box-select.js, and polygon-select.js.
+ */
+.sample-feature {
+  padding: 0.2rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 1.1rem;
 }
-.analysis-results td,
-.analysis-results th {
-  padding: 0.2rem 0.4rem;
-  text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+
+/*
+ * Data export preview — <pre> block showing sample JSON.
+ * Replaces inline styles in data-export.js.
+ */
+.export-preview {
+  white-space: pre-wrap;
+  font-size: 1.1rem;
+  max-height: 200px;
+  overflow: auto;
 }
-.analysis-results th {
-  font-weight: 600;
-  color: #333;
+
+/*
+ * Stat section headers inside analysis results.
+ * Replaces inline margin-top/color on <div>/<td> in statistics.js.
+ */
+.stat-section {
+  margin-top: 0.5rem;
 }
 
 /* Status/info messages inside tools */
@@ -653,19 +707,16 @@ body {
 
 /*
  * Raster/unsupported view notice — shown when the selected view
- * doesn't support certain analysis tools (e.g. raster views
- * can't be filtered, queried spatially, or exported).
+ * doesn't support certain analysis tools.
+ *
+ * Uses Mangrove's mg-highlight-box component for the visual treatment.
+ * The .analysis-notice class adds hide/show toggle behaviour on top.
+ *
+ * Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-highlightbox--docs
  */
 .analysis-notice {
   display: none;
-  padding: 0.5rem 0.7rem;
   margin-bottom: 0.8rem;
-  background: #fff3e0;            /* light orange background */
-  border: 1px solid #ffb74d;
-  border-radius: 3px;
-  font-size: 1.2rem;
-  line-height: 1.4;
-  color: #6d4c00;
 }
 .analysis-notice.visible {
   display: block;

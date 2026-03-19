@@ -77,12 +77,12 @@ export function showInfobox(data) {
   const featureName = nameEntry ? String(nameEntry[1]) : "Feature";
   titleEl.textContent = featureName;
 
-  let html = '<table style="width:100%;border-collapse:collapse;">';
+  let html = '<table class="mg-table mg-table--small">';
   for (const [key, value] of entries) {
     const label = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     html += `<tr>
-      <td style="padding:0.3rem 0.5rem 0.3rem 0;color:#666;white-space:nowrap;vertical-align:top;">${esc(label)}</td>
-      <td style="padding:0.3rem 0;font-weight:500;">${esc(value)}</td>
+      <td>${esc(label)}</td>
+      <td>${esc(value)}</td>
     </tr>`;
   }
   html += "</table>";

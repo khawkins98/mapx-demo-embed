@@ -21,34 +21,21 @@
       until the user enters the correct preview PIN. Dismissed by
       initPinGate() in main.js once the PIN is validated.
     -->
-    <div id="pin-gate" style="
-      position:fixed;inset:0;z-index:9999;
-      background:rgba(0,79,145,0.95);
-      display:flex;align-items:center;justify-content:center;
-      font-family:'Roboto',sans-serif;
-    ">
-      <div style="
-        background:#fff;max-width:440px;width:90%;
-        padding:3rem 2.5rem;text-align:center;
-      ">
-        <h2 style="margin-top:0;font-size:2.3rem;color:#1a1a1a;">Preview Access</h2>
-        <p style="font-size:1.6rem;color:#4d4d4d;line-height:1.5;margin-bottom:2rem;">
+    <div id="pin-gate" class="pin-gate">
+      <div class="pin-gate__card">
+        <h2 class="mg-u-font-size-500" style="margin-top:0;">Preview Access</h2>
+        <p class="mg-u-font-size-300" style="line-height:1.5;margin-bottom:2rem;">
           This is an <strong>unofficial investigation proof of concept</strong>
           for demonstration purposes only. It is not an official UNDRR product.
         </p>
-        <p style="font-size:1.4rem;color:#666;margin-bottom:1.5rem;">
+        <p style="font-size:1.4rem;margin-bottom:1.5rem;">
           Enter the preview PIN to continue:
         </p>
         <input id="pin-input" type="text" inputmode="numeric" maxlength="4"
-          placeholder="_ _ _ _"
-          style="
-            font-size:2.4rem;text-align:center;letter-spacing:0.8rem;
-            width:12rem;padding:0.75rem;
-            border:2px solid #ccc;outline:none;
-            font-family:'Roboto Condensed',monospace;
-          "
+          placeholder="_ _ _ _" class="pin-gate__input"
+          aria-label="Preview PIN"
         />
-        <p id="pin-error" style="color:#c10920;font-size:1.4rem;margin-top:1rem;min-height:1.4rem;"></p>
+        <p id="pin-error" class="pin-gate__error"></p>
       </div>
     </div>
 

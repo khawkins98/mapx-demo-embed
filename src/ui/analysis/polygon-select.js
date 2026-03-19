@@ -256,7 +256,7 @@ export async function startPolygonSelect() {
           const props = f.properties || {};
           const keys = Object.keys(props).slice(0, 4);
           const summary = keys.map((k) => `${k}: ${String(props[k]).substring(0, 30)}`).join(", ");
-          html += `<div style="padding:0.2rem 0;border-bottom:1px solid #eee;font-size:1.1rem;">${esc(summary)}</div>`;
+          html += `<div class="sample-feature">${esc(summary)}</div>`;
         }
       }
 

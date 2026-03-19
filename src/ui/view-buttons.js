@@ -71,8 +71,9 @@ export function buildViewButtons() {
     /* Info button — fetch and show view metadata on click */
     const infoBtn = document.createElement("button");
     infoBtn.className = "view-info-btn";
-    infoBtn.textContent = "i";
+    infoBtn.innerHTML = 'i<span class="mg-u-sr-only">View metadata</span>';
     infoBtn.title = "View metadata";
+    infoBtn.setAttribute("aria-label", "View metadata");
     infoBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       showViewMetadata(v.id, v.label);
@@ -374,7 +375,7 @@ async function showViewMetadata(idView, fallbackLabel) {
       <div class="view-meta-content">
         <div class="view-meta-header">
           <strong>${esc(title)}</strong>
-          <button title="Close">&times;</button>
+          <button title="Close" aria-label="Close">&times;</button>
         </div>
         <div class="view-meta-body">${bodyHtml}</div>
       </div>

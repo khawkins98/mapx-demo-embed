@@ -89,7 +89,7 @@ export function enableDataExport() {
       log("Sample: " + JSON.stringify(features.slice(0, 2), null, 2));
 
       let html = `<h4>Local Data Preview (${features.length} features)</h4>`;
-      html += '<pre style="white-space:pre-wrap;font-size:1.1rem;max-height:200px;overflow:auto;">';
+      html += '<pre class="export-preview">';
       html += esc(JSON.stringify(features.slice(0, 3), null, 2));
       html += "</pre>";
       showToolResults("export-results", html);
@@ -108,7 +108,7 @@ export function enableDataExport() {
         log("Sample: " + JSON.stringify(sample, null, 2));
 
         let html = `<h4>Data Preview (${data.features.length} features)</h4>`;
-        html += '<pre style="white-space:pre-wrap;font-size:1.1rem;max-height:200px;overflow:auto;">';
+        html += '<pre class="export-preview">';
         html += esc(JSON.stringify(sample, null, 2));
         html += "</pre>";
         showToolResults("export-results", html);

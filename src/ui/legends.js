@@ -41,7 +41,7 @@ function getPanel() {
     panel.innerHTML = `
       <div class="legends-panel-header">
         <strong>Legends</strong>
-        <button id="legends-panel-toggle" class="legends-collapse-btn" title="Collapse">&#x25BC;</button>
+        <button id="legends-panel-toggle" class="legends-collapse-btn" title="Collapse" aria-label="Collapse legends panel">&#x25BC;</button>
       </div>
       <div class="legends-panel-body" id="legends-panel-body"></div>
     `;

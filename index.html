@@ -35,34 +35,21 @@
       returning visitors skip the gate. The JS logic lives in
       src/ui/pin-gate.js and is initialised by src/landing.js.
     -->
-    <div id="pin-gate" style="
-      position:fixed;inset:0;z-index:9999;
-      background:rgba(0,79,145,0.95);
-      display:flex;align-items:center;justify-content:center;
-      font-family:'Roboto',sans-serif;
-    ">
-      <div style="
-        background:#fff;max-width:440px;width:90%;
-        padding:3rem 2.5rem;text-align:center;
-      ">
-        <h2 style="margin-top:0;font-size:2.3rem;color:#1a1a1a;">Preview Access</h2>
-        <p style="font-size:1.6rem;color:#4d4d4d;line-height:1.5;margin-bottom:2rem;">
+    <div id="pin-gate" class="pin-gate">
+      <div class="pin-gate__card">
+        <h2 class="mg-u-font-size-500" style="margin-top:0;">Preview Access</h2>
+        <p class="mg-u-font-size-300" style="line-height:1.5;margin-bottom:2rem;">
           This is an <strong>unofficial investigation proof of concept</strong>
           for demonstration purposes only. It is not an official UNDRR product.
         </p>
-        <p style="font-size:1.4rem;color:#666;margin-bottom:1.5rem;">
+        <p style="font-size:1.4rem;margin-bottom:1.5rem;">
           Enter the preview PIN to continue:
         </p>
         <input id="pin-input" type="text" inputmode="numeric" maxlength="4"
-          placeholder="_ _ _ _"
-          style="
-            font-size:2.4rem;text-align:center;letter-spacing:0.8rem;
-            width:12rem;padding:0.75rem;
-            border:2px solid #ccc;outline:none;
-            font-family:'Roboto Condensed',monospace;
-          "
+          placeholder="_ _ _ _" class="pin-gate__input"
+          aria-label="Preview PIN"
         />
-        <p id="pin-error" style="color:#c10920;font-size:1.4rem;margin-top:1rem;min-height:1.4rem;"></p>
+        <p id="pin-error" class="pin-gate__error"></p>
       </div>
     </div>
 
@@ -146,7 +133,8 @@
         mg-card__summary        — card description text
 
       Cards are wrapped in <a> tags for full-card clickability. Each card
-      has a coloured tag (demo-card-tag) identifying the demo type:
+      has a coloured tag (mg-tag with per-demo colour modifier) identifying
+      the demo type:
         kitchen-sink → blue   (mg-color-blue-900)
         story        → purple (Sendai purple)
         explorer     → teal   (derived from Sendai turquoise)
@@ -158,7 +146,7 @@
         <div class="mg-grid mg-grid__col-3">
           <a href="/demos/kitchen-sink/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
-              <span class="demo-card-tag demo-card-tag--kitchen-sink">Full Demo</span>
+              <span class="mg-tag mg-tag--kitchen-sink">Full Demo</span>
               <header class="mg-card__title">Kitchen Sink</header>
               <p class="mg-card__summary">
                 All MapX SDK features in one page: curated views, scenarios,
@@ -170,7 +158,7 @@
 
           <a href="/demos/story/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
-              <span class="demo-card-tag demo-card-tag--story">Narrative</span>
+              <span class="mg-tag mg-tag--story">Narrative</span>
               <header class="mg-card__title">Risk to Resilience</header>
               <p class="mg-card__summary">
                 A guided story walking through hazard, exposure, vulnerability,
@@ -182,7 +170,7 @@
 
           <a href="/demos/explorer/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
-              <span class="demo-card-tag demo-card-tag--explorer">Analysis</span>
+              <span class="mg-tag mg-tag--explorer">Analysis</span>
               <header class="mg-card__title">Data Explorer</header>
               <p class="mg-card__summary">
                 Simulated DELTA-style analysis with pre-loaded hazard layers
