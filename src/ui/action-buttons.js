@@ -147,9 +147,8 @@ function wireRegionPresets() {
  * Populate the country/region dropdown from common_loc_get_list_codes().
  *
  * The SDK returns an array of {code, label} objects. We group them into:
- *   1. Preset regions (optgroup at top for quick access)
- *   2. M49 region codes (codes starting with "m49_")
- *   3. Country codes (everything else, sorted alphabetically by label)
+ *   1. Country codes (sorted alphabetically by label — most useful first)
+ *   2. M49 region codes (codes starting with "m49_", below countries)
  *
  * When a selection is made, we fly to the location via common_loc_fit_bbox.
  */
@@ -183,21 +182,21 @@ async function wireCountryDropdown() {
     regions.sort((a, b) => a.label.localeCompare(b.label));
     countries.sort((a, b) => a.label.localeCompare(b.label));
 
-    /* Build dropdown HTML */
+    /* Build dropdown HTML — countries first (more useful), regions below */
     let html = '<option value="">-- Select a location --</option>';
-
-    if (regions.length > 0) {
-      html += '<optgroup label="Regions">';
-      for (const r of regions) {
-        html += `<option value="${r.code}">${r.label}</option>`;
-      }
-      html += "</optgroup>";
-    }
 
     if (countries.length > 0) {
       html += '<optgroup label="Countries">';
       for (const c of countries) {
         html += `<option value="${c.code}">${c.label}</option>`;
+      }
+      html += "</optgroup>";
+    }
+
+    if (regions.length > 0) {
+      html += '<optgroup label="Regions">';
+      for (const r of regions) {
+        html += `<option value="${r.code}">${r.label}</option>`;
       }
       html += "</optgroup>";
     }
