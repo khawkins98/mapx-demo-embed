@@ -586,3 +586,122 @@ Limitations:
   this way — they are served as tiled data, not downloadable files
 - For custom overlays stored in the `customGeoJSONRegistry`, the local
   copy is exported directly without making an SDK call
+
+## 11. UX improvements — collapsible sidebar and floating controls
+
+### The problem
+
+The sidebar contained ~2000px of content in ~675px of visible space. Bottom
+sections (SDK Features, Custom Data) were buried below the fold. Map controls
+(zoom, globe, terrain, etc.) required scrolling the sidebar to reach them.
+
+### Collapsible sections
+
+All sidebar sections are wrapped in native `<details>/<summary>` elements.
+Only "DRR Views" is open by default. This solves the vertical scrolling
+problem with zero JavaScript — the browser handles expand/collapse natively.
+
+Custom CSS removes the default disclosure triangle and replaces it with a
+`▸`/`▾` marker that's more consistent with the Mangrove design language.
+
+### Floating map controls toolbar
+
+Zoom, globe, terrain, 3D, aerial, and immersive buttons were moved from the
+sidebar into a compact vertical icon bar pinned to the bottom-left of the
+map area (above the coordinate bar). This keeps map controls visible regardless
+of sidebar scroll position. The toolbar uses short icon labels with `title`
+attributes for discoverability.
+
+"Remove All Views" stays in the sidebar since it's a destructive action that
+shouldn't be too easy to hit accidentally.
+
+### Country/region dropdown
+
+The 5 hardcoded region buttons were replaced with a `<select>` populated
+dynamically from `common_loc_get_list_codes()`. The dropdown groups entries
+into "Regions" (M49 codes) and "Countries" (ISO 3166-1 alpha-3 codes),
+sorted alphabetically. The 5 preset regions remain as compact quick-access
+buttons above the dropdown.
+
+When a selection is made, `common_loc_fit_bbox(code)` flies the map to the
+selected location's bounding box.
+
+### Coordinate + zoom display
+
+A translucent bar at the bottom of the map area shows current lat, lng, and
+zoom level. Updated via polling (every 2 seconds) because the SDK's
+postMessage bridge doesn't support native Mapbox map events (`moveend`,
+`zoomend`) from the parent page.
+
+## 12. Legend images for active views
+
+When a view is toggled on, its legend is fetched via `get_view_legend_image({idView})`
+which returns a base64-encoded PNG. Legends are displayed in a floating panel
+in the bottom-right of the map area.
+
+The panel updates automatically as views are added/removed:
+- Toggle on → fetch legend, add entry (with view label)
+- Toggle off → remove entry
+- Clear all → remove all entries, hide panel
+
+Not all views have legends — failed fetches are silently skipped. The panel
+is hidden when no legends are active.
+
+Implementation: `src/ui/legends.js` creates the DOM lazily on first use and
+manages a `Map<idView, HTMLElement>` for efficient add/remove.
+
+## 13. Transparency sliders
+
+When a view is active, a range input (0–100) appears below its button in the
+sidebar. On input, calls `set_view_layer_transparency({idView, value})`. The
+slider is initialized from `get_view_layer_transparency({idView})` to match
+the current server state (e.g. after a scenario sets transparency).
+
+The slider label shows "Opacity" as a percentage (100 - transparency) since
+users think in terms of "how visible is this layer" rather than "how
+transparent is it."
+
+## 14. View metadata ("i" button)
+
+Each view button row includes a small "i" icon. On click, calls
+`get_view_meta({idView})` and displays the view's title, abstract, source,
+temporal extent, and type in a modal overlay.
+
+The metadata object uses language objects (`{en, fr, ...}`) for text fields.
+We extract English first, then fall back to French or the first available
+language. The modal closes on backdrop click or the close button.
+
+## 15. Map Composer and Share modals
+
+Two buttons in the SDK Features section:
+- "Map Composer" calls `show_modal_map_composer()` — full-featured map export
+  tool with layout, title, legend, scale bar, and north arrow.
+- "Share Map" calls `show_modal_share()` — sharing options including direct
+  link, embed code, and social sharing buttons.
+
+Both modals are entirely provided by MapX — zero custom layout needed.
+The SDK wrappers are in `src/sdk/ui.js`.
+
+## 16. New scenarios
+
+### Compound Risk (Nepal)
+
+Three-layer stacking: Population (HRSL 2022) + Flood Hazard (25yr) +
+Landslide Exposure. Flies to Nepal — a mountainous region prone to compound
+flood + landslide events. Demonstrates how transparency blending reveals
+multi-hazard overlap. Population shows who is exposed, while the two hazard
+layers show what they're exposed to.
+
+### Live Monitoring Dashboard
+
+Earthquakes (live, Mag >= 5.5) + Active Fires (admin level 1). Shows
+real-time data layers combined on a single view, then opens the fires
+dashboard for administrative-level analysis. Demonstrates the live monitoring
+use case.
+
+### Loading states
+
+All scenario buttons show a CSS spinner during execution and are disabled
+to prevent double-clicks. The `withLoading()` wrapper handles this
+automatically — any error is caught and logged, and the spinner is cleared
+in the `finally` block.

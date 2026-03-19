@@ -61,3 +61,31 @@ export function setDashboardVisibility(show) {
 export function setVectorHighlight(enable) {
   return getSDK().ask("set_vector_highlight", { enable });
 }
+
+/**
+ * show_modal_map_composer()
+ *   Opens the MapX map composer modal, which provides a full-featured
+ *   map export tool (layout, title, legend, scale bar, north arrow).
+ *   The entire UI is provided by MapX — no custom layout needed.
+ */
+export function showModalMapComposer() {
+  return getSDK().ask("show_modal_map_composer");
+}
+
+/**
+ * show_modal_share()
+ *   Opens the MapX share modal, which provides sharing options
+ *   including direct link, embed code, and social sharing buttons.
+ *   The entire UI is provided by MapX.
+ */
+export function showModalShare() {
+  return getSDK().ask("show_modal_share");
+}
+
+/**
+ * close_modal_all()
+ *   Closes all open MapX modals. Useful as a cleanup step.
+ */
+export function closeModalAll() {
+  return getSDK().ask("close_modal_all");
+}

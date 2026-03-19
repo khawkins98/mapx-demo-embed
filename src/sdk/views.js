@@ -55,3 +55,25 @@ export function viewGeojsonSetStyle(idView, paint, layout) {
 export function viewGeojsonDelete(idView) {
   return getSDK().ask("view_geojson_delete", { idView });
 }
+
+/**
+ * get_view_legend_image({idView})
+ *   Returns a base64-encoded PNG of the view's legend, or null if the
+ *   view has no legend. Useful for displaying legend keys outside the
+ *   MapX iframe in a custom legends panel.
+ */
+export function getViewLegendImage(idView) {
+  return getSDK().ask("get_view_legend_image", { idView });
+}
+
+/**
+ * get_view_meta({idView})
+ *   Returns the view's metadata object including title, abstract,
+ *   data source attribution, temporal extent, and other catalog info.
+ *   The returned object typically includes:
+ *     {title, abstract, notes, source, temporal, ...}
+ *   where title/abstract/notes are {en, fr, ...} language objects.
+ */
+export function getViewMeta(idView) {
+  return getSDK().ask("get_view_meta", { idView });
+}

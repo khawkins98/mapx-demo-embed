@@ -1,9 +1,13 @@
-import { log } from "./log.js";
-import { setLanguage, getLanguage, setTheme, getThemesId, getThemeId } from "../sdk/ui.js";
-import { playStoryMap } from "./story-overlay.js";
-
 /**
- * Wire up the SDK feature controls: language, theme, and story maps.
+ * Wire up the SDK feature controls: map tools, language, theme, and story maps.
+ *
+ * Map tools (new):
+ *   "Map Composer" — calls show_modal_map_composer() which opens the MapX
+ *   built-in map export tool. Provides layout, title, legend, scale bar,
+ *   and north arrow. The entire UI is provided by MapX.
+ *
+ *   "Share Map" — calls show_modal_share() which opens the MapX sharing
+ *   modal with direct link, embed code, and social sharing options.
  *
  * Language switching:
  *   The buttons use ISO 639-1 two-letter codes (en, fr, es, de, ru, zh,
@@ -14,19 +18,43 @@ import { playStoryMap } from "./story-overlay.js";
  * Theme switching:
  *   Theme buttons are built dynamically — we call get_themes_id to fetch
  *   the list of available theme IDs from the MapX instance, then create
- *   a button for each. The IDs look like "color_default", "color_dark",
- *   etc.; we strip the "color_" prefix and title-case the rest for the
- *   button label. get_theme_id tells us which one is active so we can
- *   mark it with is-active on load.
+ *   a button for each. get_theme_id tells us which one is active so we
+ *   can mark it with is-active on load.
  *
  * Story map buttons:
  *   These call playStoryMap() which opens an overlay iframe (see
  *   story-overlay.js for the rationale). The story views belong to
- *   a different project, so they can't be loaded via view_add on
- *   our SDK instance.
+ *   a different project, so they can't be loaded via view_add.
  */
+
+import { log } from "./log.js";
+import {
+  setLanguage, getLanguage, setTheme, getThemesId, getThemeId,
+  showModalMapComposer, showModalShare,
+} from "../sdk/ui.js";
+import { playStoryMap } from "./story-overlay.js";
+
 export async function enableSdkFeatures() {
-  /* Language buttons */
+  /* --- Map Composer + Share buttons --- */
+  document.getElementById("btn-map-composer").addEventListener("click", async () => {
+    log("Opening Map Composer...");
+    try {
+      await showModalMapComposer();
+    } catch (e) {
+      log("Map Composer: " + e.message);
+    }
+  });
+
+  document.getElementById("btn-share").addEventListener("click", async () => {
+    log("Opening Share modal...");
+    try {
+      await showModalShare();
+    } catch (e) {
+      log("Share: " + e.message);
+    }
+  });
+
+  /* --- Language buttons --- */
   document.querySelectorAll(".btn-lang").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const lang = btn.dataset.lang;
@@ -46,7 +74,7 @@ export async function enableSdkFeatures() {
     log("get_language: " + e.message);
   }
 
-  /* Theme buttons */
+  /* --- Theme buttons --- */
   try {
     const themeIds = await getThemesId();
     const currentTheme = await getThemeId();
@@ -76,7 +104,7 @@ export async function enableSdkFeatures() {
     log("Themes: " + e.message);
   }
 
-  /* Story map buttons */
+  /* --- Story map buttons --- */
   document.getElementById("btn-story-mapx").addEventListener("click", () => {
     playStoryMap("MX-5BWRN-RBB0W-ZAXRA", "MapX Presentation");
   });

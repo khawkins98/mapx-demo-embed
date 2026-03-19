@@ -39,3 +39,13 @@ export function setViewLayerFilterText(idView, value) {
 export function setViewLayerTransparency(idView, value) {
   return getSDK().ask("set_view_layer_transparency", { idView, value });
 }
+
+/**
+ * get_view_layer_transparency({idView})
+ *   Returns the current transparency value (0–100) for a view's layer.
+ *   0 = fully opaque, 100 = fully invisible. Used to initialize
+ *   transparency slider positions for active views.
+ */
+export function getViewLayerTransparency(idView) {
+  return getSDK().ask("get_view_layer_transparency", { idView });
+}

@@ -1,3 +1,26 @@
+/**
+ * Action button wiring — connects UI buttons to SDK methods.
+ *
+ * This module handles three groups of controls:
+ *
+ * 1. Floating map toolbar (bottom-left of map area):
+ *    Zoom, globe, terrain, 3D tilt, aerial, immersive mode.
+ *    Moved from the sidebar to keep controls visible at all times.
+ *
+ * 2. Navigate section (sidebar):
+ *    Country/region dropdown (populated from common_loc_get_list_codes),
+ *    preset region buttons, and the "Remove All Views" reset button.
+ *
+ * 3. Sub-module initialisation:
+ *    Delegates to enableScenarios(), enableCustomData(), enableSdkFeatures(),
+ *    and enableAnalysisTools() for their respective sidebar sections.
+ *
+ * SDK methods used:
+ *   map_fly_to, map_get_zoom, getProjection, setProjection,
+ *   set_3d_terrain, set_mode_3d, set_mode_aerial, set_immersive_mode,
+ *   common_loc_fit_bbox, common_loc_get_list_codes
+ */
+
 import { log } from "./log.js";
 import { clearAllViews } from "./view-buttons.js";
 import { enableScenarios } from "./scenarios.js";
@@ -8,18 +31,47 @@ import { REGIONS } from "../config/regions.js";
 import {
   mapFlyTo, mapGetZoom, getProjection, setProjection,
   set3dTerrain, setMode3d, setModeAerial, setImmersiveMode,
+  commonLocFitBbox, commonLocGetListCodes,
 } from "../sdk/map-control.js";
 
+/**
+ * Enable all action buttons and sub-modules.
+ * Called once after SDK ready event fires.
+ */
 export function enableActionButtons() {
+  /* Remove 'disabled' class from all wired buttons */
   document
-    .querySelectorAll(".action-buttons .mg-button, #btn-zoom-in, #btn-zoom-out, #btn-reset, #scenario-buttons .mg-button")
+    .querySelectorAll(
+      ".action-buttons .mg-button, .map-toolbar-btn, #btn-reset, #scenario-buttons .mg-button",
+    )
     .forEach((b) => b.classList.remove("disabled"));
 
+  /* Initialise sub-modules */
   enableScenarios();
   enableCustomData();
   enableSdkFeatures();
   enableAnalysisTools();
 
+  /* --- Floating map toolbar controls --- */
+  wireMapToolbar();
+
+  /* --- Navigate section --- */
+  wireRegionPresets();
+  wireCountryDropdown();
+
+  /* Reset button */
+  document.getElementById("btn-reset").addEventListener("click", async () => {
+    log("Removing all views");
+    await clearAllViews();
+  });
+}
+
+/**
+ * Wire up the floating map toolbar buttons.
+ * These are the zoom, projection, and display mode controls that
+ * sit in a compact vertical bar on the map.
+ */
+function wireMapToolbar() {
   document.getElementById("btn-zoom-in").addEventListener("click", async () => {
     const z = await mapGetZoom();
     log(`Zoom in: ${z.toFixed(1)} → ${(z + 2).toFixed(1)}`);
@@ -58,7 +110,13 @@ export function enableActionButtons() {
     log("Toggling immersive mode");
     await setImmersiveMode("toggle");
   });
+}
 
+/**
+ * Wire up the preset region fly-to buttons.
+ * These are the quick-access buttons in the Navigate section.
+ */
+function wireRegionPresets() {
   document.getElementById("btn-world").addEventListener("click", async () => {
     log("Fly to world view");
     await mapFlyTo(REGIONS.world);
@@ -83,9 +141,83 @@ export function enableActionButtons() {
     log("Fly to Pacific Islands");
     await mapFlyTo(REGIONS.pacific);
   });
+}
 
-  document.getElementById("btn-reset").addEventListener("click", async () => {
-    log("Removing all views");
-    await clearAllViews();
-  });
+/**
+ * Populate the country/region dropdown from common_loc_get_list_codes().
+ *
+ * The SDK returns an array of {code, label} objects. We group them into:
+ *   1. Preset regions (optgroup at top for quick access)
+ *   2. M49 region codes (codes starting with "m49_")
+ *   3. Country codes (everything else, sorted alphabetically by label)
+ *
+ * When a selection is made, we fly to the location via common_loc_fit_bbox.
+ */
+async function wireCountryDropdown() {
+  const select = document.getElementById("country-select");
+
+  try {
+    const codes = await commonLocGetListCodes();
+    if (!codes || !Array.isArray(codes) || codes.length === 0) {
+      select.innerHTML = '<option value="">No locations available</option>';
+      return;
+    }
+
+    log(`Loaded ${codes.length} location codes`);
+
+    /* Separate M49 regions from country codes */
+    const regions = [];
+    const countries = [];
+    for (const item of codes) {
+      /* item may be a string code or {code, label} object */
+      const code = typeof item === "string" ? item : item.code || item;
+      const label = typeof item === "object" ? (item.label || item.name || code) : code;
+      if (typeof code === "string" && code.startsWith("m49_")) {
+        regions.push({ code, label });
+      } else {
+        countries.push({ code, label });
+      }
+    }
+
+    /* Sort alphabetically by label */
+    regions.sort((a, b) => a.label.localeCompare(b.label));
+    countries.sort((a, b) => a.label.localeCompare(b.label));
+
+    /* Build dropdown HTML */
+    let html = '<option value="">-- Select a location --</option>';
+
+    if (regions.length > 0) {
+      html += '<optgroup label="Regions">';
+      for (const r of regions) {
+        html += `<option value="${r.code}">${r.label}</option>`;
+      }
+      html += "</optgroup>";
+    }
+
+    if (countries.length > 0) {
+      html += '<optgroup label="Countries">';
+      for (const c of countries) {
+        html += `<option value="${c.code}">${c.label}</option>`;
+      }
+      html += "</optgroup>";
+    }
+
+    select.innerHTML = html;
+    select.disabled = false;
+
+    /* Fly to selected location on change */
+    select.addEventListener("change", async () => {
+      const code = select.value;
+      if (!code) return;
+      log(`Flying to: ${select.options[select.selectedIndex].text} (${code})`);
+      try {
+        await commonLocFitBbox(code, { duration: 2000 });
+      } catch (e) {
+        log(`Navigation error: ${e.message}`);
+      }
+    });
+  } catch (e) {
+    log(`Country dropdown: ${e.message}`);
+    select.innerHTML = '<option value="">Unavailable</option>';
+  }
 }

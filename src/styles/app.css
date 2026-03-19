@@ -64,11 +64,44 @@ body {
 .app-sidebar h2 {
   margin-top: 0;
 }
+
+/*
+ * Collapsible sidebar sections — uses native <details>/<summary>.
+ * Only "DRR Views" is open by default (via the `open` attribute).
+ * Eliminates the vertical scrolling problem (~2000px of content
+ * in ~675px of visible space) without structural rework.
+ */
 .sidebar-section {
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
 }
 .sidebar-section:last-child {
   margin-bottom: 0;
+  border-bottom: none;
+}
+.sidebar-section > summary {
+  cursor: pointer;
+  list-style: none;        /* Remove default triangle */
+  padding: 0.4rem 0;
+  user-select: none;
+}
+.sidebar-section > summary::-webkit-details-marker {
+  display: none;            /* Chrome/Safari */
+}
+.sidebar-section > summary::before {
+  content: "▸ ";
+  font-size: 1.2rem;
+  color: #666;
+  transition: transform 0.15s;
+}
+.sidebar-section[open] > summary::before {
+  content: "▾ ";
+}
+.sidebar-section > summary h2 {
+  display: inline;
+  font-size: 1.6rem;
+  margin: 0;
 }
 
 /* View toggle buttons — stacked vertically */
@@ -128,6 +161,297 @@ body {
 #mapx {
   position: absolute;
   inset: 0;
+}
+
+/*
+ * Floating map controls toolbar — compact vertical icon bar.
+ * Pinned to bottom-left of the map area. Contains zoom, projection,
+ * 3D, terrain, aerial, and immersive buttons moved out of the sidebar
+ * so they're always visible regardless of sidebar scroll position.
+ */
+.map-toolbar {
+  position: absolute;
+  bottom: 4rem;         /* Above the coordinate bar */
+  left: 1rem;
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 4px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+  padding: 4px;
+}
+.map-toolbar-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  padding: 0;
+}
+.map-toolbar-btn:hover {
+  background: #e8f0fe;
+}
+.map-toolbar-btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.map-toolbar-btn.is-active {
+  background: #004f91;
+  color: #fff;
+  border-color: #004f91;
+}
+.map-toolbar-sep {
+  height: 1px;
+  background: #ddd;
+  margin: 2px 4px;
+}
+
+/*
+ * Country/region dropdown — styled to match the analysis view select.
+ * Populated dynamically from common_loc_get_list_codes().
+ */
+.country-select {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1.3rem;
+  font-family: 'Roboto', sans-serif;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+}
+
+/*
+ * Legends panel — floating panel in the bottom-right of the map area.
+ * Shows legend images for each active view. Hidden when no views are
+ * active. Scrollable body for multiple legends.
+ */
+.legends-panel {
+  position: absolute;
+  bottom: 4rem;
+  right: 1rem;
+  z-index: 13;
+  max-width: 260px;
+  max-height: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  display: none;          /* Shown via JS when legends exist */
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 1.2rem;
+}
+.legends-panel-header {
+  background: #004f91;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+}
+.legends-collapse-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 0.2rem;
+}
+.legends-panel-body {
+  padding: 0.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+.legend-entry {
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+.legend-entry:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.legend-entry-title {
+  font-weight: 500;
+  font-size: 1.1rem;
+  margin-bottom: 0.3rem;
+  color: #333;
+}
+.legend-entry-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/*
+ * Coordinate + zoom display bar — bottom of the map area.
+ * Shows current lat, lng, and zoom. Updated on camera move.
+ */
+.coord-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 13;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 1.1rem;
+  font-family: 'Roboto Condensed', monospace;
+  padding: 0.3rem 1rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+/*
+ * Transparency slider — shown inline with each active view button.
+ * Range input styled to be compact and unobtrusive.
+ */
+.view-transparency-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 1.1rem;
+  color: #666;
+}
+.view-transparency-row label {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+.view-transparency-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+  cursor: pointer;
+  accent-color: #004f91;
+}
+.view-transparency-row .transparency-value {
+  min-width: 2.5rem;
+  text-align: right;
+  font-size: 1rem;
+  font-family: 'Roboto Condensed', monospace;
+}
+
+/*
+ * View info button — small "i" icon on each view button row.
+ * Opens a metadata popup for the view.
+ */
+.view-info-btn {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  background: #f5f5f5;
+  color: #004f91;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, serif;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 0.3rem;
+  transition: background 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+.view-info-btn:hover {
+  background: #004f91;
+  color: #fff;
+  border-color: #004f91;
+}
+
+/*
+ * View metadata modal — displayed when "i" button is clicked.
+ * Simple overlay with the view's title, abstract, source, and dates.
+ */
+.view-meta-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.view-meta-content {
+  background: #fff;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+.view-meta-header {
+  background: #004f91;
+  color: #fff;
+  padding: 0.8rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.view-meta-header button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 0 0.3rem;
+}
+.view-meta-body {
+  padding: 1.2rem;
+  font-size: 1.3rem;
+  line-height: 1.6;
+}
+.view-meta-body dt {
+  font-weight: 600;
+  color: #004f91;
+  margin-top: 0.8rem;
+}
+.view-meta-body dt:first-child {
+  margin-top: 0;
+}
+.view-meta-body dd {
+  margin-left: 0;
+  margin-bottom: 0.4rem;
+  color: #333;
+}
+
+/*
+ * Scenario loading state — button shows spinner during execution.
+ */
+.mg-button.is-loading {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+}
+.mg-button.is-loading::after {
+  content: "";
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 #log div {

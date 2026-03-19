@@ -87,3 +87,23 @@ export function setModeAerial(action) {
 export function setImmersiveMode(action) {
   return getSDK().ask("set_immersive_mode", { action });
 }
+
+/**
+ * common_loc_get_list_codes()
+ *   Returns the list of location codes available for common_loc_fit_bbox.
+ *   Includes ISO 3166-1 alpha-3 country codes (e.g. "IND", "IDN") and
+ *   M49 region codes (e.g. "m49_029" for Caribbean). Each entry has
+ *   a code and a label. Used to populate the country/region dropdown.
+ */
+export function commonLocGetListCodes() {
+  return getSDK().ask("common_loc_get_list_codes");
+}
+
+/**
+ * map({method: "getCenter"})
+ *   Returns the map's current center as {lng, lat} via the Mapbox GL
+ *   passthrough. Used by the coordinate display bar.
+ */
+export function mapGetCenter() {
+  return getSDK().ask("map", { method: "getCenter" });
+}

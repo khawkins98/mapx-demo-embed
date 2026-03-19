@@ -1,3 +1,28 @@
+/**
+ * Pre-built scenarios that demonstrate chaining multiple SDK calls into
+ * cohesive workflows. Each scenario clears the map, loads specific views,
+ * flies to a region, and optionally applies filters or opens dashboards.
+ *
+ * All scenario buttons show a loading spinner during execution to give
+ * visual feedback that multiple SDK calls are in progress.
+ *
+ * Scenarios:
+ *   1. India — Active Fires + Dashboard
+ *   2. Caribbean — Cyclone + Flood Hazard (transparency stacking)
+ *   3. SE Asia — Tsunami + Mangrove NbS (eco-DRR pairing)
+ *   4a/4b. Water Stress 2030 — High/Low filter toggle
+ *   5. Nepal — Compound Risk (3-layer stacking)
+ *   6. Live Monitoring Dashboard (real-time layers)
+ *
+ * Key SDK methods used across scenarios:
+ *   - common_loc_fit_bbox(code)        — fly to a country by ISO 3166 alpha-3
+ *   - set_view_layer_transparency(id, %) — blend layers for overlay stacking
+ *   - has_dashboard / set_dashboard_visibility — check and toggle dashboards
+ *   - get_view_table_attribute(id)     — fetch attribute data for filtering
+ *   - set_view_layer_filter_text(id, values) — filter by category values
+ *   - map_wait_idle()                  — wait for tiles before querying
+ */
+
 import { log } from "./log.js";
 import { clearAllViews, ensureView } from "./view-buttons.js";
 import { mapFlyTo, commonLocFitBbox, mapWaitIdle } from "../sdk/map-control.js";
@@ -6,55 +31,28 @@ import { hasDashboard, setDashboardVisibility } from "../sdk/ui.js";
 import { getViewTableAttribute } from "../sdk/data-query.js";
 
 /**
- * Pre-built scenarios that demonstrate chaining multiple SDK calls into
- * cohesive workflows. Each scenario clears the map, loads specific views,
- * flies to a region, and optionally applies filters or opens dashboards.
+ * Wrap a scenario handler with loading state management.
+ * Shows a spinner on the button during execution and disables it
+ * to prevent double-clicks. Automatically clears on completion or error.
  *
- * Key SDK methods used across scenarios:
- *   - common_loc_fit_bbox(code)        — fly to a country by ISO 3166 alpha-3
- *   - set_view_layer_transparency(id, %) — blend a layer for overlay stacking
- *   - has_dashboard() / set_dashboard_visibility() — check and toggle dashboards
- *   - get_view_table_attribute(id)     — fetch the attribute table for a vt view
- *   - set_view_layer_filter_text(id, values) — filter a vt layer by category values
- *   - map_wait_idle()                  — wait for tiles to finish loading before
- *                                         querying dashboards or attribute data
- *
- * Scenario 1 — India: Active Fires + Dashboard
- *   The Active Fires view (MX-OU7NG-ZNZGA-ZX3K0) is a vector tile layer
- *   with an attached dashboard showing fire counts by admin region. We
- *   call has_dashboard() to check before opening it — not every view has
- *   one. The dashboard is built into the MapX view configuration; we just
- *   toggle its visibility. To adapt this for other views, swap the idView
- *   and country code, and check whether the new view has a dashboard.
- *
- * Scenario 2 — Caribbean: Cyclone Exposure + Flood Hazard
- *   Two raster layers stacked on top of each other. The cyclone layer is
- *   set to 50% transparency so the flood hazard layer shows through
- *   underneath. Layer ordering follows the order of ensureView calls —
- *   the second view renders on top. Transparency blending lets users see
- *   where multiple hazards overlap, which is the whole point of multi-
- *   hazard risk analysis.
- *
- * Scenario 3 — SE Asia: Tsunami Exposure + Mangrove Restoration
- *   Demonstrates the Eco-DRR (Ecosystem-based Disaster Risk Reduction)
- *   use case: pairing a natural hazard layer (tsunami exposure) with a
- *   nature-based solution layer (mangrove restoration potential for
- *   cyclone surge protection). The tsunami layer gets 40% transparency
- *   so the mangrove restoration priorities are visible underneath.
- *
- * Scenario 4 — Water Stress 2030 (RCP 8.5)
- *   The water stress view (MX-1L2TA-6FXPV-N3QMX) is a vector tile layer
- *   with a text attribute column called "ws3028cl" that contains category
- *   labels like "Significant increase", "Moderate decrease", "Near normal".
- *   We fetch all rows via get_view_table_attribute, extract unique category
- *   values, then split them into "high stress" (categories containing
- *   "increase") and "low stress" (categories containing "decrease" or
- *   "normal"). The two sub-buttons apply different text filters to show
- *   only the relevant polygons.
+ * @param {HTMLElement} btn - The scenario button element
+ * @param {Function} handler - Async function to execute
  */
+async function withLoading(btn, handler) {
+  btn.classList.add("is-loading");
+  try {
+    await handler();
+  } catch (e) {
+    log(`Scenario error: ${e.message}`);
+  } finally {
+    btn.classList.remove("is-loading");
+  }
+}
+
 export function enableScenarios() {
-  /* Scenario 1: India — Active Fires + Dashboard */
-  document.getElementById("sc-fires-india").addEventListener("click", async () => {
+  /* --- Scenario 1: India — Active Fires + Dashboard --- */
+  const btnFires = document.getElementById("sc-fires-india");
+  btnFires.addEventListener("click", () => withLoading(btnFires, async () => {
     log("Scenario: India fire activity");
     await clearAllViews();
 
@@ -76,39 +74,41 @@ export function enableScenarios() {
     } catch (e) {
       log("Dashboard: " + e.message);
     }
-  });
+  }));
 
-  /* Scenario 2: Caribbean — Cyclone Exposure + Flood Hazard */
-  document.getElementById("sc-caribbean-multi").addEventListener("click", async () => {
+  /* --- Scenario 2: Caribbean — Cyclone Exposure + Flood Hazard --- */
+  const btnCarib = document.getElementById("sc-caribbean-multi");
+  btnCarib.addEventListener("click", () => withLoading(btnCarib, async () => {
     log("Scenario: Caribbean multi-hazard");
     await clearAllViews();
 
-    await ensureView("MX-10AE5-746D1-76777");
-    await ensureView("MX-V07LO-829XA-4BIZ8");
+    await ensureView("MX-10AE5-746D1-76777"); /* Cyclone */
+    await ensureView("MX-V07LO-829XA-4BIZ8"); /* Flood */
 
     log("Flying to Caribbean...");
     await mapFlyTo({ center: { lng: -72, lat: 18 }, zoom: 5.5 });
 
     log("Setting cyclone layer to 50% transparency...");
     await setViewLayerTransparency("MX-10AE5-746D1-76777", 50);
-  });
+  }));
 
-  /* Scenario 3: SE Asia — Tsunami Exposure + Mangrove Restoration */
-  document.getElementById("sc-seasia-tsunami").addEventListener("click", async () => {
+  /* --- Scenario 3: SE Asia — Tsunami + Mangrove Restoration --- */
+  const btnTsunami = document.getElementById("sc-seasia-tsunami");
+  btnTsunami.addEventListener("click", () => withLoading(btnTsunami, async () => {
     log("Scenario: SE Asia tsunami + mangrove NbS");
     await clearAllViews();
 
-    await ensureView("MX-F0DEE-12D97-6447B");
-    await ensureView("MX-559C5-58858-96A69");
+    await ensureView("MX-F0DEE-12D97-6447B"); /* Tsunami */
+    await ensureView("MX-559C5-58858-96A69"); /* Mangrove */
 
     log("Flying to Indonesia...");
     await commonLocFitBbox("IDN", { duration: 2000 });
 
     log("Setting tsunami layer to 40% transparency...");
     await setViewLayerTransparency("MX-F0DEE-12D97-6447B", 40);
-  });
+  }));
 
-  /* Scenarios 4a/4b: Water Stress 2030 */
+  /* --- Scenarios 4a/4b: Water Stress 2030 --- */
   const waterStressView = "MX-1L2TA-6FXPV-N3QMX";
   let waterStressCategories = null;
 
@@ -133,7 +133,8 @@ export function enableScenarios() {
     }
   }
 
-  document.getElementById("sc-water-high").addEventListener("click", async () => {
+  const btnWaterHigh = document.getElementById("sc-water-high");
+  btnWaterHigh.addEventListener("click", () => withLoading(btnWaterHigh, async () => {
     log("Water Stress 2030 — filtering to HIGH stress");
     await ensureWaterStressReady();
     if (waterStressCategories) {
@@ -141,9 +142,10 @@ export function enableScenarios() {
       log(`Showing: ${high.join(", ")}`);
       await setViewLayerFilterText(waterStressView, high);
     }
-  });
+  }));
 
-  document.getElementById("sc-water-low").addEventListener("click", async () => {
+  const btnWaterLow = document.getElementById("sc-water-low");
+  btnWaterLow.addEventListener("click", () => withLoading(btnWaterLow, async () => {
     log("Water Stress 2030 — filtering to LOW stress");
     await ensureWaterStressReady();
     if (waterStressCategories) {
@@ -153,5 +155,58 @@ export function enableScenarios() {
       log(`Showing: ${low.join(", ")}`);
       await setViewLayerFilterText(waterStressView, low);
     }
-  });
+  }));
+
+  /* --- Scenario 5: Nepal — Compound Risk --- */
+  /*
+   * Three-layer stacking: Population + Flood Hazard + Landslide Exposure.
+   * Demonstrates multi-hazard overlap analysis with transparency blending.
+   * Flies to Nepal — a mountainous region prone to compound flood +
+   * landslide events. Population layer shows who is exposed.
+   */
+  const btnCompound = document.getElementById("sc-compound-nepal");
+  btnCompound.addEventListener("click", () => withLoading(btnCompound, async () => {
+    log("Scenario: Nepal compound risk");
+    await clearAllViews();
+
+    await ensureView("MX-6YLMU-U4WXC-2JJD7"); /* Population HRSL 2022 */
+    await ensureView("MX-V07LO-829XA-4BIZ8"); /* Flood Hazard 25yr */
+    await ensureView("MX-04E66-2E550-81068"); /* Landslide Exposure */
+
+    log("Flying to Nepal...");
+    await commonLocFitBbox("NPL", { duration: 2000 });
+
+    log("Setting transparency for overlay stacking...");
+    await setViewLayerTransparency("MX-V07LO-829XA-4BIZ8", 40); /* Flood at 40% */
+    await setViewLayerTransparency("MX-04E66-2E550-81068", 50); /* Landslide at 50% */
+  }));
+
+  /* --- Scenario 6: Live Monitoring Dashboard --- */
+  /*
+   * Earthquakes (live) + Active Fires. Shows real-time data layers
+   * combined on a single view. Opens the fires dashboard for the
+   * administrative-level fire activity analysis.
+   */
+  const btnLive = document.getElementById("sc-live-monitoring");
+  btnLive.addEventListener("click", () => withLoading(btnLive, async () => {
+    log("Scenario: Live monitoring dashboard");
+    await clearAllViews();
+
+    await ensureView("MX-YLZJG-JAIID-V27X5"); /* Earthquakes Mag >= 5.5 */
+    await ensureView("MX-OU7NG-ZNZGA-ZX3K0"); /* Active Fires */
+
+    log("Setting world view for monitoring...");
+    await mapFlyTo({ center: { lng: 40, lat: 20 }, zoom: 3 });
+
+    await mapWaitIdle();
+    try {
+      const hasDash = await hasDashboard();
+      if (hasDash) {
+        log("Opening fires dashboard...");
+        await setDashboardVisibility(true);
+      }
+    } catch (e) {
+      log("Dashboard: " + e.message);
+    }
+  }));
 }
