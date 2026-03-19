@@ -240,21 +240,26 @@ async function addTransparencySlider(idView, wrapper) {
   const label = document.createElement("label");
   label.textContent = "Opacity";
 
+  /*
+   * Slider represents OPACITY (100 = fully visible, 0 = invisible).
+   * The SDK uses TRANSPARENCY (0 = opaque, 100 = invisible), so we
+   * convert: transparency = 100 - opacity.
+   */
   const slider = document.createElement("input");
   slider.type = "range";
   slider.min = "0";
   slider.max = "100";
-  slider.value = "0"; /* Default: fully opaque (transparency = 0) */
+  slider.value = "100"; /* Default: fully opaque */
 
   const valueDisplay = document.createElement("span");
   valueDisplay.className = "transparency-value";
   valueDisplay.textContent = "100%";
 
-  /* Try to read current transparency from SDK */
+  /* Try to read current transparency from SDK and convert to opacity */
   try {
     const current = await getViewLayerTransparency(idView);
     if (typeof current === "number") {
-      slider.value = String(current);
+      slider.value = String(100 - current);
       valueDisplay.textContent = `${100 - current}%`;
     }
   } catch {
@@ -263,10 +268,10 @@ async function addTransparencySlider(idView, wrapper) {
 
   /* Update transparency on slider input (live, not just on release) */
   slider.addEventListener("input", async () => {
-    const transparency = Number(slider.value);
-    valueDisplay.textContent = `${100 - transparency}%`;
+    const opacity = Number(slider.value);
+    valueDisplay.textContent = `${opacity}%`;
     try {
-      await setViewLayerTransparency(idView, transparency);
+      await setViewLayerTransparency(idView, 100 - opacity);
     } catch (e) {
       log(`Transparency error: ${e.message}`);
     }
