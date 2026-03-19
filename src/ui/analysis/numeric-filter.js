@@ -1,19 +1,17 @@
 /*
  * Numeric attribute filter
  *
- * Three-step workflow:
- *   1. User selects a view in the dropdown. We call get_view_table_attribute_config
- *      to discover which attributes the view exposes. This populates the
- *      attribute dropdown.
- *   2. User picks an attribute. We call get_view_source_summary with
- *      stats: ["attributes"] to fetch the min/max range from the server,
- *      then pre-fill the from/to inputs so the user knows the valid domain.
- *   3. User adjusts from/to and clicks Apply. We call
- *      set_view_layer_filter_numeric to push a Mapbox filter expression
- *      onto the view's layer. "Clear" resets it by passing null bounds.
+ * Two paths depending on the view type:
  *
- * Only works on vt (vector tile) views — GeoJSON and raster views don't
- * expose server-side attribute metadata through these SDK methods.
+ *   vt (vector tile):
+ *     Server-side flow — discover attributes via get_view_table_attribute_config,
+ *     fetch min/max via get_view_source_summary, apply via set_view_layer_filter_numeric.
+ *
+ *   geojson (local registry):
+ *     Client-side flow — scan feature properties for numeric fields, compute
+ *     min/max locally, apply filter visually by setting circle-opacity via
+ *     view_geojson_set_style (non-matching features become nearly transparent).
+ *     On clear, the original paint spec (stored in the registry entry) is restored.
  */
 
 import { log } from "../log.js";
@@ -21,8 +19,66 @@ import { getViewTableAttributeConfig } from "../../sdk/data-query.js";
 import { mapWaitIdle } from "../../sdk/map-control.js";
 import { getViewSourceSummary } from "../../sdk/data-query.js";
 import { setViewLayerFilterNumeric } from "../../sdk/filters.js";
+import { viewGeojsonSetStyle } from "../../sdk/views.js";
 import { showToolMessage, clearToolResults } from "./tool-helpers.js";
 import { getViewType, updateAnalysisToolState } from "./view-select.js";
+import * as store from "../../state/store.js";
+
+/**
+ * Scan GeoJSON features for properties that are numeric in at least one feature.
+ *
+ * Mixed-type properties (e.g. "5" in one feature, 5 in another) will only be
+ * included if at least one feature has a true `typeof "number"` value. This is
+ * intentional — coercing strings would risk false positives on IDs or codes.
+ *
+ * @param {object} geojson — GeoJSON FeatureCollection to scan.
+ * @returns {string[]} Sorted array of property names that contain numeric values.
+ */
+function discoverNumericAttributes(geojson) {
+  const attrs = new Set();
+  for (const f of geojson.features || []) {
+    for (const [key, val] of Object.entries(f.properties || {})) {
+      if (typeof val === "number") attrs.add(key);
+    }
+  }
+  return [...attrs].sort();
+}
+
+/**
+ * Compute min/max for a numeric attribute across all features.
+ *
+ * Non-numeric values for `attr` are silently skipped. If no feature has a
+ * numeric value, both min and max are returned as `null`.
+ *
+ * @param {object} geojson — GeoJSON FeatureCollection.
+ * @param {string} attr    — Property name to aggregate.
+ * @returns {{ min: number|null, max: number|null }}
+ */
+function computeAttributeRange(geojson, attr) {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const f of geojson.features || []) {
+    const val = f.properties?.[attr];
+    if (typeof val === "number") {
+      if (val < min) min = val;
+      if (val > max) max = val;
+    }
+  }
+  return { min: min === Infinity ? null : min, max: max === -Infinity ? null : max };
+}
+
+/**
+ * Find the registry entry for a view ID, if it exists.
+ *
+ * Used to determine whether a view has local GeoJSON data (client-side path)
+ * or should be handled via server-side SDK calls (vt path).
+ *
+ * @param {string} idView — View ID or source ID.
+ * @returns {object|undefined} The registry entry, or undefined if not found.
+ */
+function getRegistryEntry(idView) {
+  return store.customGeoJSONRegistry.find((r) => r.id === idView);
+}
 
 export function enableNumericFilter() {
   const filterAttrSelect = document.getElementById("filter-attr-select");
@@ -46,9 +102,41 @@ export function enableNumericFilter() {
     }
 
     const viewType = getViewType(idView);
+
+    /* Local GeoJSON — discover attributes from the registry data */
+    if (viewType === "geojson") {
+      const entry = getRegistryEntry(idView);
+      if (!entry) {
+        filterAttrSelect.innerHTML = '<option value="">N/A — GeoJSON not in local registry</option>';
+        showToolMessage("filter-message", "This GeoJSON view has no local data for filtering.", true);
+        return;
+      }
+
+      const numericAttrs = discoverNumericAttributes(entry.geojson);
+      if (numericAttrs.length === 0) {
+        filterAttrSelect.innerHTML = '<option value="">No numeric attributes</option>';
+        return;
+      }
+
+      filterAttrSelect.innerHTML = "";
+      const defaultOpt = document.createElement("option");
+      defaultOpt.value = "";
+      defaultOpt.textContent = "Choose attribute...";
+      filterAttrSelect.appendChild(defaultOpt);
+
+      for (const attr of numericAttrs) {
+        const opt = document.createElement("option");
+        opt.value = attr;
+        opt.textContent = attr;
+        filterAttrSelect.appendChild(opt);
+      }
+      return;
+    }
+
+    /* Only vt views support server-side attribute discovery */
     if (viewType !== "vt") {
-      filterAttrSelect.innerHTML = '<option value="">N/A — not a vector view</option>';
-      showToolMessage("filter-message", "Numeric filter only works on vector tile (vt) views.", true);
+      filterAttrSelect.innerHTML = '<option value="">N/A — not a filterable view</option>';
+      showToolMessage("filter-message", "Numeric filter is not available for this view type.", true);
       return;
     }
 
@@ -94,6 +182,25 @@ export function enableNumericFilter() {
       return;
     }
 
+    /* Local GeoJSON — compute range from registry data */
+    const entry = getRegistryEntry(idView);
+    if (entry) {
+      const range = computeAttributeRange(entry.geojson, idAttr);
+      if (range.min != null) {
+        filterFrom.placeholder = `min: ${range.min}`;
+        filterFrom.value = range.min;
+      }
+      if (range.max != null) {
+        filterTo.placeholder = `max: ${range.max}`;
+        filterTo.value = range.max;
+      }
+      filterFrom.disabled = false;
+      filterTo.disabled = false;
+      showToolMessage("filter-message", `Range: ${range.min} to ${range.max}`);
+      return;
+    }
+
+    /* Server-side path for vt views */
     try {
       showToolMessage("filter-message", "Fetching attribute range...");
       await mapWaitIdle();
@@ -143,8 +250,43 @@ export function enableNumericFilter() {
 
     try {
       log(`Applying numeric filter: ${attribute} [${from}, ${to}] on ${idView}`);
-      await setViewLayerFilterNumeric(idView, attribute, from, to);
-      showToolMessage("filter-message", `Filter applied: ${attribute} between ${from} and ${to}`);
+
+      const entry = getRegistryEntry(idView);
+      if (entry) {
+        /* Local GeoJSON — apply a visual filter via Mapbox GL paint expressions.
+         *
+         * We can't use set_view_layer_filter_numeric (server-side) for local
+         * GeoJSON because there's no server source to filter. Instead we build
+         * a Mapbox "case" expression that sets circle-opacity to 1 for matching
+         * features and 0.08 (near-transparent) for non-matching ones. This
+         * keeps non-matching features faintly visible so the user retains
+         * spatial context. The basePaint (stored in the registry at creation
+         * time) is spread in so other paint properties (color, radius) are
+         * preserved. On clear, basePaint is restored verbatim. */
+        const basePaint = entry.paint || {};
+        const filterExpr = [
+          "case",
+          ["all", [">=", ["get", attribute], from], ["<=", ["get", attribute], to]],
+          1, 0.08,
+        ];
+        const filterPaint = {
+          ...basePaint,
+          "circle-opacity": filterExpr,
+          "circle-stroke-opacity": filterExpr,
+        };
+        await viewGeojsonSetStyle(idView, filterPaint);
+
+        const total = (entry.geojson.features || []).length;
+        const matching = (entry.geojson.features || []).filter((f) => {
+          const val = f.properties?.[attribute];
+          return typeof val === "number" && val >= from && val <= to;
+        }).length;
+        showToolMessage("filter-message", `Filter applied: ${matching} of ${total} features match.`);
+      } else {
+        /* Server-side path for vt views */
+        await setViewLayerFilterNumeric(idView, attribute, from, to);
+        showToolMessage("filter-message", `Filter applied: ${attribute} between ${from} and ${to}`);
+      }
       log("Numeric filter applied");
     } catch (e) {
       log("Filter error: " + e.message);
@@ -163,7 +305,15 @@ export function enableNumericFilter() {
 
     try {
       log(`Clearing numeric filter on ${idView}`);
-      await setViewLayerFilterNumeric(idView, attribute, null, null);
+
+      const entry = getRegistryEntry(idView);
+      if (entry) {
+        /* Restore original paint */
+        const basePaint = entry.paint || {};
+        await viewGeojsonSetStyle(idView, basePaint);
+      } else {
+        await setViewLayerFilterNumeric(idView, attribute, null, null);
+      }
       showToolMessage("filter-message", "Filter cleared.");
       log("Numeric filter cleared");
     } catch (e) {

@@ -13,7 +13,7 @@
  *      - Start the coordinate display polling
  */
 
-import "./styles/app.css";
+import "./styles/shared.css";
 import { initSDK } from "./sdk/client.js";
 import { setVectorHighlight } from "./sdk/ui.js";
 import { setStatus, log } from "./ui/log.js";

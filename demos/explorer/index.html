@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Explorer — MapX Analysis Demo</title>
+    <!--
+      Mangrove CSS — UNDRR's design-system component library.
+      Provides .mg-page-header, .mg-button, .mg-tag, .mg-container,
+      .mg-form-help, and utility classes used throughout this page.
+      https://unisdr.github.io/undrr-mangrove/
+    -->
+    <link rel="stylesheet" href="https://assets.undrr.org/static/mangrove/1.3.3/css/style.css" />
+  </head>
+  <body>
+    <!--
+      PIN gate — full-screen overlay that blocks access until a
+      numeric preview PIN is entered. Removed from the DOM by
+      src/ui/pin-gate.js once the correct code is submitted.
+    -->
+    <div id="pin-gate" class="pin-gate">
+      <div class="pin-gate__card">
+        <h2 class="mg-u-font-size-500" style="margin-top:0;">Preview Access</h2>
+        <p class="mg-u-font-size-300" style="line-height:1.5;margin-bottom:2rem;">
+          This is an <strong>unofficial investigation proof of concept</strong>
+          for demonstration purposes only. It is not an official UNDRR product.
+        </p>
+        <p style="font-size:1.4rem;margin-bottom:1.5rem;">
+          Enter the preview PIN to continue:
+        </p>
+        <input id="pin-input" type="text" inputmode="numeric" maxlength="4"
+          placeholder="_ _ _ _" class="pin-gate__input"
+          aria-label="Preview PIN"
+        />
+        <p id="pin-error" class="pin-gate__error"></p>
+      </div>
+    </div>
+
+    <!--
+      Page header — standard Mangrove page-header component with the
+      UNDRR logo. The four decoration <div>s render the coloured
+      Sendai-palette stripe at the top of every UNDRR page.
+    -->
+    <header class="mg-page-header mg-page-header--default">
+      <div class="mg-page-header__decoration">
+        <div></div><div></div><div></div><div></div>
+      </div>
+      <div class="mg-page-header__toolbar-wrapper">
+        <div class="mg-page-header__container mg-container">
+          <div class="mg-page-header__region mg-page-header__region--toolbar">
+            <section class="mg-page-header__block mg-page-header__block--logo">
+              <a href="https://www.undrr.org">
+                <img src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                     alt="UNDRR Logo" width="324" height="47"
+                     title="UNDRR — United Nations Office for Disaster Risk Reduction"
+                     class="mg-page-header__logo-img" />
+              </a>
+            </section>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!--
+      Title bar — blue-900 banner with a back-link to the demo index
+      and the SDK connection status tag. The #status span is updated
+      by src/ui/log.js once the SDK fires its "ready" event.
+    -->
+    <div class="mg-u-background-color--blue-900">
+      <div class="mg-container app-title-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <a href="/" style="color:#fff;text-decoration:none;font-size:1.4rem;opacity:0.8;">&#8592; All Demos</a>
+          <h1 class="mg-u-color--white" style="margin:0;">Data Explorer</h1>
+        </div>
+        <span class="mg-tag mg-tag--outline" style="color:#fff;border-color:#fff" id="status">Loading SDK...</span>
+      </div>
+    </div>
+
+    <!--
+      Explorer body — flexbox layout with a sidebar on the left
+      (legend, preset queries, results) and the full-width map on
+      the right. Styled by explorer.css (.explorer-body).
+    -->
+    <div class="explorer-body">
+      <aside class="explorer-sidebar">
+        <h2>Data Explorer</h2>
+        <p class="mg-form-help">
+          Pre-loaded hazard layers and fictional damage event markers.
+          Use the preset queries to filter and analyse the data.
+        </p>
+
+        <!--
+          Severity legend — colour-coded dots matching the Sendai
+          palette used by DAMAGE_CIRCLE_PAINT in explorer-layers.js.
+          Colours: Critical=#c10920, High=#eb752a, Medium=#f0c808, Low=#00afae.
+        -->
+        <h3>Severity Legend</h3>
+        <div class="damage-legend">
+          <div class="damage-legend-item">
+            <span class="damage-legend-dot" style="background:#c10920;"></span> Critical
+          </div>
+          <div class="damage-legend-item">
+            <span class="damage-legend-dot" style="background:#eb752a;"></span> High
+          </div>
+          <div class="damage-legend-item">
+            <span class="damage-legend-dot" style="background:#f0c808;"></span> Medium
+          </div>
+          <div class="damage-legend-item">
+            <span class="damage-legend-dot" style="background:#00afae;"></span> Low
+          </div>
+        </div>
+
+        <!--
+          Preset query buttons — populated dynamically by
+          preset-queries.js from the PRESET_QUERIES config.
+          The placeholder "Loading..." button is replaced once
+          wirePresetQueries() runs after SDK init.
+        -->
+        <h3>Preset Queries</h3>
+        <div class="preset-buttons" id="preset-buttons">
+          <button class="mg-button mg-button-secondary disabled">Loading...</button>
+        </div>
+
+        <!--
+          Results panel — reuses the shared .analysis-results class
+          from shared.css. Hidden by default; shown via the
+          .has-results class toggle when a query produces output.
+        -->
+        <div class="analysis-results" id="preset-results"></div>
+
+        <h3>Analysis Tools</h3>
+        <button class="mg-button mg-button-primary disabled" id="btn-toggle-analysis">
+          Open Analysis Panel
+        </button>
+      </aside>
+
+      <!-- Map container — the SDK creates its iframe inside #mapx -->
+      <div class="app-map">
+        <div id="mapx"></div>
+
+        <!--
+          Analysis panel — floating, draggable panel for spatial query,
+          statistics, and data export. Hidden by default; toggled via the
+          sidebar button. Styles come from shared.css.
+        -->
+        <div id="analysis-panel" class="analysis-panel" style="display:none;">
+          <div class="analysis-panel-header" id="analysis-panel-header">
+            <strong>Analysis Tools</strong>
+            <button id="analysis-panel-close" style="background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;padding:0 0.3rem;" aria-label="Close analysis panel">&times;</button>
+          </div>
+          <div class="analysis-panel-body">
+
+            <p class="mg-form-help">Active View</p>
+            <select id="analysis-view-select" disabled>
+              <option value="">No views open</option>
+            </select>
+
+            <div id="analysis-notice" class="analysis-notice mg-highlight-box">
+              Raster layer selected — filtering, spatial query, and export are unavailable for raster data.
+            </div>
+
+            <details class="analysis-tool" id="tool-numeric-filter">
+              <summary>Numeric Range Filter</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">Filter a vector layer by numeric attribute range</p>
+                <div class="tool-row">
+                  <label>Attr</label>
+                  <select id="filter-attr-select">
+                    <option value="">Select a view first</option>
+                  </select>
+                </div>
+                <div class="tool-row">
+                  <label>From</label>
+                  <input type="number" id="filter-from" placeholder="min" disabled />
+                </div>
+                <div class="tool-row">
+                  <label>To</label>
+                  <input type="number" id="filter-to" placeholder="max" disabled />
+                </div>
+                <div class="action-buttons" style="flex-direction:row;gap:0.4rem;">
+                  <button class="mg-button mg-button-primary disabled" id="btn-filter-apply" style="flex:1">Apply</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-filter-clear" style="flex:1">Clear</button>
+                </div>
+                <div id="filter-message" class="tool-message"></div>
+                <div id="filter-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+            <details class="analysis-tool" id="tool-spatial-query">
+              <summary>Spatial Query</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">Query vector features by viewport, drawn box, or polygon. Raster layers are not queryable.</p>
+                <div class="action-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
+                  <button class="mg-button mg-button-primary disabled" id="btn-query-viewport" style="flex:1">Query Viewport</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-box-select" style="flex:1">Box Select</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-polygon-select" style="flex:1">Polygon Select</button>
+                  <button class="mg-button disabled" id="btn-clear-selection" style="flex-basis:100%;border-color:#c10920;color:#c10920;">Clear Selection</button>
+                </div>
+                <div id="bbox-message" class="tool-message"></div>
+                <div id="bbox-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+            <details class="analysis-tool" id="tool-statistics">
+              <summary>Feature Statistics</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">View attribute statistics for the selected layer</p>
+                <div class="action-buttons">
+                  <button class="mg-button mg-button-primary disabled" id="btn-get-stats">Get Statistics</button>
+                </div>
+                <div id="stats-message" class="tool-message"></div>
+                <div id="stats-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+            <details class="analysis-tool" id="tool-data-export">
+              <summary>Data Export</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">Export layer data as GeoJSON</p>
+                <div class="action-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
+                  <button class="mg-button mg-button-primary disabled" id="btn-export-geojson" style="flex:1">Export GeoJSON</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-export-preview" style="flex:1">Preview</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-export-selection" style="flex-basis:100%">Export Selection</button>
+                </div>
+                <div id="export-message" class="tool-message"></div>
+                <div id="export-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+          </div>
+          <div class="analysis-panel-resize" id="analysis-panel-resize">&#x27F3;</div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+      SDK script — the MapX UMD bundle must load before the ES module
+      entry point so that `new mxsdk.Manager()` is available at import time.
+    -->
+    <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
+    <script type="module" src="/demos/explorer/main.js"></script>
+  </body>
+</html>

@@ -8,6 +8,8 @@ import {
   setGeojsonViewId,
   markersAdded,
   setMarkersAdded,
+  lastSpatialQueryResults,
+  setLastSpatialQueryResults,
 } from "../../../src/state/store.js";
 
 describe("store", () => {
@@ -71,6 +73,55 @@ describe("store", () => {
       expect(store.markersAdded).toBe(true);
       store.setMarkersAdded(false);
       expect(store.markersAdded).toBe(false);
+    });
+
+    it("setLastSpatialQueryResults sets and clears the value", async () => {
+      const store = await import("../../../src/state/store.js");
+      const results = [{ id: 1 }, { id: 2 }];
+      store.setLastSpatialQueryResults(results);
+      expect(store.lastSpatialQueryResults).toBe(results);
+      store.setLastSpatialQueryResults(null);
+      expect(store.lastSpatialQueryResults).toBeNull();
+    });
+  });
+
+  describe("registerGeoJSON with label and paint", () => {
+    const testGeoJSON = { type: "FeatureCollection", features: [] };
+
+    it("stores label when provided", () => {
+      registerGeoJSON("labeled", testGeoJSON, "My Label");
+      expect(customGeoJSONRegistry).toHaveLength(1);
+      expect(customGeoJSONRegistry[0].label).toBe("My Label");
+    });
+
+    it("stores paint when provided", () => {
+      const paint = { "circle-color": "#ff0000" };
+      registerGeoJSON("painted", testGeoJSON, undefined, paint);
+      expect(customGeoJSONRegistry).toHaveLength(1);
+      expect(customGeoJSONRegistry[0].paint).toEqual(paint);
+    });
+
+    it("stores both label and paint when provided", () => {
+      const paint = { "fill-opacity": 0.5 };
+      registerGeoJSON("full", testGeoJSON, "Full Entry", paint);
+      expect(customGeoJSONRegistry).toHaveLength(1);
+      expect(customGeoJSONRegistry[0]).toEqual({
+        id: "full",
+        geojson: testGeoJSON,
+        label: "Full Entry",
+        paint,
+      });
+    });
+
+    it("works without label and paint (backward compatible)", () => {
+      registerGeoJSON("compat", testGeoJSON);
+      expect(customGeoJSONRegistry).toHaveLength(1);
+      expect(customGeoJSONRegistry[0]).toEqual({
+        id: "compat",
+        geojson: testGeoJSON,
+        label: undefined,
+        paint: undefined,
+      });
     });
   });
 });

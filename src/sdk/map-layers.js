@@ -40,6 +40,14 @@
  *
  * Any other Mapbox GL JS Map method can be called the same way via
  * mapMethod(name, argsArray).
+ *
+ * IMPORTANT — SDK bridge requirement:
+ * The "map" resolver in the MapX SDK expects a `parameters` array to be
+ * present in the request payload. If `parameters` is omitted entirely
+ * (as opposed to an empty array), the bridge skips method invocation and
+ * returns undefined. This is why queryRenderedFeatures() passes an empty
+ * array `[]` even when no geometry argument is needed. All wrapper
+ * functions in this module follow the same convention for safety.
  */
 
 import { getSDK } from "./client.js";
@@ -67,8 +75,10 @@ export function removeSource(id) {
 }
 
 export function queryRenderedFeatures(geometry) {
+  /* Always pass parameters array — omitting it causes the MapX SDK bridge
+   * to skip method invocation (it expects parameters to be present). */
   if (geometry) return mapMethod("queryRenderedFeatures", [geometry]);
-  return mapMethod("queryRenderedFeatures");
+  return mapMethod("queryRenderedFeatures", []);
 }
 
 export function unproject(point) {

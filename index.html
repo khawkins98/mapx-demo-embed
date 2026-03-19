@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MapX Embed — Disaster Risk Reduction Demo</title>
+    <title>MapX Embed — Disaster Risk Reduction Demos</title>
 
     <!--
       UNDRR Mangrove Component Library (v1.3.3)
@@ -25,61 +25,52 @@
   </head>
   <body>
     <!--
-      UNDRR Page Header (mg-page-header)
-      This is the standard UNDRR "black bar" used across all UNDRR family sites
-      (undrr.org, preventionweb.net, mcr2030.undrr.org, recovery.preventionweb.net).
-
-      Structure:
-        mg-page-header__decoration     — Sendai Framework four-color stripe
-                                          (red #c10920, purple #962987,
-                                           orange #eb752a, turquoise #00afae).
-                                          Needs exactly 4 child divs, each 25% wide × 7px.
-        mg-page-header__toolbar-wrapper — dark toolbar background (#333 with subtle texture)
-        mg-page-header__container       — wraps content in mg-container for centering
-        mg-page-header__region--toolbar — flex row holding logo + optional controls
-        mg-page-header__block--logo     — UNDRR horizontal logo (SVG from assets CDN)
-
-      Source component: stories/Components/PageHeader/PageHeader.jsx
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-pageheader--docs
-    -->
-    <!--
       PIN GATE OVERLAY
       Basic PIN gate so people know this is an unofficial preview.
       Requires entering a 4-digit PIN (5498) to dismiss the overlay
       and access the demo. Not a real security measure — just a
       speed bump. PIN is in the README.
+
+      Once entered correctly, the PIN is stored in localStorage so
+      returning visitors skip the gate. The JS logic lives in
+      src/ui/pin-gate.js and is initialised by src/landing.js.
     -->
-    <div id="pin-gate" style="
-      position:fixed;inset:0;z-index:9999;
-      background:rgba(0,79,145,0.95);
-      display:flex;align-items:center;justify-content:center;
-      font-family:'Roboto',sans-serif;
-    ">
-      <div style="
-        background:#fff;max-width:440px;width:90%;
-        padding:3rem 2.5rem;text-align:center;
-      ">
-        <h2 style="margin-top:0;font-size:2.3rem;color:#1a1a1a;">Preview Access</h2>
-        <p style="font-size:1.6rem;color:#4d4d4d;line-height:1.5;margin-bottom:2rem;">
+    <div id="pin-gate" class="pin-gate">
+      <div class="pin-gate__card">
+        <h2 class="mg-u-font-size-500" style="margin-top:0;">Preview Access</h2>
+        <p class="mg-u-font-size-300" style="line-height:1.5;margin-bottom:2rem;">
           This is an <strong>unofficial investigation proof of concept</strong>
           for demonstration purposes only. It is not an official UNDRR product.
         </p>
-        <p style="font-size:1.4rem;color:#666;margin-bottom:1.5rem;">
+        <p style="font-size:1.4rem;margin-bottom:1.5rem;">
           Enter the preview PIN to continue:
         </p>
         <input id="pin-input" type="text" inputmode="numeric" maxlength="4"
-          placeholder="_ _ _ _"
-          style="
-            font-size:2.4rem;text-align:center;letter-spacing:0.8rem;
-            width:12rem;padding:0.75rem;
-            border:2px solid #ccc;outline:none;
-            font-family:'Roboto Condensed',monospace;
-          "
+          placeholder="_ _ _ _" class="pin-gate__input"
+          aria-label="Preview PIN"
         />
-        <p id="pin-error" style="color:#c10920;font-size:1.4rem;margin-top:1rem;min-height:1.4rem;"></p>
+        <p id="pin-error" class="pin-gate__error"></p>
       </div>
     </div>
-    <header id="header" class="mg-page-header mg-page-header--default">
+
+    <!--
+      UNDRR Page Header (mg-page-header)
+      Standard UNDRR "black bar" used across all UNDRR family sites
+      (undrr.org, preventionweb.net, mcr2030.undrr.org, etc.).
+
+      Structure:
+        mg-page-header__decoration     — Sendai Framework four-colour stripe
+                                          (red #c10920, purple #962987,
+                                           orange #eb752a, turquoise #00afae).
+                                          Needs exactly 4 child divs, each 25% wide x 7px.
+        mg-page-header__toolbar-wrapper — dark toolbar background (#333)
+        mg-page-header__container       — wraps content in mg-container for centering
+        mg-page-header__region--toolbar — flex row holding logo + optional controls
+        mg-page-header__block--logo     — UNDRR horizontal logo (SVG from assets CDN)
+
+      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-pageheader--docs
+    -->
+    <header class="mg-page-header mg-page-header--default">
       <div class="mg-page-header__decoration">
         <div></div><div></div><div></div><div></div>
       </div>
@@ -100,571 +91,151 @@
     </header>
 
     <!--
-      App Title Bar — uses Mangrove utility classes instead of custom .app-header CSS:
-        mg-u-background-color--blue-900  → UNDRR primary blue background
+      Title Bar — uses Mangrove utility classes:
+        mg-u-background-color--blue-900  → UNDRR primary blue background (#004f91)
         mg-container                     → centered content with responsive max-width
         mg-u-color--white                → white text on the <h1>
 
-      Status badge — uses mg-tag--outline for the "Loading" state, switches
-      to mg-tag--accent (orange) on error. The style override makes the
-      outline variant visible against the blue header background.
+      The landing page title bar is simpler than the kitchen-sink version —
+      no back link or status badge, just the project heading.
     -->
     <div class="mg-u-background-color--blue-900">
       <div class="mg-container app-title-bar">
-        <h1 class="mg-u-color--white">Eco-DRR MapX Demo</h1>
-        <span class="mg-tag mg-tag--outline" style="color:#fff;border-color:#fff" id="status">Loading SDK...</span>
-      </div>
-    </div>
-
-    <div class="app-body">
-      <!-- Sidebar — all controls live here, wrapped in collapsible <details> -->
-      <aside class="app-sidebar">
-
-        <!--
-          DRR VIEWS SECTION
-          Each button toggles a single MapX view on/off via view_add / view_remove.
-          Buttons are built dynamically in buildViewButtons() from the CURATED_VIEWS array.
-          Each button includes a small mg-tag showing the data type (live/raster/vector).
-          Open by default — this is the primary interaction point.
-        -->
-        <details class="sidebar-section" open>
-          <summary><h2>DRR Views</h2></summary>
-          <!-- mg-form-help is a Mangrove class for hint/helper text -->
-          <p class="mg-form-help">Curated disaster risk reduction layers. Click to toggle.</p>
-          <div id="view-buttons">
-            <button class="mg-button mg-button-secondary disabled">Loading views...</button>
-          </div>
-        </details>
-
-        <!--
-          SCENARIOS SECTION
-          Each scenario button chains multiple SDK calls in sequence:
-          1. Clear existing views
-          2. Activate one or more layers (view_add)
-          3. Fly/zoom to a region (common_loc_fit_bbox or map_fly_to)
-          4. Optionally adjust transparency (set_view_layer_transparency)
-          5. Optionally open the dashboard panel (set_dashboard_visibility)
-
-          Shows how you can chain several SDK calls from one button click —
-          the basic pattern for embedding in a real site.
-        -->
-        <details class="sidebar-section">
-          <summary><h2>Scenarios</h2></summary>
-          <p class="mg-form-help">Pre-built multi-step interactions</p>
-          <div class="action-buttons" id="scenario-buttons">
-            <!--
-              Scenario 1: Activate the Active Fires admin-polygon layer,
-              fly to India using ISO country code, open the fire-trend dashboard.
-              SDK methods: view_add → common_loc_fit_bbox → has_dashboard → set_dashboard_visibility
-            -->
-            <button class="mg-button mg-button-primary disabled" id="sc-fires-india">
-              India — Fire Activity + Dashboard
-            </button>
-            <!--
-              Scenario 2: Layer two raster hazard maps (cyclone + flood),
-              fly to the Caribbean, set cyclone layer to 50% transparency
-              so both hazards are visible simultaneously.
-              SDK methods: view_add (x2) → map_fly_to → set_view_layer_transparency
-            -->
-            <button class="mg-button mg-button-primary disabled" id="sc-caribbean-multi">
-              Caribbean — Cyclone + Flood Hazard
-            </button>
-            <!--
-              Scenario 3: Show tsunami exposure alongside mangrove restoration
-              opportunities — pairs a hazard layer with an eco-DRR
-              solution layer. Flies to Indonesia.
-              SDK methods: view_add (x2) → common_loc_fit_bbox → set_view_layer_transparency
-            -->
-            <button class="mg-button mg-button-primary disabled" id="sc-seasia-tsunami">
-              SE Asia — Tsunami + Mangrove NbS
-            </button>
-            <!--
-              Scenarios 4a/4b: Water Stress 2030 — binary filter toggle.
-              Both buttons share one view but apply opposite filters, so you
-              get a simple toggle UI from a single dataset.
-              SDK methods: view_add → map_wait_idle → get_view_table_attribute →
-                set_view_layer_filter_text
-            -->
-            <button class="mg-button mg-button-primary disabled" id="sc-water-high">
-              Water Stress 2030 — High
-            </button>
-            <button class="mg-button mg-button-primary disabled" id="sc-water-low">
-              Water Stress 2030 — Low
-            </button>
-            <!--
-              Scenario 5: Compound Risk — Population + Flood Hazard + Landslide.
-              Three-layer stacking with transparency blending. Flies to Nepal
-              to demonstrate multi-hazard overlap in a mountainous region.
-              SDK methods: view_add (x3) → common_loc_fit_bbox → set_view_layer_transparency (x2)
-            -->
-            <button class="mg-button mg-button-primary disabled" id="sc-compound-nepal">
-              Nepal — Compound Risk
-            </button>
-            <!--
-              Scenario 6: Live Monitoring Dashboard — Earthquakes + Active Fires.
-              Real-time data layers with dashboard. Shows live monitoring use case.
-              SDK methods: view_add (x2) → map_fly_to → set_dashboard_visibility
-            -->
-            <button class="mg-button mg-button-primary disabled" id="sc-live-monitoring">
-              Live Monitoring Dashboard
-            </button>
-          </div>
-        </details>
-
-        <!--
-          NAVIGATE SECTION
-          Country/region dropdown populated dynamically from the SDK's
-          common_loc_get_list_codes() method, plus preset region quick-access.
-          Replaces the old static region buttons with a searchable dropdown.
-        -->
-        <details class="sidebar-section">
-          <summary><h2>Navigate</h2></summary>
-          <p class="mg-form-help">Fly to a country or region of interest</p>
-          <select id="country-select" class="country-select" disabled>
-            <option value="">Loading locations...</option>
-          </select>
-          <p class="mg-form-help" style="margin-top:0.8rem;">Quick presets</p>
-          <div class="action-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
-            <button class="mg-button mg-button-secondary disabled" id="btn-world">World</button>
-            <button class="mg-button mg-button-secondary disabled" id="btn-caribbean">Caribbean</button>
-            <button class="mg-button mg-button-secondary disabled" id="btn-se-asia">SE Asia</button>
-            <button class="mg-button mg-button-secondary disabled" id="btn-e-africa">E Africa</button>
-            <button class="mg-button mg-button-secondary disabled" id="btn-pacific">Pacific</button>
-          </div>
-          <div class="action-buttons" style="margin-top:0.5rem;">
-            <button class="mg-button disabled" id="btn-reset" style="border-color:#c10920;color:#c10920">Remove All Views</button>
-          </div>
-        </details>
-
-        <!--
-          CUSTOM DATA OVERLAYS
-          Two approaches for adding your own data on top of MapX maps:
-
-          1. GeoJSON View (view_geojson_create) — creates a proper MapX view
-             from inline GeoJSON. Integrates with the view system: appears in
-             the view list, respects layer ordering, click events flow through
-             MapX's attribute system. Best for data that should behave like a
-             "real" map layer.
-
-          2. Mapbox Passthrough (map method) — calls addSource/addLayer on the
-             raw Mapbox GL JS instance. Bypasses MapX's view system entirely,
-             giving full control over styling. Best for UI elements (markers,
-             labels, custom popups) that the parent page controls directly.
-
-          Both can be toggled on/off independently of the DRR views.
-        -->
-        <details class="sidebar-section">
-          <summary><h2>Custom Data</h2></summary>
-          <p class="mg-form-help">Overlay your own data on top of MapX layers</p>
-
-          <!-- Approach 1: GeoJSON View (SDK-managed) -->
-          <p class="mg-form-help" style="margin-top:1rem;">GeoJSON View (SDK-managed)</p>
-          <div class="action-buttons">
-            <button class="mg-button mg-button-secondary disabled" id="btn-geojson-add">
-              Add: DRR Field Offices
-            </button>
-            <button class="mg-button disabled" id="btn-geojson-remove" style="border-color:#c10920;color:#c10920">
-              Remove GeoJSON Layer
-            </button>
-          </div>
-
-          <!-- Approach 2: Mapbox Passthrough (parent-controlled) -->
-          <p class="mg-form-help" style="margin-top:1rem;">Mapbox Direct (parent-controlled)</p>
-          <div class="action-buttons">
-            <button class="mg-button mg-button-secondary disabled" id="btn-markers-add">
-              Add: Monitoring Stations
-            </button>
-            <button class="mg-button disabled" id="btn-markers-remove" style="border-color:#c10920;color:#c10920">
-              Remove Markers
-            </button>
-          </div>
-
-          <!-- Polygon overlay (SDK-managed) -->
-          <p class="mg-form-help" style="margin-top:1rem;">Polygon Overlay (SDK-managed)</p>
-          <div class="action-buttons">
-            <button class="mg-button mg-button-secondary disabled" id="btn-polygons-add">
-              Add: DRR Project Zones
-            </button>
-            <button class="mg-button disabled" id="btn-polygons-remove" style="border-color:#c10920;color:#c10920">
-              Remove Polygon Layer
-            </button>
-          </div>
-        </details>
-
-        <!--
-          ANALYSIS TOOLS — sidebar toggle button only.
-          The tools themselves live in a floating panel (#analysis-panel)
-          inside .app-map so they have more room for results and don't
-          crowd the sidebar. See methodology.md section 10.
-        -->
-        <details class="sidebar-section">
-          <summary><h2>Analysis Tools</h2></summary>
-          <p class="mg-form-help">Filter, query, summarise, and export map data</p>
-          <div class="action-buttons">
-            <button class="mg-button mg-button-primary disabled" id="btn-toggle-analysis">
-              Open Analysis Panel
-            </button>
-          </div>
-        </details>
-
-        <!--
-          SDK FEATURES SECTION
-          Other SDK controls: language switching, theme switching,
-          story map playback, and MapX modal tools (composer, share).
-        -->
-        <details class="sidebar-section">
-          <summary><h2>SDK Features</h2></summary>
-          <p class="mg-form-help">Language, theme, modals, and story map controls</p>
-
-          <!--
-            Map Composer + Share — MapX provides the entire modal UI for both.
-            show_modal_map_composer() opens a full-featured map export tool.
-            show_modal_share() opens sharing options (link, embed code, social).
-            Zero custom layout needed — the SDK does all the work.
-          -->
-          <p class="mg-form-help" style="margin-top:1rem;">Map Tools</p>
-          <div class="action-buttons" style="flex-direction:row;gap:0.4rem;">
-            <button class="mg-button mg-button-primary disabled" id="btn-map-composer" style="flex:1">
-              Map Composer
-            </button>
-            <button class="mg-button mg-button-primary disabled" id="btn-share" style="flex:1">
-              Share Map
-            </button>
-          </div>
-
-          <!--
-            Language switching — set_language({lang}) changes the MapX
-            interface language. get_languages() returns supported codes.
-            Common codes: en, fr, es, ru, zh, ar, de, pt, fa, ps
-          -->
-          <p class="mg-form-help" style="margin-top:1rem;">Language</p>
-          <div class="action-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
-            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="en">EN</button>
-            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="fr">FR</button>
-            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="es">ES</button>
-            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="ru">RU</button>
-            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="zh">ZH</button>
-            <button class="mg-button mg-button-secondary disabled btn-lang" data-lang="ar">AR</button>
-          </div>
-
-          <!--
-            Theme switching — set_theme({idTheme}) changes the map's
-            visual theme. get_themes_id() returns available theme IDs.
-            We fetch them dynamically and build buttons.
-          -->
-          <p class="mg-form-help" style="margin-top:1rem;">Theme</p>
-          <div class="action-buttons" id="theme-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
-            <button class="mg-button mg-button-secondary disabled">Loading...</button>
-          </div>
-
-          <!--
-            STORY MAP PLAYBACK — LIMITATION & WORKAROUND
-            Story maps from the HOME project are loaded via an overlay iframe.
-            See methodology.md section 8 for details on the cross-project limitation.
-          -->
-          <p class="mg-form-help" style="margin-top:1rem;">Story Maps</p>
-          <div class="action-buttons">
-            <button class="mg-button mg-button-primary disabled" id="btn-story-mapx">
-              Play: MapX Presentation
-            </button>
-            <button class="mg-button mg-button-primary disabled" id="btn-story-caribbean">
-              Play: Caribbean Sea
-            </button>
-          </div>
-        </details>
-      </aside>
-
-      <!--
-        MAP AREA
-        The #mapx div is the SDK's target container. The Manager constructor
-        creates an iframe inside it pointed at the MapX app. The floating
-        toolbar, legends panel, and coordinate bar are overlaid on top.
-      -->
-      <div class="app-map">
-        <div id="mapx"></div>
-
-        <!--
-          FLOATING MAP CONTROLS TOOLBAR
-          Moved from sidebar to a compact vertical icon bar pinned to the
-          bottom-left of the map. Keeps map controls accessible without
-          scrolling the sidebar. Each button uses a short label and title
-          attribute for discoverability.
-        -->
-        <div class="map-toolbar" id="map-toolbar">
-          <button class="map-toolbar-btn disabled" id="btn-zoom-in" title="Zoom In (+2)">+</button>
-          <button class="map-toolbar-btn disabled" id="btn-zoom-out" title="Zoom Out (-2)">&minus;</button>
-          <div class="map-toolbar-sep"></div>
-          <button class="map-toolbar-btn disabled" id="btn-globe" title="Toggle Globe">&#127760;</button>
-          <button class="map-toolbar-btn disabled" id="btn-terrain" title="Toggle 3D Terrain">&#9968;</button>
-          <button class="map-toolbar-btn disabled" id="btn-3d" title="Toggle 3D Tilt">&#9653;</button>
-          <button class="map-toolbar-btn disabled" id="btn-aerial" title="Toggle Aerial View">&#128752;</button>
-          <button class="map-toolbar-btn disabled" id="btn-immersive" title="Toggle Immersive">&#9974;</button>
-        </div>
-        <!--
-          Custom infobox — shown when the user clicks a feature.
-          Positioned in the top-right of the map area. Populated
-          dynamically from click_attributes event data.
-        -->
-        <div id="infobox" style="
-          display:none;
-          position:absolute;top:1rem;right:1rem;z-index:15;
-          background:#fff;
-          max-width:320px;width:90%;
-          box-shadow:0 2px 12px rgba(0,0,0,0.25);
-          font-size:1.4rem;
-          overflow:hidden;
-        ">
-          <div style="background:#004f91;color:#fff;padding:0.6rem 1rem;display:flex;justify-content:space-between;align-items:center;">
-            <strong id="infobox-title">Feature</strong>
-            <button id="infobox-close" style="background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;padding:0 0.3rem;">×</button>
-          </div>
-          <div id="infobox-body" style="padding:1rem;max-height:280px;overflow-y:auto;"></div>
-        </div>
-
-        <!--
-          ANALYSIS TOOLS — floating panel.
-          Positioned over the map, draggable by its header, resizable
-          via the corner handle. Contains all analysis tool controls.
-          Opened/closed by the sidebar toggle button (#btn-toggle-analysis).
-        -->
-        <div id="analysis-panel" class="analysis-panel" style="display:none;">
-          <div class="analysis-panel-header" id="analysis-panel-header">
-            <strong>Analysis Tools</strong>
-            <button id="analysis-panel-close" style="background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;padding:0 0.3rem;">×</button>
-          </div>
-          <div class="analysis-panel-body">
-
-            <p class="mg-form-help">Active View</p>
-            <select id="analysis-view-select" disabled>
-              <option value="">No views open</option>
-            </select>
-
-            <div id="analysis-notice" class="analysis-notice">
-              Raster layer selected — filtering, spatial query, and export are unavailable for raster data.
-            </div>
-
-            <details class="analysis-tool" id="tool-numeric-filter">
-              <summary>Numeric Range Filter</summary>
-              <div class="tool-body">
-                <p class="mg-form-help">Filter a vector layer by numeric attribute range</p>
-                <div class="tool-row">
-                  <label>Attr</label>
-                  <select id="filter-attr-select">
-                    <option value="">Select a view first</option>
-                  </select>
-                </div>
-                <div class="tool-row">
-                  <label>From</label>
-                  <input type="number" id="filter-from" placeholder="min" disabled />
-                </div>
-                <div class="tool-row">
-                  <label>To</label>
-                  <input type="number" id="filter-to" placeholder="max" disabled />
-                </div>
-                <div class="action-buttons" style="flex-direction:row;gap:0.4rem;">
-                  <button class="mg-button mg-button-primary disabled" id="btn-filter-apply" style="flex:1">Apply</button>
-                  <button class="mg-button mg-button-secondary disabled" id="btn-filter-clear" style="flex:1">Clear</button>
-                </div>
-                <div id="filter-message" class="tool-message"></div>
-                <div id="filter-results" class="analysis-results"></div>
-              </div>
-            </details>
-
-            <details class="analysis-tool" id="tool-spatial-query">
-              <summary>Spatial Query</summary>
-              <div class="tool-body">
-                <p class="mg-form-help">Query vector features by viewport, drawn box, or polygon. Raster layers are not queryable.</p>
-                <div class="action-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
-                  <button class="mg-button mg-button-primary disabled" id="btn-query-viewport" style="flex:1">Query Viewport</button>
-                  <button class="mg-button mg-button-secondary disabled" id="btn-box-select" style="flex:1">Box Select</button>
-                  <button class="mg-button mg-button-secondary disabled" id="btn-polygon-select" style="flex:1">Polygon Select</button>
-                  <button class="mg-button disabled" id="btn-clear-selection" style="flex-basis:100%;border-color:#c10920;color:#c10920;">Clear Selection</button>
-                </div>
-                <div id="bbox-message" class="tool-message"></div>
-                <div id="bbox-results" class="analysis-results"></div>
-              </div>
-            </details>
-
-            <details class="analysis-tool" id="tool-statistics">
-              <summary>Feature Statistics</summary>
-              <div class="tool-body">
-                <p class="mg-form-help">View attribute statistics for the selected layer</p>
-                <div class="action-buttons">
-                  <button class="mg-button mg-button-primary disabled" id="btn-get-stats">Get Statistics</button>
-                </div>
-                <div id="stats-message" class="tool-message"></div>
-                <div id="stats-results" class="analysis-results"></div>
-              </div>
-            </details>
-
-            <details class="analysis-tool" id="tool-data-export">
-              <summary>Data Export</summary>
-              <div class="tool-body">
-                <p class="mg-form-help">Export layer data as GeoJSON</p>
-                <div class="action-buttons" style="flex-direction:row;gap:0.4rem;">
-                  <button class="mg-button mg-button-primary disabled" id="btn-export-geojson" style="flex:1">Export GeoJSON</button>
-                  <button class="mg-button mg-button-secondary disabled" id="btn-export-preview" style="flex:1">Preview</button>
-                </div>
-                <div id="export-message" class="tool-message"></div>
-                <div id="export-results" class="analysis-results"></div>
-              </div>
-            </details>
-
-          </div>
-          <div class="analysis-panel-resize" id="analysis-panel-resize">⟳</div>
-        </div>
+        <h1 class="mg-u-color--white" style="margin:0;">Eco-DRR MapX Demos</h1>
       </div>
     </div>
 
     <!--
-      ABOUT SECTION — Mangrove icon cards (mg-card__icon) in a 3-column grid.
-
-      Mangrove layout components used:
-        mg-u-background-color--neutral-25 — light gray section background
-        mg-container                      — responsive centered content
-                                            (max-width 480/900/1164/1440px at breakpoints,
-                                             padding-left/right: 1rem)
-        mg-container--padded              — adds padding-top/bottom: 2rem
-        mg-container--spacer              — adds vertical spacing between children
-        mg-grid mg-grid__col-3            — CSS Grid, 3 columns at tablet+,
-                                            column-gap/row-gap: 2rem ($mg-spacing-200)
-        mg-card mg-card__icon             — icon card layout (flex column, max-width 300px)
-        mg-card__content                  — card body wrapper
-        mg-card__title                    — card heading (inherits Mangrove heading styles)
-        mg-card__summary                  — card description text
-        mg-u-text-wrap-pretty             — CSS text-wrap: pretty for better typography
-
-      Source: stories/Components/Cards/IconCard/IconCard.jsx
-      Grid:   stories/Atom/Layout/Grid/Grid.jsx
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-icon-card--docs
+      LANDING HERO SECTION
+      Full-width centered introduction to the project. Contains a large
+      heading and descriptive paragraph linking to the MapX platform.
+      Styled by src/styles/landing.css (.landing-hero).
     -->
-    <section class="mg-u-background-color--neutral-25">
-      <div class="mg-container mg-container--padded mg-container--spacer">
-        <h2>About This Demo</h2>
-        <p class="mg-u-text-wrap-pretty">
-          This proof-of-concept demonstrates embedding
-          <a href="https://app.mapx.org">MapX</a> geospatial datasets
+    <section class="landing-hero">
+      <div class="mg-container">
+        <h1>Explore Disaster Risk Reduction Data</h1>
+        <p>
+          Interactive demos embedding <a href="https://app.mapx.org">MapX</a> geospatial datasets
           via the SDK, showcasing disaster risk reduction data from the
           <strong>Eco-DRR Geospatial Datasets</strong> project.
         </p>
+      </div>
+    </section>
 
+    <!--
+      DEMO CARDS GRID
+      Each card links to a demo page. Uses Mangrove components:
+        mg-grid mg-grid__col-3  — CSS Grid, 3 columns at desktop,
+                                   responsive down to 1 column on mobile
+        mg-card mg-card__vc     — vertical card layout (Mangrove component)
+        mg-card__content        — card body wrapper
+        mg-card__title          — card heading
+        mg-card__summary        — card description text
+
+      Cards are wrapped in <a> tags for full-card clickability. Each card
+      has a coloured tag (mg-tag with per-demo colour modifier) identifying
+      the demo type:
+        kitchen-sink → blue   (mg-color-blue-900)
+        story        → purple (Sendai purple)
+        explorer     → teal   (derived from Sendai turquoise)
+
+      Hover lift effect (translateY + shadow) is in landing.css.
+    -->
+    <section class="demo-cards">
+      <div class="mg-container">
         <div class="mg-grid mg-grid__col-3">
-          <article class="mg-card mg-card__icon">
+          <a href="/demos/kitchen-sink/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
-              <header class="mg-card__title">Hazard Layers</header>
+              <span class="mg-tag mg-tag--kitchen-sink">Full Demo</span>
+              <header class="mg-card__title">Kitchen Sink</header>
               <p class="mg-card__summary">
-                Explore flood, landslide, cyclone, and tsunami exposure data
-                from global risk models covering return periods and annual
-                physical exposure.
+                All MapX SDK features in one page: curated views, scenarios,
+                custom data overlays, analysis tools, language switching,
+                story maps, and more.
               </p>
             </div>
-          </article>
+          </a>
 
-          <article class="mg-card mg-card__icon">
+          <a href="/demos/story/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
-              <header class="mg-card__title">Nature-Based Solutions</header>
+              <span class="mg-tag mg-tag--story">Narrative</span>
+              <header class="mg-card__title">Risk to Resilience</header>
               <p class="mg-card__summary">
-                See where forest protection and mangrove restoration can
-                reduce flood and storm surge risk — the core of the Eco-DRR
-                approach.
+                A guided story walking through hazard, exposure, vulnerability,
+                compound risk, nature-based solutions, and monitoring — step
+                by step with camera animations.
               </p>
             </div>
-          </article>
+          </a>
 
-          <article class="mg-card mg-card__icon">
+          <a href="/demos/explorer/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
-              <header class="mg-card__title">Live Monitoring</header>
+              <span class="mg-tag mg-tag--explorer">Analysis</span>
+              <header class="mg-card__title">Data Explorer</header>
               <p class="mg-card__summary">
-                Real-time earthquake data (M5.5+) from USGS and active fire
-                tracking at administrative level, updated continuously.
+                Simulated DELTA-style analysis with pre-loaded hazard layers
+                and fictional damage event markers. Filter, query,
+                aggregate, and export geospatial data.
               </p>
             </div>
-          </article>
+          </a>
         </div>
       </div>
     </section>
 
     <!--
-      DATA & RESOURCES SECTION — Mangrove vertical cards (mg-card__vc) in 4-column grid.
+      ABOUT THIS PROJECT SECTION — Mangrove icon cards (mg-card__icon)
+      in a 3-column grid.
 
-      Vertical card structure (from stories/Components/Cards/Card/VerticalCard.jsx):
-        mg-card mg-card__vc   — article wrapper (display: grid, gap: 1rem)
-        mg-card__content      — body wrapper
-        mg-card__meta         — label/tag container
-        mg-card__label        — small category label
-        mg-card__label--active — blue interactive label style
-        mg-card__title        — heading with <a> inside for stretched-link behavior
-                                (the title link's ::before pseudo-element covers the
-                                 entire card, making the whole card clickable)
-        mg-card__summary      — description paragraph
+      Mangrove layout components used:
+        mg-u-background-color--neutral-25 — light grey section background
+        mg-container                      — responsive centered content
+        mg-container--padded              — adds padding-top/bottom: 2rem
+        mg-container--spacer              — adds vertical spacing between children
+        mg-grid mg-grid__col-3            — CSS Grid, 3 columns at tablet+
+        mg-card mg-card__icon             — icon card layout
+        mg-card__content                  — card body wrapper
+        mg-card__title                    — card heading
+        mg-card__summary                  — card description text
+        mg-u-text-wrap-pretty             — CSS text-wrap: pretty for better typography
 
-      Variants (add to article): mg-card--secondary (orange title),
-      mg-card--tertiary (black title), mg-card--quaternary (red title).
-
-      Grid: mg-grid__col-4 → 4 columns at desktop, 2 at tablet, 1 at mobile.
-
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-vertical-card--docs
+      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-icon-card--docs
     -->
-    <section>
+    <section class="mg-u-background-color--neutral-25">
       <div class="mg-container mg-container--padded mg-container--spacer">
-        <h2>Data &amp; Resources</h2>
-        <div class="mg-grid mg-grid__col-4">
-          <article class="mg-card mg-card__vc">
+        <h2>About This Project</h2>
+        <p class="mg-u-text-wrap-pretty">
+          These demos showcase how <a href="https://app.mapx.org">MapX</a>
+          geospatial data can be embedded in external websites using the
+          MapX SDK. Each demo illustrates a different embedding pattern
+          suitable for CMS integration, narrative storytelling, or
+          data analysis workflows.
+        </p>
+        <div class="mg-grid mg-grid__col-3">
+          <article class="mg-card mg-card__icon">
             <div class="mg-card__content">
-              <div class="mg-card__meta">
-                <span class="mg-card__label mg-card__label--active">Platform</span>
-              </div>
-              <header class="mg-card__title">
-                <a href="https://app.mapx.org" target="_blank" rel="noopener">MapX</a>
-              </header>
+              <header class="mg-card__title">Hazard Layers</header>
               <p class="mg-card__summary">
-                Open-source geospatial platform for sustainable development,
-                managed by UNEP/GRID-Geneva.
+                Flood, landslide, cyclone, and tsunami exposure data
+                from global risk models.
               </p>
             </div>
           </article>
-
-          <article class="mg-card mg-card__vc">
+          <article class="mg-card mg-card__icon">
             <div class="mg-card__content">
-              <div class="mg-card__meta">
-                <span class="mg-card__label mg-card__label--active">Framework</span>
-              </div>
-              <header class="mg-card__title">
-                <a href="https://www.undrr.org/implementing-sendai-framework" target="_blank" rel="noopener">Sendai Framework</a>
-              </header>
+              <header class="mg-card__title">Nature-Based Solutions</header>
               <p class="mg-card__summary">
-                The global roadmap for reducing disaster risk and losses
-                through 2030, adopted by UN Member States.
+                Forest protection and mangrove restoration areas that
+                reduce flood and storm surge risk.
               </p>
             </div>
           </article>
-
-          <article class="mg-card mg-card__vc">
+          <article class="mg-card mg-card__icon">
             <div class="mg-card__content">
-              <div class="mg-card__meta">
-                <span class="mg-card__label mg-card__label--active">Documentation</span>
-              </div>
-              <header class="mg-card__title">
-                <a href="https://github.com/unep-grid/mapx/tree/master/app/src/js/sdk" target="_blank" rel="noopener">MapX SDK</a>
-              </header>
+              <header class="mg-card__title">Live Monitoring</header>
               <p class="mg-card__summary">
-                JavaScript SDK for embedding interactive MapX maps,
-                querying views, and controlling the map programmatically.
-              </p>
-            </div>
-          </article>
-
-          <article class="mg-card mg-card__vc">
-            <div class="mg-card__content">
-              <div class="mg-card__meta">
-                <span class="mg-card__label mg-card__label--active">Design System</span>
-              </div>
-              <header class="mg-card__title">
-                <a href="https://unisdr.github.io/undrr-mangrove/" target="_blank" rel="noopener">Mangrove</a>
-              </header>
-              <p class="mg-card__summary">
-                UNDRR's component library for consistent, accessible UI
-                across disaster risk reduction websites.
+                Real-time earthquake and active fire data, updated
+                continuously from global sensors.
               </p>
             </div>
           </article>
@@ -686,7 +257,6 @@
         pageid: "83835"             — UNDRR footer content ID
         activedomain: "www.undrr.org" — which site's footer to pull
 
-      Source component: stories/Components/Footer/Footer.jsx
       Widget endpoint: https://publish.preventionweb.net/widget.js
       Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-footer--docs
     -->
@@ -694,14 +264,9 @@
       <div id="pw-widget-footer"></div>
     </footer>
 
-    <details id="log-panel" open style="background:#1a1a1a;color:#90ee90;font-family:'Roboto Condensed',monospace;font-size:1.25rem;">
-      <summary style="padding:0.75rem 1.5rem;cursor:pointer;color:#aaa;font-size:1.4rem;">SDK Debug Log</summary>
-      <div id="log" style="max-height:300px;overflow-y:auto;padding:0.5rem 1.5rem;"></div>
-    </details>
+    <script type="module" src="/src/landing.js"></script>
 
-    <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
-    <script type="module" src="/src/main.js"></script>
-
+    <!-- PreventionWeb footer syndication widget -->
     <script src="https://publish.preventionweb.net/widget.js"></script>
     <script>
       try {

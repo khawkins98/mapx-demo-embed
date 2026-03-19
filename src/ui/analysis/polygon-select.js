@@ -239,6 +239,7 @@ export async function startPolygonSelect() {
         return;
       }
 
+      store.setLastSpatialQueryResults(filteredFeatures);
       log(`Polygon query: ${filteredFeatures.length} features (from ${allFeatures.length} in bbox)`);
       showToolMessage("bbox-message", `${filteredFeatures.length} features in polygon`);
 
@@ -256,10 +257,11 @@ export async function startPolygonSelect() {
           const props = f.properties || {};
           const keys = Object.keys(props).slice(0, 4);
           const summary = keys.map((k) => `${k}: ${String(props[k]).substring(0, 30)}`).join(", ");
-          html += `<div style="padding:0.2rem 0;border-bottom:1px solid #eee;font-size:1.1rem;">${esc(summary)}</div>`;
+          html += `<div class="sample-feature">${esc(summary)}</div>`;
         }
       }
 
+      html += `<button class="mg-button mg-button-secondary btn-download-selection-csv" style="margin-top:0.5rem;width:100%;">Download CSV</button>`;
       showToolResults("bbox-results", html);
       await highlightQueryResults(filteredFeatures);
     } catch (e) {

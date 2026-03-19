@@ -1,0 +1,87 @@
+/*
+ * Explorer demo — preset query bar, damage legend, results panel.
+ *
+ * Color reference (from Mangrove _variables.scss / Sendai palette):
+ *   #004f91 = $mg-color-blue-900 (primary interactive / sidebar headings)
+ *   #ccc    = $mg-color-neutral-100 (sidebar border)
+ *   #333    = body text / heading text
+ *   #c10920 = Sendai red (Critical severity)
+ *   #eb752a = Sendai orange (High severity)
+ *   #f0c808 = warning yellow (Medium severity)
+ *   #00afae = Sendai turquoise (Low severity)
+ *
+ * NOTE: The results panel reuses `.analysis-results` from shared.css
+ * rather than defining its own `.explorer-results` duplicate.
+ */
+
+.explorer-body {
+  display: flex;
+  height: 80vh;
+  min-height: 500px;
+}
+
+/* Explorer sidebar */
+.explorer-sidebar {
+  width: 360px;
+  min-width: 320px;
+  background: #fff;
+  border-right: 1px solid #ccc;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .explorer-body { flex-direction: column; height: auto; }
+  .explorer-sidebar { width: 100%; min-width: auto; max-height: 50vh; }
+}
+
+.explorer-sidebar h2 {
+  margin-top: 0;
+  font-size: 1.8rem;
+  color: #004f91;
+}
+
+.explorer-sidebar h3 {
+  font-size: 1.5rem;
+  margin: 1.2rem 0 0.6rem;
+  color: #333;
+}
+
+/* Preset query button list */
+.preset-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.preset-buttons .mg-button {
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+/* Damage severity legend */
+.damage-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.5rem 0 1rem;
+}
+.damage-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.2rem;
+  color: #333;
+}
+.damage-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/*
+ * Results panel — reuses .analysis-results from shared.css.
+ * No additional rules needed; shared.css provides the base
+ * styles and the .has-results visibility toggle.
+ */

@@ -393,6 +393,59 @@ sense for advanced styling or for overlays that are purely visual. If you need
 interactive polygon overlays with advanced styling, the passthrough plus
 coordinate matching fallback is the way to go, though it does add complexity.
 
+## SDK Bridge Gotchas (Quick Reference)
+
+Hard-won lessons from working with the MapX SDK's iframe/postMessage bridge.
+Each item links to the relevant source file.
+
+### queryRenderedFeatures requires explicit `parameters: []`
+
+Omitting `parameters` entirely (vs passing an empty array) causes the bridge
+to skip invocation and silently return nothing. Always pass `parameters: []`
+for a full-viewport query. See `src/sdk/map-layers.js`.
+
+```js
+// WRONG — silently returns nothing
+mapMethod("queryRenderedFeatures");
+// CORRECT
+mapMethod("queryRenderedFeatures", []);
+```
+
+### get_view_source_summary hangs for raster/cc views
+
+The server has no attribute table for these types, so the request stalls
+indefinitely. Always wrap in a timeout (15 s in this codebase). See
+`src/ui/analysis/statistics.js`.
+
+### view_geojson_set_style replaces paint — not a merge
+
+Passing only `{"circle-opacity": 0.5}` loses all other paint properties.
+Always spread the base paint and override specific keys. This is why the
+GeoJSON registry stores the original `paint` alongside the data. See
+`src/ui/analysis/numeric-filter.js`.
+
+### queryRenderedFeatures returns Mapbox-internal fields
+
+Rendered features include `layer`, `source`, `sourceLayer`, `state` which
+aren't part of GeoJSON. Strip them before exporting. See `src/lib/download.js`.
+
+### postMessage can truncate large feature sets
+
+Viewport queries at low zoom can return thousands of features. The structured
+clone serialization can stall or silently truncate. The codebase uses a 15 s
+timeout and encourages box/polygon selection for smaller regions. See
+`src/ui/analysis/spatial-query.js`.
+
+### Timeout reference
+
+| Operation | Timeout | Rationale |
+|---|---|---|
+| `get_view_table_attribute_config` | 10 s | Quick metadata lookup; should respond fast or not at all |
+| `get_view_source_summary` | 15 s | Heavier server-side computation; rt/cc views hang forever without this |
+| Viewport `queryRenderedFeatures` | 15 s | Large viewports stall serialization |
+
+---
+
 ## 10. Analysis tools
 
 ### What we built
@@ -402,10 +455,10 @@ whichever MapX or custom layer the user selects from a dropdown:
 
 | Tool | SDK methods used | View type requirement |
 |---|---|---|
-| Numeric Range Filter | `get_view_table_attribute_config`, `get_view_source_summary`, `set_view_layer_filter_numeric` | `vt` only |
-| Spatial Query | `map({method: "queryRenderedFeatures"})`, `map({method: "project"})` | Any |
-| Feature Statistics | `get_view_source_summary`, `get_view_table_attribute_config` | `vt` (local compute for GeoJSON) |
-| Data Export | `download_view_source_geojson` | GeoJSON views only |
+| Numeric Range Filter | `get_view_table_attribute_config`, `get_view_source_summary`, `set_view_layer_filter_numeric` | `vt` server-side; `geojson` client-side via paint expressions |
+| Spatial Query | `map({method: "queryRenderedFeatures"})`, `map({method: "unproject"})` | Vector features only (not raster) |
+| Feature Statistics | `get_view_source_summary`, `get_view_table_attribute_config` | `vt` server-side; `geojson` local via `computeLocalStats` |
+| Data Export | `download_view_source_geojson`, local registry | GeoJSON views; also CSV export of spatial query results |
 
 ### Floating panel
 
@@ -427,10 +480,10 @@ A `<select>` dropdown lists all currently open views (both curated MapX views
 and custom GeoJSON overlays). It is rebuilt whenever views are added or removed.
 Tools 1, 3, and 4 pass the selected view ID to SDK methods that require `idView`.
 
-When a raster (`rt`) or custom-coded (`cc`) view is selected, an orange notice
-banner appears and the incompatible tools (numeric filter, spatial query, data
-export) are visually disabled. This is because raster layers don't have
-attribute tables or discrete queryable features.
+When a raster (`rt`) or custom-coded (`cc`) view is selected, a notice banner
+appears and **all** analysis tools are visually disabled (including statistics,
+which hangs — see SDK Bridge Gotchas above). The notice directs the user to
+select a GeoJSON or vector layer instead.
 
 ### Numeric range filter
 
@@ -439,12 +492,17 @@ fetches min/max ranges from `get_view_source_summary`, then applies a numeric
 range filter via `set_view_layer_filter_numeric({idView, attribute, from, to})`.
 
 Key findings:
-- Only works on `vt` (vector tile) views — raster and custom-coded views
-  don't have queryable attribute tables
+- Server-side path (`set_view_layer_filter_numeric`) only works on `vt` views
 - Use `from`/`to` params, not the deprecated `value` array
 - Pass `from: null, to: null` to clear the filter
 - `get_view_source_summary` requires `map_wait_idle()` first to avoid
   getting stale or empty results
+
+For GeoJSON views, a client-side path was added: attributes are discovered
+by scanning `properties` for numeric values, min/max are computed locally,
+and filtering uses a Mapbox GL paint expression to dim non-matching features
+(`circle-opacity: 0.08`) instead of hiding them. The original paint is stored
+in the registry and restored on "Clear". See `src/ui/analysis/numeric-filter.js`.
 
 ### Spatial query and the `toggle_draw_mode` problem
 
@@ -586,6 +644,15 @@ Limitations:
   this way — they are served as tiled data, not downloadable files
 - For custom overlays stored in the `customGeoJSONRegistry`, the local
   copy is exported directly without making an SDK call
+
+**Selection export:** After a spatial query (viewport/box/polygon), the
+matched features are stored in `store.lastSpatialQueryResults`. Two export
+options are available:
+- "Download CSV" button appears inline in the spatial query results. Converts
+  Mapbox rendered features to flat CSV (longitude, latitude, then union of all
+  property keys). Values are quoted per RFC 4180. See `src/lib/download.js`.
+- "Export Selection" button in the data export section exports as GeoJSON,
+  stripping Mapbox-internal fields (`layer`, `source`, `sourceLayer`, `state`).
 
 ## 11. UX improvements — collapsible sidebar and floating controls
 
