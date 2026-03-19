@@ -24,7 +24,8 @@ export const openViews = new Set();
  *
  * PATTERN:
  *   1. Call view_geojson_create (or map.addSource) to put data on the map
- *   2. Call registerGeoJSON(id, geojson) to store the data for click matching
+ *   2. Call registerGeoJSON(id, geojson, label, paint) to store the data
+ *      for click matching, dropdown labels, and paint restoration
  *   3. On click_attributes, findNearestFeature() searches the registry
  *   4. On removal, call unregisterGeoJSON(id) to clean up
  */
@@ -67,13 +68,40 @@ export function setPolygonSelectOverlay(val) { polygonSelectOverlay = val; }
 
 /**
  * Register a GeoJSON dataset so clicks can be matched to features.
+ *
  * Call this after view_geojson_create (or map.addSource for passthrough
  * layers) with the same GeoJSON data. The id should match the view ID
  * or source ID used with the SDK, so we can clean up on removal.
+ *
+ * @param {string} id    — View ID or source ID; must match what the SDK uses
+ *   so unregisterGeoJSON can find it later.
+ * @param {object} geojson — The GeoJSON FeatureCollection. Kept in memory for
+ *   click matching, local statistics, and data export.
+ * @param {string} [label] — Human-readable name shown in the analysis panel's
+ *   view selector dropdown. Falls back to the raw id when omitted.
+ * @param {object} [paint] — Mapbox GL paint specification (e.g. circle-color,
+ *   circle-radius expressions). Stored so the numeric filter can restore the
+ *   original style after clearing a filter that overrides circle-opacity.
  */
-export function registerGeoJSON(id, geojson) {
-  customGeoJSONRegistry.push({ id, geojson });
+export function registerGeoJSON(id, geojson, label, paint) {
+  customGeoJSONRegistry.push({ id, geojson, label, paint });
 }
+
+/**
+ * Last spatial query results — the feature array from the most recent
+ * viewport / box / polygon query. Shared across modules so that:
+ *   - data-export can offer "Export Selection" as GeoJSON
+ *   - spatial-query's "Download CSV" button can access the same data
+ *     via event delegation without passing it through the DOM
+ *
+ * Set to null when the user clears the selection.
+ *
+ * @type {Array<object>|null}
+ */
+export let lastSpatialQueryResults = null;
+
+/** @param {Array<object>|null} val */
+export function setLastSpatialQueryResults(val) { lastSpatialQueryResults = val; }
 
 /**
  * Unregister a GeoJSON dataset (call on view_geojson_delete or

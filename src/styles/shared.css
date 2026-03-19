@@ -128,20 +128,14 @@ body {
 .sidebar-section > summary {
   cursor: pointer;
   list-style: none;        /* Remove default triangle */
-  padding: 0.4rem 0;
   user-select: none;
 }
 .sidebar-section > summary::-webkit-details-marker {
   display: none;            /* Chrome/Safari */
 }
 .sidebar-section > summary::before {
-  content: "▸ ";
-  font-size: 1.2rem;
   color: #666;
   transition: transform 0.15s;
-}
-.sidebar-section[open] > summary::before {
-  content: "▾ ";
 }
 .sidebar-section > summary h2 {
   display: inline;
@@ -585,7 +579,6 @@ body {
   overflow: hidden;
 }
 .analysis-tool summary {
-  padding: 0.6rem 0.8rem;
   cursor: pointer;
   font-size: 1.3rem;
   font-weight: 500;

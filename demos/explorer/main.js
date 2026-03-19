@@ -18,6 +18,11 @@
  *    damage-events dataset and styles it with data-driven circles.
  * 6. **Preset queries** — populates the sidebar button list so the
  *    user can run canned filters against the damage data.
+ * 7. **Analysis tools** — enables the floating analysis panel (filter,
+ *    spatial query, statistics, export) and opens it by default. The
+ *    panel opens automatically in the explorer because the damage
+ *    overlay is the primary interactive dataset and users are expected
+ *    to start analyzing it immediately.
  */
 
 import "../../src/styles/shared.css";
@@ -31,6 +36,9 @@ import { setViewLayerTransparency } from "../../src/sdk/filters.js";
 import { EXPLORER_HAZARD_LAYERS } from "../../src/config/explorer-layers.js";
 import { loadDamageOverlay } from "./damage-overlay.js";
 import { wirePresetQueries } from "./preset-queries.js";
+import { openViews } from "../../src/state/store.js";
+import { enableAnalysisTools } from "../../src/ui/analysis/panel.js";
+import { updateAnalysisViewSelect } from "../../src/ui/analysis/view-select.js";
 
 initPinGate();
 
@@ -58,6 +66,7 @@ mapx.on("ready", async () => {
   for (const layer of EXPLORER_HAZARD_LAYERS) {
     try {
       await viewAdd(layer.id);
+      openViews.add(layer.id);
       await setViewLayerTransparency(layer.id, 40); // 40 % transparent so base map shows through
       log(`Loaded hazard layer: ${layer.label}`);
     } catch (e) {
@@ -70,6 +79,16 @@ mapx.on("ready", async () => {
 
   /* Wire preset query buttons */
   wirePresetQueries();
+
+  /* Enable analysis tools panel and populate the view dropdown.
+   * The programmatic click on btn-toggle-analysis opens the panel on load —
+   * in the explorer demo the damage overlay is the primary interactive dataset
+   * and the analysis tools are the main interaction pathway, so hiding them
+   * behind an extra click would hurt discoverability. Other demos (e.g. story)
+   * leave the panel closed since analysis is secondary there. */
+  enableAnalysisTools();
+  updateAnalysisViewSelect();
+  document.getElementById("btn-toggle-analysis").click();
 
   log("Explorer initialisation complete");
 });

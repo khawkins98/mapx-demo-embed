@@ -127,11 +127,109 @@
           .has-results class toggle when a query produces output.
         -->
         <div class="analysis-results" id="preset-results"></div>
+
+        <h3>Analysis Tools</h3>
+        <button class="mg-button mg-button-primary disabled" id="btn-toggle-analysis">
+          Open Analysis Panel
+        </button>
       </aside>
 
       <!-- Map container — the SDK creates its iframe inside #mapx -->
       <div class="app-map">
         <div id="mapx"></div>
+
+        <!--
+          Analysis panel — floating, draggable panel for spatial query,
+          statistics, and data export. Hidden by default; toggled via the
+          sidebar button. Styles come from shared.css.
+        -->
+        <div id="analysis-panel" class="analysis-panel" style="display:none;">
+          <div class="analysis-panel-header" id="analysis-panel-header">
+            <strong>Analysis Tools</strong>
+            <button id="analysis-panel-close" style="background:none;border:none;color:#fff;font-size:1.6rem;cursor:pointer;padding:0 0.3rem;" aria-label="Close analysis panel">&times;</button>
+          </div>
+          <div class="analysis-panel-body">
+
+            <p class="mg-form-help">Active View</p>
+            <select id="analysis-view-select" disabled>
+              <option value="">No views open</option>
+            </select>
+
+            <div id="analysis-notice" class="analysis-notice mg-highlight-box">
+              Raster layer selected — filtering, spatial query, and export are unavailable for raster data.
+            </div>
+
+            <details class="analysis-tool" id="tool-numeric-filter">
+              <summary>Numeric Range Filter</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">Filter a vector layer by numeric attribute range</p>
+                <div class="tool-row">
+                  <label>Attr</label>
+                  <select id="filter-attr-select">
+                    <option value="">Select a view first</option>
+                  </select>
+                </div>
+                <div class="tool-row">
+                  <label>From</label>
+                  <input type="number" id="filter-from" placeholder="min" disabled />
+                </div>
+                <div class="tool-row">
+                  <label>To</label>
+                  <input type="number" id="filter-to" placeholder="max" disabled />
+                </div>
+                <div class="action-buttons" style="flex-direction:row;gap:0.4rem;">
+                  <button class="mg-button mg-button-primary disabled" id="btn-filter-apply" style="flex:1">Apply</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-filter-clear" style="flex:1">Clear</button>
+                </div>
+                <div id="filter-message" class="tool-message"></div>
+                <div id="filter-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+            <details class="analysis-tool" id="tool-spatial-query">
+              <summary>Spatial Query</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">Query vector features by viewport, drawn box, or polygon. Raster layers are not queryable.</p>
+                <div class="action-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
+                  <button class="mg-button mg-button-primary disabled" id="btn-query-viewport" style="flex:1">Query Viewport</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-box-select" style="flex:1">Box Select</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-polygon-select" style="flex:1">Polygon Select</button>
+                  <button class="mg-button disabled" id="btn-clear-selection" style="flex-basis:100%;border-color:#c10920;color:#c10920;">Clear Selection</button>
+                </div>
+                <div id="bbox-message" class="tool-message"></div>
+                <div id="bbox-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+            <details class="analysis-tool" id="tool-statistics">
+              <summary>Feature Statistics</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">View attribute statistics for the selected layer</p>
+                <div class="action-buttons">
+                  <button class="mg-button mg-button-primary disabled" id="btn-get-stats">Get Statistics</button>
+                </div>
+                <div id="stats-message" class="tool-message"></div>
+                <div id="stats-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+            <details class="analysis-tool" id="tool-data-export">
+              <summary>Data Export</summary>
+              <div class="tool-body">
+                <p class="mg-form-help">Export layer data as GeoJSON</p>
+                <div class="action-buttons" style="flex-direction:row;flex-wrap:wrap;gap:0.4rem;">
+                  <button class="mg-button mg-button-primary disabled" id="btn-export-geojson" style="flex:1">Export GeoJSON</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-export-preview" style="flex:1">Preview</button>
+                  <button class="mg-button mg-button-secondary disabled" id="btn-export-selection" style="flex-basis:100%">Export Selection</button>
+                </div>
+                <div id="export-message" class="tool-message"></div>
+                <div id="export-results" class="analysis-results"></div>
+              </div>
+            </details>
+
+          </div>
+          <div class="analysis-panel-resize" id="analysis-panel-resize">&#x27F3;</div>
+        </div>
       </div>
     </div>
 

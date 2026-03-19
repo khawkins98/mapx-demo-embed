@@ -3,7 +3,7 @@
  *
  * Three cases depending on the data source:
  *
- *   1. Custom overlays (entries in customGeoJSONRegistry):
+ *   1. Custom overlays (entries in store.customGeoJSONRegistry):
  *      We already have the GeoJSON in memory, so we just hand it to
  *      downloadGeoJSON() — no network round-trip needed.
  *
@@ -26,7 +26,7 @@
 import { log } from "../log.js";
 import { esc } from "../../lib/esc.js";
 import { downloadGeoJSON } from "../../lib/download.js";
-import { customGeoJSONRegistry } from "../../state/store.js";
+import * as store from "../../state/store.js";
 import { downloadViewSourceGeojson } from "../../sdk/data-query.js";
 import { showToolMessage, showToolResults } from "./tool-helpers.js";
 import { getViewType } from "./view-select.js";
@@ -39,7 +39,7 @@ export function enableDataExport() {
       return;
     }
 
-    const registryEntry = customGeoJSONRegistry.find((r) => r.id === idView);
+    const registryEntry = store.customGeoJSONRegistry.find((r) => r.id === idView);
     if (registryEntry) {
       log(`Exporting local GeoJSON for ${idView}`);
       downloadGeoJSON(registryEntry.geojson, `${idView}.geojson`);
@@ -82,7 +82,7 @@ export function enableDataExport() {
       return;
     }
 
-    const registryEntry = customGeoJSONRegistry.find((r) => r.id === idView);
+    const registryEntry = store.customGeoJSONRegistry.find((r) => r.id === idView);
     if (registryEntry) {
       const features = registryEntry.geojson.features || [];
       log(`Preview: ${features.length} local features`);
@@ -121,4 +121,41 @@ export function enableDataExport() {
       showToolMessage("export-message", "Preview failed: " + e.message, true);
     }
   });
+
+  /* "Export Selection" — downloads the current spatial query results as GeoJSON.
+   *
+   * This bridges the spatial-query and data-export tools: the user runs a
+   * viewport / box / polygon query in the spatial tab, then switches to
+   * the export tab and clicks "Export Selection" to download those results.
+   * The feature array lives in store.lastSpatialQueryResults (set by
+   * spatial-query.js on every successful query, cleared on "Clear"). */
+  const btnExportSelection = document.getElementById("btn-export-selection");
+  if (btnExportSelection) {
+    btnExportSelection.addEventListener("click", () => {
+      const results = store.lastSpatialQueryResults;
+      if (!results || results.length === 0) {
+        showToolMessage("export-message", "No spatial selection active. Use a spatial query first.", true);
+        return;
+      }
+
+      /* Convert Mapbox rendered features to a clean GeoJSON FeatureCollection.
+       *
+       * queryRenderedFeatures returns objects with Mapbox-internal fields
+       * (layer, source, sourceLayer, state) that aren't part of the GeoJSON
+       * spec and would cause validation errors in downstream tools. We strip
+       * them by extracting only geometry and properties. */
+      const fc = {
+        type: "FeatureCollection",
+        features: results.map((f) => ({
+          type: "Feature",
+          geometry: f.geometry || null,
+          properties: f.properties || {},
+        })),
+      };
+
+      log(`Exporting ${fc.features.length} selected features`);
+      downloadGeoJSON(fc, "selection.geojson");
+      showToolMessage("export-message", `Downloaded ${fc.features.length} selected features.`);
+    });
+  }
 }

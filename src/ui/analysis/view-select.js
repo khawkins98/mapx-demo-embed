@@ -55,10 +55,27 @@ export function updateAnalysisViewSelect() {
 
   const entries = [];
 
+  /* Human-readable type labels shown in brackets after each view name in the
+   * dropdown (e.g. "Flood Hazard [raster]"). Helps the user understand at a
+   * glance which analysis tools will be available for each entry — raster and
+   * custom views disable most tools, while vector and geojson enable all. */
+  const TYPE_LABELS = { rt: "raster", vt: "vector", cc: "custom", sm: "story" };
+
   for (const idView of store.openViews) {
     const curated = CURATED_VIEWS.find((v) => v.id === idView);
-    const label = curated ? `${curated.label} [${curated.type}]` : `${idView}`;
-    entries.push({ id: idView, label });
+    if (curated) {
+      const typeLabel = TYPE_LABELS[curated.type] || curated.type;
+      entries.push({ id: idView, label: `${curated.label} [${typeLabel}]` });
+    } else {
+      /* View isn't in the curated list — fall back to the GeoJSON registry
+       * for a human-readable label. This covers dynamically-created views
+       * (damage overlay, monitoring stations, etc.) that registered a label
+       * via registerGeoJSON(). Without this fallback the dropdown would
+       * show a raw UUID which is meaningless to the user. */
+      const regEntry = store.customGeoJSONRegistry.find((r) => r.id === idView);
+      const label = regEntry?.label ? `${regEntry.label} [geojson]` : `${idView}`;
+      entries.push({ id: idView, label });
+    }
   }
 
   if (store.geojsonViewId) entries.push({ id: store.geojsonViewId, label: "DRR Field Offices [geojson]" });
@@ -68,6 +85,16 @@ export function updateAnalysisViewSelect() {
    * don't have a MapX view ID. We add them using their source ID so the
    * user can run statistics and export on them too. */
   if (store.markersAdded) entries.push({ id: store.MARKERS_SOURCE, label: "Monitoring Stations [passthrough]" });
+
+  /* Generic registry entries — any GeoJSON datasets registered by other
+   * demos (e.g. damage overlay in explorer) that aren't already listed
+   * via the hardcoded special cases above. */
+  for (const entry of store.customGeoJSONRegistry) {
+    if (!entries.some((e) => e.id === entry.id)) {
+      const tag = entry.label ? `${entry.label} [geojson]` : `${entry.id} [geojson]`;
+      entries.push({ id: entry.id, label: tag });
+    }
+  }
 
   if (entries.length === 0) {
     const opt = document.createElement("option");
@@ -85,6 +112,13 @@ export function updateAnalysisViewSelect() {
     select.disabled = false;
     if (entries.some((e) => e.id === previousValue)) {
       select.value = previousValue;
+    } else {
+      /* Default to the first GeoJSON entry. GeoJSON views support all analysis
+       * tools (filter, spatial query, statistics, export) while raster/custom
+       * views disable most of them. Pre-selecting a GeoJSON view gives new users
+       * the most capable starting point without extra clicks. */
+      const geojsonEntry = entries.find((e) => e.label.includes("[geojson]"));
+      if (geojsonEntry) select.value = geojsonEntry.id;
     }
   }
 
@@ -117,13 +151,14 @@ export function updateAnalysisToolState() {
   if (viewType === "rt" || viewType === "cc") {
     numericFilter.classList.add("tool-disabled");
     spatialQuery.classList.add("tool-disabled");
+    statistics.classList.add("tool-disabled");
     dataExport.classList.add("tool-disabled");
     notice.classList.add("visible");
 
     if (viewType === "rt") {
-      notice.textContent = "Raster layer selected — filtering, spatial query, and export are not available for raster data.";
+      notice.textContent = "Raster layer selected — analysis tools are not available for raster data. Select a GeoJSON or vector layer.";
     } else {
-      notice.textContent = "Custom-coded layer selected — filtering, spatial query, and export are not available for this view type.";
+      notice.textContent = "Custom-coded layer selected — analysis tools are not available for this view type.";
     }
   }
 }

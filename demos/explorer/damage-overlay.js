@@ -11,6 +11,7 @@ import { viewGeojsonCreate, viewGeojsonSetStyle } from "../../src/sdk/views.js";
 import { damageEventsGeoJSON } from "../../src/data/damage-events.js";
 import { DAMAGE_CIRCLE_PAINT } from "../../src/config/explorer-layers.js";
 import { log } from "../../src/ui/log.js";
+import { registerGeoJSON, openViews } from "../../src/state/store.js";
 
 /** @type {string|null} SDK-assigned view ID once the overlay is created */
 let damageViewId = null;
@@ -55,6 +56,15 @@ export async function loadDamageOverlay() {
     damageViewId = result.id;
 
     await viewGeojsonSetStyle(damageViewId, DAMAGE_CIRCLE_PAINT);
+
+    /* Register in the GeoJSON registry with both a label and paint spec:
+     *   - label: shown in the analysis panel's view dropdown so the user sees
+     *     "Damage Events (fictional) [geojson]" instead of a raw UUID.
+     *   - paint: stored so the numeric filter can restore the original circle
+     *     style after clearing a filter (the filter temporarily overrides
+     *     circle-opacity with a Mapbox expression). */
+    registerGeoJSON(damageViewId, damageEventsGeoJSON, "Damage Events (fictional)", DAMAGE_CIRCLE_PAINT);
+    openViews.add(damageViewId);
     log(`Damage overlay loaded: ${damageEventsGeoJSON.features.length} events`);
     return damageViewId;
   } catch (e) {
