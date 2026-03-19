@@ -2,6 +2,7 @@
 export function initPinGate() {
   const PIN = "5498";
   const gate = document.getElementById("pin-gate");
+  if (!gate) return;
   const input = document.getElementById("pin-input");
   const error = document.getElementById("pin-error");
 

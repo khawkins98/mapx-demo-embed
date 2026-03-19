@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Smoke tests", () => {
-  test("page loads with title", async ({ page }) => {
+  test("landing page loads with title", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/MapX Embed/);
   });
@@ -25,7 +25,7 @@ test.describe("Smoke tests", () => {
 
   test("SDK status shows Connected after ready", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
-    await page.goto("/");
+    await page.goto("/demos/kitchen-sink/");
     const status = page.locator("#status");
     await expect(status).toHaveText("Connected", { timeout: 60000 });
   });

@@ -1,0 +1,105 @@
+/*
+ * Explorer demo — preset query bar, damage legend, results panel.
+ */
+
+.explorer-body {
+  display: flex;
+  height: 80vh;
+  min-height: 500px;
+}
+
+/* Explorer sidebar */
+.explorer-sidebar {
+  width: 360px;
+  min-width: 320px;
+  background: #fff;
+  border-right: 1px solid #ccc;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .explorer-body { flex-direction: column; height: auto; }
+  .explorer-sidebar { width: 100%; min-width: auto; max-height: 50vh; }
+}
+
+.explorer-sidebar h2 {
+  margin-top: 0;
+  font-size: 1.8rem;
+  color: #004f91;
+}
+
+.explorer-sidebar h3 {
+  font-size: 1.5rem;
+  margin: 1.2rem 0 0.6rem;
+  color: #333;
+}
+
+/* Preset query button list */
+.preset-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.preset-buttons .mg-button {
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+/* Damage severity legend */
+.damage-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.5rem 0 1rem;
+}
+.damage-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.2rem;
+  color: #333;
+}
+.damage-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Explorer results panel */
+.explorer-results {
+  margin-top: 1rem;
+  padding: 0.6rem;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  display: none;
+}
+.explorer-results.has-results {
+  display: block;
+}
+.explorer-results h4 {
+  margin: 0 0 0.4rem;
+  font-size: 1.3rem;
+}
+.explorer-results table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.explorer-results td,
+.explorer-results th {
+  padding: 0.2rem 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 1.1rem;
+}
+.explorer-results th {
+  font-weight: 600;
+  color: #333;
+}

@@ -1,0 +1,85 @@
+/*
+ * Story demo — narrative panel and step indicator.
+ */
+
+.story-body {
+  display: flex;
+  height: 80vh;
+  min-height: 500px;
+}
+
+/* Narrative sidebar */
+.narrative-panel {
+  width: 380px;
+  min-width: 320px;
+  background: #fff;
+  border-right: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .story-body { flex-direction: column; height: auto; }
+  .narrative-panel { width: 100%; min-width: auto; max-height: 40vh; }
+}
+
+.narrative-content {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  overflow-y: auto;
+}
+
+.narrative-content h2 {
+  font-size: 2rem;
+  margin: 0 0 1.2rem;
+  color: #004f91;
+}
+
+.narrative-content p {
+  font-size: 1.5rem;
+  line-height: 1.7;
+  color: #333;
+}
+
+/* Step indicator dots */
+.step-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1rem 0;
+}
+
+.step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.step-dot--active {
+  background: #004f91;
+  transform: scale(1.3);
+}
+
+/* Navigation bar at bottom of narrative panel */
+.narrative-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.narrative-nav .step-count {
+  font-size: 1.3rem;
+  color: #666;
+  font-family: 'Roboto Condensed', monospace;
+}
+
+.narrative-nav .mg-button.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}

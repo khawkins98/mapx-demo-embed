@@ -11,7 +11,7 @@ async function openSection(page, selector) {
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
-  await page.goto("/");
+  await page.goto("/demos/kitchen-sink/");
   await expect(page.locator("#status")).toHaveText("Connected", { timeout: 60000 });
 });
 

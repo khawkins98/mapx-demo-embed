@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Risk to Resilience — MapX Story Demo</title>
+    <link rel="stylesheet" href="https://assets.undrr.org/static/mangrove/1.3.3/css/style.css" />
+  </head>
+  <body>
+    <div id="pin-gate" style="
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(0,79,145,0.95);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Roboto',sans-serif;
+    ">
+      <div style="
+        background:#fff;max-width:440px;width:90%;
+        padding:3rem 2.5rem;text-align:center;
+      ">
+        <h2 style="margin-top:0;font-size:2.3rem;color:#1a1a1a;">Preview Access</h2>
+        <p style="font-size:1.6rem;color:#4d4d4d;line-height:1.5;margin-bottom:2rem;">
+          This is an <strong>unofficial investigation proof of concept</strong>
+          for demonstration purposes only. It is not an official UNDRR product.
+        </p>
+        <p style="font-size:1.4rem;color:#666;margin-bottom:1.5rem;">
+          Enter the preview PIN to continue:
+        </p>
+        <input id="pin-input" type="text" inputmode="numeric" maxlength="4"
+          placeholder="_ _ _ _"
+          style="
+            font-size:2.4rem;text-align:center;letter-spacing:0.8rem;
+            width:12rem;padding:0.75rem;
+            border:2px solid #ccc;outline:none;
+            font-family:'Roboto Condensed',monospace;
+          "
+        />
+        <p id="pin-error" style="color:#c10920;font-size:1.4rem;margin-top:1rem;min-height:1.4rem;"></p>
+      </div>
+    </div>
+    <header class="mg-page-header mg-page-header--default">
+      <div class="mg-page-header__decoration">
+        <div></div><div></div><div></div><div></div>
+      </div>
+      <div class="mg-page-header__toolbar-wrapper">
+        <div class="mg-page-header__container mg-container">
+          <div class="mg-page-header__region mg-page-header__region--toolbar">
+            <section class="mg-page-header__block mg-page-header__block--logo">
+              <a href="https://www.undrr.org">
+                <img src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                     alt="UNDRR Logo" width="324" height="47"
+                     title="UNDRR — United Nations Office for Disaster Risk Reduction"
+                     class="mg-page-header__logo-img" />
+              </a>
+            </section>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="mg-u-background-color--blue-900">
+      <div class="mg-container app-title-bar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <a href="/" style="color:#fff;text-decoration:none;font-size:1.4rem;opacity:0.8;">&#8592; All Demos</a>
+          <h1 class="mg-u-color--white" style="margin:0;">Risk to Resilience</h1>
+        </div>
+        <span class="mg-tag mg-tag--outline" style="color:#fff;border-color:#fff" id="status">Loading SDK...</span>
+      </div>
+    </div>
+
+    <div class="story-body">
+      <aside class="narrative-panel" id="narrative-panel">
+        <div class="narrative-content">
+          <h2 id="narrative-title">Loading...</h2>
+          <p id="narrative-text">Connecting to MapX...</p>
+        </div>
+        <div class="step-dots" id="step-dots"></div>
+        <div class="narrative-nav">
+          <button class="mg-button mg-button-secondary disabled" id="btn-prev-step">&#8592; Previous</button>
+          <span class="step-count" id="step-count">0 / 0</span>
+          <button class="mg-button mg-button-primary disabled" id="btn-next-step">Next &#8594;</button>
+        </div>
+      </aside>
+
+      <div class="app-map">
+        <div id="mapx"></div>
+      </div>
+    </div>
+
+    <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
+    <script type="module" src="/demos/story/main.js"></script>
+  </body>
+</html>

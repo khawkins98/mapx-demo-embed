@@ -42,6 +42,7 @@ import { addLegend, removeLegend, clearAllLegends } from "./legends.js";
  */
 export function buildViewButtons() {
   const container = document.getElementById("view-buttons");
+  if (!container) return;
   container.innerHTML = "";
 
   CURATED_VIEWS.forEach((v) => {
@@ -173,8 +174,8 @@ export async function clearAllViews() {
   await Promise.all(removals);
   store.openViews.clear();
 
-  /* Reset all view button states and remove sliders */
-  document.querySelectorAll("#view-buttons .view-button-wrapper").forEach((w) => {
+  /* Reset all view button states and remove sliders (if DOM exists) */
+  document.querySelectorAll("#view-buttons .view-button-wrapper")?.forEach((w) => {
     const btn = w.querySelector(".mg-button");
     if (btn) btn.classList.remove("is-active");
     removeTransparencySlider(w);
@@ -208,7 +209,8 @@ export async function clearAllViews() {
     store.setMarkersAdded(false);
   }
 
-  document.getElementById("infobox").style.display = "none";
+  const infobox = document.getElementById("infobox");
+  if (infobox) infobox.style.display = "none";
   cancelBoxSelect();
   cancelPolygonSelect();
   await cleanupBoxSelectHighlight();
