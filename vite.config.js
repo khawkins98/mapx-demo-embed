@@ -12,6 +12,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: ".",
+  base: "/mapx-demo-embed/",
   server: {
     port: 3001,
   },
