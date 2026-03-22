@@ -34,18 +34,18 @@
 
 .narrative-content {
   flex: 1;
-  padding: 2rem 1.5rem;
+  padding: 1.25rem 0.875rem;
   overflow-y: auto;
 }
 
 .narrative-content h2 {
-  font-size: 2rem;
-  margin: 0 0 1.2rem;
+  font-size: 1.25rem;
+  margin: 0 0 0.75rem;
   color: #004f91; /* mg-color-blue-900 (primary interactive) */
 }
 
 .narrative-content p {
-  font-size: 1.5rem;
+  font-size: 0.875rem;
   line-height: 1.7;
   color: #333; /* text color */
 }
@@ -54,8 +54,8 @@
 .step-dots {
   display: flex;
   justify-content: center;
-  gap: 0.6rem;
-  padding: 1rem 0;
+  gap: 0.375rem;
+  padding: 0.625rem 0;
 }
 
 .step-dot {
@@ -76,13 +76,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
+  padding: 0.625rem 0.875rem;
   border-top: 1px solid #e0e0e0; /* light border */
   background: #fafafa; /* near-white background */
 }
 
 .narrative-nav .step-count {
-  font-size: 1.3rem;
+  font-size: 0.8rem;
   color: #666; /* mg-color-neutral-300 (secondary text) */
   font-family: 'Roboto Condensed', monospace;
 }

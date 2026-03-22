@@ -44,24 +44,24 @@ body {
   background: #fff;
   max-width: 440px;
   width: 90%;
-  padding: 3rem 2.5rem;
+  padding: 1.875rem 1.5rem;
   text-align: center;
 }
 .pin-gate__input {
-  font-size: 2.4rem;
+  font-size: 1.5rem;
   text-align: center;
-  letter-spacing: 0.8rem;
-  width: 12rem;
-  padding: 0.75rem;
+  letter-spacing: 0.5rem;
+  width: 7.5rem;
+  padding: 0.5rem;
   border: 2px solid #ccc;
   outline: none;
   font-family: 'Roboto Condensed', monospace;
 }
 .pin-gate__error {
   color: #c10920;
-  font-size: 1.4rem;
-  margin-top: 1rem;
-  min-height: 1.4rem;
+  font-size: 0.875rem;
+  margin-top: 0.625rem;
+  min-height: 0.875rem;
 }
 
 /*
@@ -73,12 +73,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 1.2rem;
-  padding-bottom: 1.2rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 .app-title-bar h1 {
   margin: 0;
-  font-size: 2.3rem; /* mg-font-size-500 */
+  font-size: 1.4rem; /* mg-font-size-500 */
 }
 
 /*
@@ -98,7 +98,7 @@ body {
   min-width: 320px;
   background: #fff;
   border-right: 1px solid #ccc; /* mg-color-neutral-100 */
-  padding: 1.5rem 1rem;
+  padding: 0.875rem 0.625rem;
   overflow-y: auto;
 }
 
@@ -117,9 +117,9 @@ body {
  * in ~675px of visible space) without structural rework.
  */
 .sidebar-section {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
   border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.3rem;
 }
 .sidebar-section:last-child {
   margin-bottom: 0;
@@ -139,7 +139,7 @@ body {
 }
 .sidebar-section > summary h2 {
   display: inline;
-  font-size: 1.6rem;
+  font-size: 1rem;
   margin: 0;
 }
 
@@ -147,7 +147,7 @@ body {
 #view-buttons {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 }
 #view-buttons .mg-button {
   width: 100%;
@@ -169,9 +169,9 @@ body {
 
 /* Small type tag (live/raster/vector) inside each view button */
 .view-type-tag {
-  font-size: 1rem;
-  padding: 0.1rem 0.4rem;
-  margin-right: 0.5rem;
+  font-size: 0.625rem;
+  padding: 0.1rem 0.25rem;
+  margin-right: 0.3rem;
   vertical-align: middle;
   flex-shrink: 0;
 }
@@ -180,7 +180,7 @@ body {
 .action-buttons {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 }
 .action-buttons .mg-button {
   width: 100%;
@@ -210,8 +210,8 @@ body {
  */
 .map-toolbar {
   position: absolute;
-  bottom: 4rem;         /* Above the coordinate bar */
-  left: 1rem;
+  bottom: 2.5rem;         /* Above the coordinate bar */
+  left: 0.625rem;
   z-index: 13;
   display: flex;
   flex-direction: column;
@@ -228,7 +228,7 @@ body {
   border-radius: 3px;
   background: #fff;
   cursor: pointer;
-  font-size: 1.6rem;
+  font-size: 1rem;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -260,12 +260,12 @@ body {
  */
 .country-select {
   width: 100%;
-  padding: 0.5rem;
-  font-size: 1.3rem;
+  padding: 0.3rem;
+  font-size: 0.8rem;
   font-family: 'Roboto', sans-serif;
   border: 1px solid #ccc;
   border-radius: 3px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 
 /*
@@ -275,8 +275,8 @@ body {
  */
 .legends-panel {
   position: absolute;
-  bottom: 4rem;
-  right: 1rem;
+  bottom: 2.5rem;
+  right: 0.625rem;
   z-index: 13;
   max-width: 260px;
   max-height: 50%;
@@ -286,35 +286,35 @@ body {
   display: none;          /* Shown via JS when legends exist */
   flex-direction: column;
   overflow: hidden;
-  font-size: 1.2rem;
+  font-size: 0.75rem;
 }
 .legends-panel-header {
   background: #004f91;
   color: #fff;
-  padding: 0.4rem 0.8rem;
+  padding: 0.25rem 0.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
-  font-size: 1.2rem;
+  font-size: 0.75rem;
 }
 .legends-collapse-btn {
   background: none;
   border: none;
   color: #fff;
   cursor: pointer;
-  font-size: 1.2rem;
-  padding: 0 0.2rem;
+  font-size: 0.75rem;
+  padding: 0 0.125rem;
 }
 .legends-panel-body {
-  padding: 0.5rem;
+  padding: 0.3rem;
   overflow-y: auto;
   flex: 1;
 }
 .legend-entry {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
   border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.3rem;
 }
 .legend-entry:last-child {
   margin-bottom: 0;
@@ -323,8 +323,8 @@ body {
 }
 .legend-entry-title {
   font-weight: 500;
-  font-size: 1.1rem;
-  margin-bottom: 0.3rem;
+  font-size: 0.7rem;
+  margin-bottom: 0.2rem;
   color: #333;
 }
 .legend-entry-image {
@@ -345,9 +345,9 @@ body {
   z-index: 13;
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 0.7rem;
   font-family: 'Roboto Condensed', monospace;
-  padding: 0.3rem 1rem;
+  padding: 0.2rem 0.625rem;
   text-align: center;
   pointer-events: none;
 }
@@ -359,14 +359,14 @@ body {
 .view-transparency-row {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.2rem 0.3rem;
-  font-size: 1.1rem;
+  gap: 0.25rem;
+  padding: 0.125rem 0.2rem;
+  font-size: 0.7rem;
   color: #666;
 }
 .view-transparency-row label {
   flex-shrink: 0;
-  font-size: 1rem;
+  font-size: 0.625rem;
 }
 .view-transparency-row input[type="range"] {
   flex: 1;
@@ -375,9 +375,9 @@ body {
   accent-color: #004f91;
 }
 .view-transparency-row .transparency-value {
-  min-width: 2.5rem;
+  min-width: 1.5rem;
   text-align: right;
-  font-size: 1rem;
+  font-size: 0.625rem;
   font-family: 'Roboto Condensed', monospace;
 }
 
@@ -392,7 +392,7 @@ body {
   border-radius: 50%;
   background: #f5f5f5;
   color: #004f91;
-  font-size: 1.1rem;
+  font-size: 0.7rem;
   font-weight: 700;
   font-style: italic;
   font-family: Georgia, serif;
@@ -401,7 +401,7 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-left: 0.3rem;
+  margin-left: 0.2rem;
   transition: background 0.15s;
   padding: 0;
   line-height: 1;
@@ -437,7 +437,7 @@ body {
 .view-meta-header {
   background: #004f91;
   color: #fff;
-  padding: 0.8rem 1rem;
+  padding: 0.5rem 0.625rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -446,26 +446,26 @@ body {
   background: none;
   border: none;
   color: #fff;
-  font-size: 1.8rem;
+  font-size: 1.125rem;
   cursor: pointer;
-  padding: 0 0.3rem;
+  padding: 0 0.2rem;
 }
 .view-meta-body {
-  padding: 1.2rem;
-  font-size: 1.3rem;
+  padding: 0.75rem;
+  font-size: 0.8rem;
   line-height: 1.6;
 }
 .view-meta-body dt {
   font-weight: 600;
   color: #004f91;
-  margin-top: 0.8rem;
+  margin-top: 0.5rem;
 }
 .view-meta-body dt:first-child {
   margin-top: 0;
 }
 .view-meta-body dd {
   margin-left: 0;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.25rem;
   color: #333;
 }
 
@@ -480,13 +480,13 @@ body {
 .mg-button.is-loading::after {
   content: "";
   display: inline-block;
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 0.75rem;
+  height: 0.75rem;
   border: 2px solid currentColor;
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
-  margin-left: 0.5rem;
+  margin-left: 0.3rem;
   vertical-align: middle;
 }
 @keyframes spin {
@@ -509,14 +509,14 @@ body {
 /* Floating panel container */
 .analysis-panel {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
+  top: 0.625rem;
+  left: 0.625rem;
   z-index: 14;
   width: 360px;
   min-width: 280px;
-  max-width: calc(100% - 2rem);
+  max-width: calc(100% - 1.25rem);
   min-height: 180px;
-  max-height: calc(100% - 2rem);
+  max-height: calc(100% - 1.25rem);
   background: #fff;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
   border-radius: 4px;
@@ -529,7 +529,7 @@ body {
 .analysis-panel-header {
   background: #004f91;
   color: #fff;
-  padding: 0.6rem 1rem;
+  padding: 0.375rem 0.625rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -540,7 +540,7 @@ body {
 
 /* Scrollable body containing all tools */
 .analysis-panel-body {
-  padding: 1rem;
+  padding: 0.625rem;
   overflow-y: auto;
   flex: 1;
 }
@@ -553,7 +553,7 @@ body {
   width: 18px;
   height: 18px;
   cursor: nwse-resize;
-  font-size: 1.2rem;
+  font-size: 0.75rem;
   line-height: 18px;
   text-align: center;
   color: #999;
@@ -563,24 +563,24 @@ body {
 /* Active view selector dropdown */
 #analysis-view-select {
   width: 100%;
-  padding: 0.5rem;
-  font-size: 1.3rem;
+  padding: 0.3rem;
+  font-size: 0.8rem;
   font-family: 'Roboto', sans-serif;
   border: 1px solid #ccc;
   border-radius: 3px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.625rem;
 }
 
 /* Collapsible tool panels */
 .analysis-tool {
   border: 1px solid #ccc;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
   border-radius: 3px;
   overflow: hidden;
 }
 .analysis-tool summary {
   cursor: pointer;
-  font-size: 1.3rem;
+  font-size: 0.8rem;
   font-weight: 500;
   background: #f5f5f5;
   user-select: none;
@@ -589,26 +589,26 @@ body {
   background: #eee;
 }
 .analysis-tool .tool-body {
-  padding: 0.8rem;
+  padding: 0.5rem;
 }
 
 /* Inline form rows for filter inputs */
 .tool-row {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.3rem;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 .tool-row label {
-  font-size: 1.2rem;
-  min-width: 3.5rem;
+  font-size: 0.75rem;
+  min-width: 2.25rem;
   color: #666;
 }
 .tool-row input,
 .tool-row select {
   flex: 1;
-  padding: 0.35rem 0.5rem;
-  font-size: 1.2rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.75rem;
   border: 1px solid #ccc;
   border-radius: 3px;
   font-family: 'Roboto', sans-serif;
@@ -616,14 +616,14 @@ body {
 
 /* Results panel shared by all tools */
 .analysis-results {
-  margin-top: 0.8rem;
-  padding: 0.6rem;
+  margin-top: 0.5rem;
+  padding: 0.375rem;
   background: #f9f9f9;
   border: 1px solid #e0e0e0;
   border-radius: 3px;
   max-height: 400px;
   overflow-y: auto;
-  font-size: 1.2rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   display: none;    /* shown via JS when results arrive */
 }
@@ -631,8 +631,8 @@ body {
   display: block;
 }
 .analysis-results h4 {
-  margin: 0 0 0.4rem;
-  font-size: 1.3rem;
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
 }
 
 /*
@@ -641,9 +641,9 @@ body {
  * box-select.js, and polygon-select.js.
  */
 .sample-feature {
-  padding: 0.2rem 0;
+  padding: 0.125rem 0;
   border-bottom: 1px solid #eee;
-  font-size: 1.1rem;
+  font-size: 0.7rem;
 }
 
 /*
@@ -652,7 +652,7 @@ body {
  */
 .export-preview {
   white-space: pre-wrap;
-  font-size: 1.1rem;
+  font-size: 0.7rem;
   max-height: 200px;
   overflow: auto;
 }
@@ -662,15 +662,15 @@ body {
  * Replaces inline margin-top/color on <div>/<td> in statistics.js.
  */
 .stat-section {
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
 }
 
 /* Status/info messages inside tools */
 .tool-message {
-  font-size: 1.2rem;
+  font-size: 0.75rem;
   color: #666;
   font-style: italic;
-  margin-top: 0.4rem;
+  margin-top: 0.25rem;
 }
 .tool-message.error {
   color: #c10920;
@@ -709,7 +709,7 @@ body {
  */
 .analysis-notice {
   display: none;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
 }
 .analysis-notice.visible {
   display: block;
