@@ -165,6 +165,15 @@ export function renderCountryProfile(code) {
         <div class="country-chart-cell">${sectorBars}</div>
       </div>
       <div class="country-chart-full">${resBars}</div>
+      <div class="country-profile-cta">
+        <p>This is a high-level snapshot. For the full country risk profile including
+          detailed methodology, historical loss data, and policy recommendations:</p>
+        <a class="mg-button mg-button-primary mg-button-arrow"
+          href="https://www.preventionweb.net/countries/${country.code.toLowerCase()}"
+          target="_blank" rel="noopener">
+          View ${country.name} on PreventionWeb
+        </a>
+      </div>
     </div>`;
 }
 

@@ -58,11 +58,6 @@
 
 /* ----- Framework — pillar cards extend mg-card ----- */
 
-.pillar-card--hazard { border-top: 4px solid #c10920; }
-.pillar-card--exposure { border-top: 4px solid #eb752a; }
-.pillar-card--vulnerability { border-top: 4px solid #f0c808; }
-.pillar-card--resilience { border-top: 4px solid #00afae; }
-
 /* Invert black SVG icons to white (used in dark hero overlay) */
 .icon-invert {
   filter: invert(1);
@@ -99,11 +94,11 @@
 .metrics-card.mg-highlight-box {
   min-height: 55vh;
   margin-bottom: 30vh;
-  border-left: 4px solid transparent;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: opacity 0.3s;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  opacity: 0.4;
 }
 
 .metrics-card.mg-highlight-box:first-child {
@@ -115,8 +110,7 @@
 }
 
 .metrics-card--active.mg-highlight-box {
-  border-left-color: #004f91;
-  box-shadow: 0 4px 16px rgba(0, 79, 145, 0.12);
+  opacity: 1;
 }
 
 .metrics-card__chart {
@@ -284,10 +278,6 @@
   margin-top: 2rem;
 }
 
-.country-profile-card .mg-card {
-  padding: 3rem;
-}
-
 .country-profile-header {
   display: flex;
   align-items: center;
@@ -325,11 +315,18 @@
   max-width: 500px;
 }
 
-/* ----- Stakeholder pathways — extend mg-card ----- */
-
-.pathway-card {
-  border-top: 3px solid var(--mg-color-interactive, #004f91);
+.country-profile-cta {
+  margin-top: 2.4rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e0e0e0;
 }
+
+.country-profile-cta p {
+  margin-bottom: 1.4rem;
+  line-height: 1.6;
+}
+
+/* ----- Stakeholder pathways — extend mg-card ----- */
 
 .pathway-card__list {
   list-style: none;
@@ -350,15 +347,6 @@
   position: absolute;
   left: 0;
   color: var(--mg-color-interactive, #004f91);
-}
-
-/* ----- Section divider (Sendai stripe) ----- */
-
-.metrics-divider {
-  height: 4px;
-  background: linear-gradient(90deg, #c10920, #eb752a, #f0c808, #00afae);
-  border: none;
-  margin: 0;
 }
 
 /* ----- Responsive ----- */
