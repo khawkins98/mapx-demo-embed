@@ -16,7 +16,8 @@ import "../../src/styles/shared.css";
 import "../../src/styles/metrics.css";
 import { initSDK } from "../../src/sdk/client.js";
 import { initPinGate } from "../../src/ui/pin-gate.js";
-import { setStatus, log } from "../../src/ui/log.js";
+import { log } from "../../src/ui/log.js";
+import { showToast } from "../../src/ui/toast.js";
 import { viewAdd, viewRemove } from "../../src/sdk/views.js";
 import { setViewLayerTransparency } from "../../src/sdk/filters.js";
 import {
@@ -276,7 +277,7 @@ document.addEventListener("keydown", (e) => {
 
 /* ── SDK ready ───────────────────────────────────────────────── */
 mapx.on("ready", async () => {
-  setStatus("Connected", "ok");
+  showToast("Map connected");
   log("Metrics Hub ready");
 
   initScrollEngine({
@@ -312,9 +313,5 @@ mapx.on("ready", async () => {
 
 /* ── Country map ready ───────────────────────────────────────── */
 countryMapx.on("ready", () => {
-  const badge = document.getElementById("country-map-status");
-  if (badge) {
-    badge.textContent = "Connected";
-    badge.classList.add("status-badge--ok");
-  }
+  showToast("Country map connected");
 });
