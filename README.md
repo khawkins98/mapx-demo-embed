@@ -47,12 +47,26 @@ npm run test:all       # both
 
 Install Playwright browsers on first run: `npx playwright install --with-deps chromium`
 
+## Demo Pages
+
+The site is a multi-page app (Vite MPA) with a landing page and four demos:
+
+| Page | Route | What it shows |
+|---|---|---|
+| **Landing** | `/` | Project intro + cards linking to each demo |
+| **Kitchen Sink** | `/demos/kitchen-sink/` | All SDK features: views, scenarios, custom data, analysis tools |
+| **Risk to Resilience** | `/demos/story/` | Guided narrative with step-by-step map animations |
+| **Data Explorer** | `/demos/explorer/` | DELTA-style analysis with damage overlays and preset queries |
+| **Metrics Hub** | `/demos/metrics/` | Scrollytelling risk metrics, interactive charts, country deep-dives |
+
 ## What's In Here
 
 | Path | Purpose |
 |---|---|
-| `index.html` | HTML structure — embeds MapX with curated DRR views and map controls |
-| `src/` | ES modules — config, data, lib (pure functions), SDK wrappers, state, UI |
+| `index.html` | Landing page — demo cards linking to each page |
+| `demos/` | Demo pages, each with its own `index.html` + entry-point JS |
+| `src/` | Shared modules — config, data, lib (pure functions), SDK wrappers, state, UI |
+| `docs/` | Pitch document and story arc for the Metrics Hub concept |
 | `tests/unit/` | Vitest unit tests for pure logic (esc, geo, stats, store) |
 | `tests/e2e/` | Playwright E2E tests (smoke, views, scenarios, controls, analysis) |
 | `server.js` | Node static file server (serves `dist/` in production) |
@@ -141,6 +155,6 @@ Not all tools work on all view types — numeric filtering requires vector tile 
 - **Observable examples:** https://observablehq.com/collection/@trepmag/mapx-sdk
 - **Starter project:** https://git.unepgrid.ch/drikc/mapx-sdk-starter-project
 - **Mangrove component library:** https://unisdr.github.io/undrr-mangrove/
-- **Mangrove CSS (CDN):** `https://assets.undrr.org/static/mangrove/1.3.3/css/style.css`
+- **Mangrove CSS (CDN):** `https://assets.undrr.org/static/mangrove/1.4.0/css/style.css`
 - **NPM:** `npm install @fxi/mxsdk` (if a build step is preferred)
 - **UMD script:** `https://app.mapx.org/sdk/mxsdk.umd.js`
