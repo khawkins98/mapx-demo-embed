@@ -27,16 +27,22 @@ export function renderHorizontalBarChart({ title, data, unit = "" }) {
   data.forEach((d, i) => {
     const y = 30 + i * (barH + gap);
     const w = max > 0 ? (d.value / max) * barAreaW : 0;
+    const actionAttr = d.action
+      ? ` data-action='${JSON.stringify(d.action).replace(/'/g, "&#39;")}' class="chart-bar--interactive" tabindex="0" role="button"`
+      : "";
 
-    bars += `
+    // Wrap each bar row in a <g> — if it has an action, the group is clickable
+    bars += `<g${actionAttr}>
       <text x="${labelW - 8}" y="${y + barH / 2 + 5}"
         text-anchor="end" font-size="13" fill="#333">${d.label}</text>
       <rect x="${labelW}" y="${y}" width="${w}" height="${barH}"
-        rx="3" fill="${d.color}" opacity="0.85">
+        rx="3" fill="${d.color}" opacity="0.85"${d.action ? ' style="cursor:pointer"' : ""}>
         <animate attributeName="width" from="0" to="${w}" dur="0.6s" fill="freeze" />
       </rect>
+      ${d.action ? `<rect x="${labelW}" y="${y}" width="${barAreaW}" height="${barH}" fill="transparent" style="cursor:pointer" />` : ""}
       <text x="${labelW + w + 6}" y="${y + barH / 2 + 5}"
-        font-size="12" fill="#666">${d.value}${unit ? " " + unit : ""}</text>`;
+        font-size="12" fill="#666">${d.value}${unit ? " " + unit : ""}</text>
+    </g>`;
   });
 
   return `
@@ -111,16 +117,24 @@ export function renderDonutChart({ title, data, size = 220 }) {
 
 /**
  * Metric card — big number with label. Returns HTML, not SVG.
+ * If `action` is provided, the card becomes a clickable button with
+ * `data-action` containing the serialised action object.
  * @param {Object} opts
  * @param {string} opts.label
  * @param {string|number} opts.value
  * @param {string} [opts.unit]
  * @param {string} [opts.subtitle]
+ * @param {Object} [opts.action] - map action triggered on click
  * @returns {string} HTML markup
  */
-export function renderMetricCard({ label, value, unit = "", subtitle = "" }) {
+export function renderMetricCard({ label, value, unit = "", subtitle = "", action }) {
+  const actionAttr = action
+    ? ` data-action='${JSON.stringify(action).replace(/'/g, "&#39;")}' role="button" tabindex="0" title="${action.label || "Explore on map"}"`
+    : "";
+  const cls = action ? "metric-card metric-card--interactive" : "metric-card";
+
   return `
-    <div class="metric-card">
+    <div class="${cls}"${actionAttr}>
       <div class="metric-card__value">${value}${unit ? `<span class="metric-card__unit">${unit}</span>` : ""}</div>
       <div class="metric-card__label">${label}</div>
       ${subtitle ? `<div class="metric-card__subtitle">${subtitle}</div>` : ""}

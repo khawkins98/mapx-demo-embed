@@ -10,6 +10,13 @@
  *   transparency - optional map of viewId -> transparency value (0=opaque, 100=invisible)
  *   chart        - { type, title, data, unit? } for SVG chart rendering
  *   metrics      - optional array of { label, value, unit } for metric cards
+ *
+ * Interactive actions (optional on metrics[] items and chart.data[] items):
+ *   action       - map manipulation triggered on click:
+ *     views        - array of view IDs to show (others in section dimmed)
+ *     camera       - {center, zoom} or {code} to fly to
+ *     transparency - per-view opacity overrides
+ *     label        - tooltip/aria text for the interaction
  */
 
 export const METRICS_SECTIONS = [
@@ -28,10 +35,14 @@ export const METRICS_SECTIONS = [
       type: "horizontal-bar",
       title: "Average Annual Loss by Hazard Type",
       data: [
-        { label: "Flood", value: 42, color: "#004f91" },
-        { label: "Cyclone", value: 28, color: "#962987" },
-        { label: "Earthquake", value: 18, color: "#eb752a" },
-        { label: "Landslide", value: 12, color: "#00afae" },
+        { label: "Flood", value: 42, color: "#004f91",
+          action: { label: "Show flood hazard layer", views: ["MX-V07LO-829XA-4BIZ8"] } },
+        { label: "Cyclone", value: 28, color: "#962987",
+          action: { label: "Show cyclone exposure", views: ["MX-10AE5-746D1-76777"] } },
+        { label: "Earthquake", value: 18, color: "#eb752a",
+          action: { label: "Show landslide exposure", views: ["MX-04E66-2E550-81068"] } },
+        { label: "Landslide", value: 12, color: "#00afae",
+          action: { label: "Show landslide exposure", views: ["MX-04E66-2E550-81068"] } },
       ],
       unit: "$ billions",
     },
@@ -49,9 +60,39 @@ export const METRICS_SECTIONS = [
     camera: { center: { lng: 90, lat: 23 }, zoom: 5 },
     transparency: { "MX-V07LO-829XA-4BIZ8": 40 },
     metrics: [
-      { label: "People Exposed to Floods", value: "1.81B", unit: "" },
-      { label: "Countries >10% Pop. at Risk", value: "40+", unit: "" },
-      { label: "Assets in Flood Zones", value: "$4.2T", unit: "" },
+      {
+        label: "People Exposed to Floods",
+        value: "1.81B",
+        unit: "",
+        action: {
+          label: "Show population density layer",
+          views: ["MX-6YLMU-U4WXC-2JJD7"],
+          transparency: { "MX-6YLMU-U4WXC-2JJD7": 0, "MX-V07LO-829XA-4BIZ8": 70 },
+          camera: { center: { lng: 90, lat: 23 }, zoom: 6 },
+        },
+      },
+      {
+        label: "Countries >10% Pop. at Risk",
+        value: "40+",
+        unit: "",
+        action: {
+          label: "Show global flood exposure",
+          views: ["MX-6YLMU-U4WXC-2JJD7", "MX-V07LO-829XA-4BIZ8"],
+          transparency: { "MX-6YLMU-U4WXC-2JJD7": 0, "MX-V07LO-829XA-4BIZ8": 20 },
+          camera: { center: { lng: 20, lat: 15 }, zoom: 2.5 },
+        },
+      },
+      {
+        label: "Assets in Flood Zones",
+        value: "$4.2T",
+        unit: "",
+        action: {
+          label: "Highlight flood zones in SE Asia",
+          views: ["MX-V07LO-829XA-4BIZ8"],
+          transparency: { "MX-V07LO-829XA-4BIZ8": 0, "MX-6YLMU-U4WXC-2JJD7": 70 },
+          camera: { center: { lng: 105, lat: 12 }, zoom: 5 },
+        },
+      },
     ],
   },
   {
@@ -131,8 +172,12 @@ export const METRICS_SECTIONS = [
       type: "horizontal-bar",
       title: "Return on Investment: Nature-Based Solutions",
       data: [
-        { label: "Mangrove Restoration", value: 7.1, color: "#00afae" },
-        { label: "Forest Protection", value: 5.8, color: "#004f91" },
+        { label: "Mangrove Restoration", value: 7.1, color: "#00afae",
+          action: { label: "Show mangrove restoration layer", views: ["MX-559C5-58858-96A69"],
+            transparency: { "MX-559C5-58858-96A69": 0, "MX-DC56E-6ABC9-3C768": 70 } } },
+        { label: "Forest Protection", value: 5.8, color: "#004f91",
+          action: { label: "Show forest protection layer", views: ["MX-DC56E-6ABC9-3C768"],
+            transparency: { "MX-DC56E-6ABC9-3C768": 0, "MX-559C5-58858-96A69": 70 } } },
         { label: "Wetland Conservation", value: 4.2, color: "#962987" },
         { label: "Coral Reef Restoration", value: 3.6, color: "#eb752a" },
       ],

@@ -165,12 +165,96 @@ to their decisions:
 
 ## Data Sources & Caveats
 
-- **Hazard layers:** MapX Eco-DRR project (MX-2LD-FBB-58N-ROK-8RH) —
+- **Hazard layers:** MapX Eco-DRR project (MX-2LD-FBB-58N-ROK-8RH) --
   authoritative UNEP/GRID-Geneva datasets
 - **Country metrics:** Synthetic data for demonstration purposes,
   calibrated to approximate published figures from GAR, CRED EM-DAT,
   and World Bank sources
-- **Charts:** Mock visualizations with plausible values — not for
+- **Charts:** Mock visualizations with plausible values -- not for
   policy use without validation against primary sources
 - **Platform concept:** Designed for FCDO project stakeholder review;
   production version would integrate live APIs and validated datasets
+
+## Level of Certainty
+
+The stakeholder document was a rough strategy brief, not a detailed
+spec. Below is what was explicitly stated vs what was inferred to build
+a coherent demo.
+
+### High certainty -- directly from the document
+
+These elements were explicitly described or named in the stakeholder
+notes:
+
+- **Target audiences**: governments, banks, insurance, credit rating
+  agencies, private investors -- these were listed by name
+- **Platform components**: landing website, metrics hub with
+  storytelling, country resilience notes, interactive explorer --
+  the document named these as distinct products
+- **Key requirements**: "simplified interfaces", "clear storytelling",
+  "decision-relevant metrics", "intuitive navigation" -- direct quotes
+  or close paraphrases from meeting notes
+- **Risk-to-resilience framing**: the document centered on translating
+  risk analytics into actionable financial signals
+- **Storytelling-to-map flow**: "all stories will finish by the map
+  visualization" -- explicitly stated as a design principle
+- **Country deep-dives**: the document described searchable country
+  profiles as a core feature
+- **Nature-based solutions**: mentioned as a key theme for resilience
+  investment narratives
+
+### Medium certainty -- reasonably inferred
+
+These were not explicitly specified but follow logically from the
+stated requirements and the UNDRR/FCDO context:
+
+- **Four-pillar framework** (Hazard/Exposure/Vulnerability/Resilience):
+  this is the standard DRR framework (Sendai) -- the document talked
+  about risk components without naming this exact structure, but it is
+  the obvious framing for this audience
+- **AAL/PML/GDP-at-risk metrics**: the document mentioned
+  "decision-relevant metrics" and "financial signals" without listing
+  specific indicators -- AAL and PML are the standard financial risk
+  metrics used by insurers and governments
+- **Scrollytelling format**: the document described a blend of
+  storytelling + maps but did not prescribe scrollytelling
+  specifically -- it was chosen as the best interaction pattern to
+  deliver the "narrative that ends at the map" requirement
+- **Stakeholder pathway cards**: the document described tailored
+  experiences per audience but did not specify the card-based UI --
+  cards were chosen as a simple way to surface per-audience value
+- **Pilot country selection** (NPL, PHL, BGD, etc.): the document
+  did not name specific countries -- these were chosen to represent
+  diverse risk profiles across the regions the FCDO project covers
+- **Protection gap / insured vs uninsured framing**: the document
+  mentioned insurance stakeholders and fiscal risk but did not call
+  out the protection gap explicitly -- it is the central concept for
+  insurance/banking audiences
+
+### Lower certainty -- creative interpretation to fill gaps
+
+These elements were invented to make the demo feel complete. They
+would need stakeholder validation:
+
+- **Specific chart types and data values**: all numbers (1.81B
+  exposed, $4.2T assets, NbS ROI ratios) are synthetic mockups
+  calibrated to published ranges -- the document did not specify
+  what charts to show
+- **Tell/Quantify/Show rhythm**: the three-beat narrative pattern per
+  section was a design choice -- the document described blending
+  narrative with maps but did not prescribe this specific cadence
+- **Interactive metric cards** (click-to-explore on map): entirely
+  invented as a demo interaction to show how charts and maps could
+  be linked -- not mentioned in the document
+- **Climate outlook section**: the document mentioned climate as a
+  risk multiplier but did not describe a dedicated climate projection
+  section -- added to showcase the water stress data available in MapX
+- **Resilience indicators** (early warning, insurance, ecosystem
+  scores): the document described resilience broadly -- these three
+  dimensions were chosen as representative, not prescribed
+- **CTA section with GRAR/MapX/PreventionWeb links**: the document
+  did not specify downstream actions -- these links reflect the
+  UNDRR product ecosystem and seemed natural
+- **Dual map instances** (scrollytelling + country deep-dive): a
+  technical choice to solve the layout problem of the sticky map
+  not being visible in the country section

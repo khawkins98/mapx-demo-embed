@@ -2,7 +2,8 @@
  * Country deep-dive: selector + profile card rendering.
  *
  * Populates the country dropdown from COUNTRY_PROFILES and renders
- * a profile card with charts when a country is selected.
+ * a profile card using Mangrove mg-card + mg-stats-card-item patterns
+ * combined with SVG charts.
  */
 
 import { COUNTRY_PROFILES } from "../../src/config/country-data.js";
@@ -30,7 +31,7 @@ export function initCountryProfile({ onCountryChange }) {
   const select = document.getElementById("country-select");
   if (!select) return;
 
-  // Populate dropdown
+  // Populate dropdown options
   COUNTRY_PROFILES.forEach((c) => {
     const opt = document.createElement("option");
     opt.value = c.code;
@@ -48,6 +49,7 @@ export function initCountryProfile({ onCountryChange }) {
 
 /**
  * Render the profile card for a given country code.
+ * Uses Mangrove mg-card, mg-stats-card, mg-tag, and mg-grid patterns.
  * @param {string} code - ISO alpha-3
  */
 export function renderCountryProfile(code) {
@@ -68,29 +70,28 @@ export function renderCountryProfile(code) {
         ? "#eb752a"
         : "#00afae";
 
-  // Metric cards row
-  const metricsRow = [
-    renderMetricCard({
-      label: "Avg. Annual Loss",
-      value: country.aal.pctGdp + "%",
-      subtitle: "of GDP",
-    }),
-    renderMetricCard({
-      label: "AAL (USD)",
-      value: "$" + formatMillions(country.aal.usdMillions),
-      subtitle: "per year",
-    }),
-    renderMetricCard({
-      label: "Population Exposed",
-      value: country.popExposed + "M",
-      subtitle: "people at risk",
-    }),
-    renderMetricCard({
-      label: "GDP at Risk",
-      value: country.gdpAtRisk + "%",
-      subtitle: "multi-hazard",
-    }),
-  ].join("");
+  // Stats row — uses mg-stats-card pattern (2-col to fit in half-width panel)
+  const statsHtml = `
+    <section class="mg-stats-card mg-stats-card--compact" aria-label="Key risk figures for ${country.name}">
+      <div class="mg-grid mg-grid__col-2">
+        <article class="mg-card mg-stats-card-item">
+          <data class="mg-stats-card-item__value" value="${country.aal.pctGdp}%">${country.aal.pctGdp}%</data>
+          <strong class="mg-stats-card-item__bottom-label">Avg. Annual Loss (% GDP)</strong>
+        </article>
+        <article class="mg-card mg-stats-card-item">
+          <data class="mg-stats-card-item__value" value="$${formatMillions(country.aal.usdMillions)}">$${formatMillions(country.aal.usdMillions)}</data>
+          <strong class="mg-stats-card-item__bottom-label">AAL (USD per year)</strong>
+        </article>
+        <article class="mg-card mg-stats-card-item">
+          <data class="mg-stats-card-item__value" value="${country.popExposed}M">${country.popExposed}M</data>
+          <strong class="mg-stats-card-item__bottom-label">Population Exposed</strong>
+        </article>
+        <article class="mg-card mg-stats-card-item">
+          <data class="mg-stats-card-item__value" value="${country.gdpAtRisk}%">${country.gdpAtRisk}%</data>
+          <strong class="mg-stats-card-item__bottom-label">GDP at Risk (multi-hazard)</strong>
+        </article>
+      </div>
+    </section>`;
 
   // Hazard breakdown donut
   const hazardData = Object.entries(country.hazardBreakdown).map(
@@ -141,20 +142,24 @@ export function renderCountryProfile(code) {
   ];
 
   const resBars = renderHorizontalBarChart({
-    title: "Resilience Indicators (0–100)",
+    title: "Resilience Indicators (0\u2013100)",
     data: resData,
   });
 
   container.innerHTML = `
     <div class="country-profile-card">
-      <div class="country-profile-header">
-        <h3>${country.name}</h3>
-        <span class="risk-score-badge" style="background:${scoreColor}">
-          Risk Score: ${country.riskScore}/100
-        </span>
-      </div>
-      <p class="country-profile-hazard">Primary hazard: <strong>${country.primaryHazard}</strong></p>
-      <div class="metric-cards-row">${metricsRow}</div>
+      <article class="mg-card">
+        <div class="mg-card__content">
+          <div class="country-profile-header">
+            <header class="mg-card__title">${country.name}</header>
+            <span class="mg-tag mg-tag--accent risk-score-badge" style="background:${scoreColor}">
+              Risk Score: ${country.riskScore}/100
+            </span>
+          </div>
+          <p>Primary hazard: <strong>${country.primaryHazard}</strong></p>
+        </div>
+      </article>
+      ${statsHtml}
       <div class="country-charts-grid">
         <div class="country-chart-cell">${donut}</div>
         <div class="country-chart-cell">${sectorBars}</div>
