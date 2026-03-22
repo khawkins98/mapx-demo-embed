@@ -23,12 +23,12 @@ test.describe("Landing page", () => {
     await expect(page.locator("#pin-gate")).toHaveCount(0, { timeout: 5000 });
   });
 
-  test("three demo cards are visible after PIN dismissed", async ({ page }) => {
+  test("four demo cards are visible after PIN dismissed", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
     await page.goto("/");
     const cards = page.locator(".demo-card");
-    await expect(cards).toHaveCount(3);
-    for (let i = 0; i < 3; i++) {
+    await expect(cards).toHaveCount(4);
+    for (let i = 0; i < 4; i++) {
       await expect(cards.nth(i)).toBeVisible();
     }
   });
@@ -41,6 +41,7 @@ test.describe("Landing page", () => {
     await expect(cards.nth(0)).toHaveAttribute("href", "/demos/kitchen-sink/");
     await expect(cards.nth(1)).toHaveAttribute("href", "/demos/story/");
     await expect(cards.nth(2)).toHaveAttribute("href", "/demos/explorer/");
+    await expect(cards.nth(3)).toHaveAttribute("href", "/demos/metrics/");
   });
 
   test("About This Project section is visible", async ({ page }) => {

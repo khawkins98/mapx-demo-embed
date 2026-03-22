@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Risk to Resilience Metrics — MapX Demo</title>
+
+    <!--
+      UNDRR Mangrove component library — CSS only.
+      Provides typography, grid, cards, tags, buttons, and the
+      page-header/footer chrome used across the UNDRR family.
+    -->
+    <link
+      rel="stylesheet"
+      href="https://assets.undrr.org/static/mangrove/1.3.3/css/style.css"
+    />
+  </head>
+
+  <body>
+    <!-- =========================================================
+         PIN GATE — blocks interaction until correct PIN entered.
+         Removed from DOM after validation. localStorage persists.
+         ========================================================= -->
+    <div id="pin-gate" class="pin-gate">
+      <div class="pin-gate__card">
+        <h2>Demo Access</h2>
+        <p>Enter the 4-digit PIN to continue.</p>
+        <input
+          id="pin-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="4"
+          placeholder="PIN"
+          autocomplete="off"
+        />
+        <p id="pin-error" class="pin-gate__error"></p>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         UNDRR PAGE HEADER — standard branding bar.
+         ========================================================= -->
+    <header class="mg-page-header">
+      <div class="mg-page-header__inner">
+        <a href="https://www.undrr.org" class="mg-page-header__logo">
+          <img
+            src="https://assets.undrr.org/static/mangrove/1.3.3/img/UNDRR_logo.svg"
+            alt="UNDRR"
+          />
+        </a>
+      </div>
+    </header>
+
+    <!-- =========================================================
+         TITLE BAR — back link + page title + SDK status.
+         ========================================================= -->
+    <div class="app-title-bar">
+      <div class="mg-container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem">
+        <div style="display:flex;align-items:center;gap:1.6rem">
+          <a href="/mapx-demo-embed/" style="color:#fff;opacity:0.8;text-decoration:none;font-size:1.4rem">&#8592; All Demos</a>
+          <h1 style="font-size:2rem;margin:0;color:#fff">Metrics Hub</h1>
+        </div>
+        <span id="status" class="status-badge">Loading SDK...</span>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         SECTION 1: HERO
+         ========================================================= -->
+    <section class="metrics-hero" id="hero">
+      <div class="metrics-hero__content">
+        <h1>Risk to Resilience Metrics</h1>
+        <p>
+          Translating probabilistic risk analytics into financial signals.
+          Explore global hazard exposure, country-level risk profiles, and
+          nature-based resilience opportunities — powered by authoritative
+          geospatial data.
+        </p>
+        <div class="metrics-hero__badges">
+          <span class="mg-tag">Governments</span>
+          <span class="mg-tag">Banks &amp; Insurance</span>
+          <span class="mg-tag">Credit Rating Agencies</span>
+          <span class="mg-tag">Investors</span>
+          <span class="mg-tag">Researchers</span>
+        </div>
+        <div class="metrics-hero__scroll">&#9660;</div>
+      </div>
+    </section>
+
+    <!-- Sendai-coloured divider -->
+    <hr class="metrics-divider" />
+
+    <!-- =========================================================
+         SECTION 2: FRAMEWORK OVERVIEW
+         ========================================================= -->
+    <section class="metrics-framework" id="framework">
+      <div class="mg-container">
+        <h2>Risk Assessment Framework</h2>
+        <p>
+          The platform is structured around four pillars of disaster risk,
+          connecting hazard science to actionable financial metrics.
+        </p>
+        <div class="mg-grid mg-grid__col-4">
+          <div class="pillar-card pillar-card--hazard">
+            <div class="pillar-card__icon">&#9888;</div>
+            <h3>Hazard</h3>
+            <p>
+              What natural hazards threaten a location? Floods, cyclones,
+              earthquakes, landslides, tsunamis, and drought.
+            </p>
+          </div>
+          <div class="pillar-card pillar-card--exposure">
+            <div class="pillar-card__icon">&#127968;</div>
+            <h3>Exposure</h3>
+            <p>
+              Who and what is in harm's way? Population density, built
+              environment, agriculture, and critical infrastructure.
+            </p>
+          </div>
+          <div class="pillar-card pillar-card--vulnerability">
+            <div class="pillar-card__icon">&#9889;</div>
+            <h3>Vulnerability</h3>
+            <p>
+              How susceptible are exposed assets? Structural fragility,
+              poverty, governance capacity, and adaptive ability.
+            </p>
+          </div>
+          <div class="pillar-card pillar-card--resilience">
+            <div class="pillar-card__icon">&#127793;</div>
+            <h3>Resilience</h3>
+            <p>
+              What reduces risk? Early warning systems, insurance
+              penetration, nature-based solutions, and fiscal buffers.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="metrics-divider" />
+
+    <!-- =========================================================
+         SECTION 3: SCROLLYTELLING
+         Narrative cards on the left, sticky map on the right.
+         ========================================================= -->
+    <section class="metrics-scroll" id="scrollytelling">
+      <div class="metrics-narrative" id="narrative-scroll">
+        <!-- Card 0: Global Hazard -->
+        <div class="metrics-card" data-index="0" id="card-0">
+          <h3>The Global Hazard Landscape</h3>
+          <p>
+            Disasters are not random — they follow geographic patterns
+            dictated by tectonics, climate, and topography. Floods alone
+            account for 42% of global average annual loss (AAL), followed
+            by tropical cyclones at 28% and earthquakes at 18%.
+          </p>
+          <div class="metrics-card__chart" id="chart-0"></div>
+        </div>
+
+        <!-- Card 1: Population at Risk -->
+        <div class="metrics-card" data-index="1" id="card-1">
+          <h3>Population at Risk</h3>
+          <p>
+            Risk emerges where hazards intersect with people. Over 1.8 billion
+            people live in areas with significant flood exposure, concentrated
+            in South and Southeast Asia's river deltas and coastal lowlands.
+          </p>
+          <div class="metrics-card__metrics" id="chart-1"></div>
+        </div>
+
+        <!-- Card 2: Counting the Cost -->
+        <div class="metrics-card" data-index="2" id="card-2">
+          <h3>Counting the Cost</h3>
+          <p>
+            For Small Island Developing States and least developed countries,
+            disaster losses can exceed 5% of GDP annually — enough to erase
+            years of development gains. Less than 30% of losses in developing
+            countries are insured.
+          </p>
+          <div class="metrics-card__chart" id="chart-2"></div>
+        </div>
+
+        <!-- Card 3: Nature's Shield -->
+        <div class="metrics-card" data-index="3" id="card-3">
+          <h3>Nature's Shield</h3>
+          <p>
+            Ecosystem-based approaches offer cost-effective risk reduction.
+            Intact forests reduce downstream flood peaks by up to 20%. Coastal
+            mangroves protect an estimated $65 billion in property annually.
+            Every $1 invested in nature-based solutions yields $4–7 in
+            avoided losses.
+          </p>
+          <div class="metrics-card__chart" id="chart-3"></div>
+        </div>
+
+        <!-- Card 4: Climate Outlook -->
+        <div class="metrics-card" data-index="4" id="card-4">
+          <h3>Climate Outlook</h3>
+          <p>
+            Climate change is a risk multiplier. Under RCP 8.5, water stress
+            intensifies across the Middle East, North Africa, and Central Asia.
+            Cyclone intensity is increasing. Adaptation investment now is
+            cheaper than recovery later.
+          </p>
+          <div class="metrics-card__chart" id="chart-4"></div>
+        </div>
+      </div>
+
+      <!-- Sticky map panel -->
+      <div class="metrics-map-sticky">
+        <div class="app-map">
+          <div id="mapx"></div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="metrics-divider" />
+
+    <!-- =========================================================
+         SECTION 4: COUNTRY DEEP DIVE
+         ========================================================= -->
+    <section class="metrics-country" id="country-dive">
+      <div class="mg-container">
+        <h2>Country Deep Dive</h2>
+        <p>
+          Select a country to explore its risk profile, hazard breakdown,
+          sectoral exposure, and resilience indicators. The map will fly
+          to the selected country.
+        </p>
+        <select id="country-select" class="country-select">
+          <option value="">Select a country...</option>
+        </select>
+        <div id="country-profile"></div>
+      </div>
+    </section>
+
+    <hr class="metrics-divider" />
+
+    <!-- =========================================================
+         SECTION 5: STAKEHOLDER PATHWAYS
+         ========================================================= -->
+    <section class="metrics-pathways" id="pathways">
+      <div class="mg-container">
+        <h2>Stakeholder Pathways</h2>
+        <p>
+          The platform delivers decision-relevant analytics tailored to
+          each audience.
+        </p>
+        <div class="mg-grid mg-grid__col-4">
+          <div class="pathway-card">
+            <div class="pathway-card__icon">&#127963;</div>
+            <h3>Governments</h3>
+            <ul>
+              <li>Country resilience profiles</li>
+              <li>Fiscal risk metrics</li>
+              <li>Investment prioritization</li>
+              <li>Sendai Framework monitoring</li>
+            </ul>
+          </div>
+          <div class="pathway-card">
+            <div class="pathway-card__icon">&#127974;</div>
+            <h3>Banks &amp; Insurance</h3>
+            <ul>
+              <li>Asset exposure analytics</li>
+              <li>Protection gap analysis</li>
+              <li>Climate risk projections</li>
+              <li>Macro-fiscal stress testing</li>
+            </ul>
+          </div>
+          <div class="pathway-card">
+            <div class="pathway-card__icon">&#128200;</div>
+            <h3>Investors</h3>
+            <ul>
+              <li>Sectoral resilience opportunities</li>
+              <li>NbS cost-benefit data</li>
+              <li>ESG-aligned risk metrics</li>
+              <li>Resilience bond analytics</li>
+            </ul>
+          </div>
+          <div class="pathway-card">
+            <div class="pathway-card__icon">&#128218;</div>
+            <h3>Researchers</h3>
+            <ul>
+              <li>Open datasets via MapX</li>
+              <li>API access to risk layers</li>
+              <li>Methodology documentation</li>
+              <li>Peer-reviewed data sources</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         SECTION 6: CTA
+         ========================================================= -->
+    <section class="metrics-cta" id="cta">
+      <div class="mg-container">
+        <h2>Explore the Data</h2>
+        <p>
+          Access authoritative datasets, interactive visualizations, and
+          country-level analytics through our partner platforms.
+        </p>
+        <div class="metrics-cta__links">
+          <a href="https://www.undrr.org/gar" class="cta-primary"
+            >Global Assessment Report</a
+          >
+          <a href="https://app.mapx.org" class="cta-primary">MapX Platform</a>
+          <a href="https://www.preventionweb.net" class="cta-secondary"
+            >PreventionWeb</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         FOOTER — syndicated from PreventionWeb.
+         ========================================================= -->
+    <script>
+      /* PW_Widget: pulls the global UNDRR footer */
+      var defined_locale = "en";
+    </script>
+    <script src="https://www.preventionweb.net/assets/js/PW_Widget.js?1"></script>
+
+    <!-- =========================================================
+         SCRIPTS — SDK UMD first, then our ES module entry point.
+         ========================================================= -->
+    <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
+    <script type="module" src="/demos/metrics/main.js"></script>
+  </body>
+</html>

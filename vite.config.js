@@ -31,6 +31,7 @@ export default defineConfig({
      *   kitchen-sink → /demos/kitchen-sink/     (full SDK feature demo)
      *   story        → /demos/story/            (guided narrative story map)
      *   explorer     → /demos/explorer/         (DELTA-style data explorer)
+     *   metrics      → /demos/metrics/          (scrollytelling metrics hub)
      *
      * Vite automatically deduplicates shared modules across entry points.
      * For example, shared.css and pin-gate.js are imported by every page
@@ -43,6 +44,7 @@ export default defineConfig({
         "kitchen-sink": resolve(__dirname, "demos/kitchen-sink/index.html"),
         story: resolve(__dirname, "demos/story/index.html"),
         explorer: resolve(__dirname, "demos/explorer/index.html"),
+        metrics: resolve(__dirname, "demos/metrics/index.html"),
       },
     },
   },

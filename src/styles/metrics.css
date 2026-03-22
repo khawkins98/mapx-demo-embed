@@ -1,0 +1,526 @@
+/* ===================================================================
+   Metrics Hub — page-specific styles
+   Layers on top of shared.css. Uses Mangrove colour tokens and
+   Sendai Framework palette.
+   =================================================================== */
+
+/* ----- Hero section ----- */
+
+.metrics-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  background:
+    linear-gradient(rgba(0, 20, 50, 0.62), rgba(0, 20, 50, 0.72)),
+    url("https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1920&q=80")
+      center / cover no-repeat;
+}
+
+.metrics-hero__content {
+  max-width: 780px;
+  padding: 2rem;
+  z-index: 1;
+}
+
+.metrics-hero__content h1 {
+  font-size: 4.4rem;
+  font-weight: 700;
+  margin-bottom: 1.6rem;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.metrics-hero__content p {
+  font-size: 1.8rem;
+  line-height: 1.6;
+  opacity: 0.92;
+  margin-bottom: 2.4rem;
+}
+
+.metrics-hero__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.metrics-hero__badges .mg-tag {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 1.3rem;
+  padding: 0.4rem 1.2rem;
+  border-radius: 20px;
+}
+
+.metrics-hero__scroll {
+  display: inline-block;
+  font-size: 2.4rem;
+  opacity: 0.7;
+  animation: bounce-down 2s infinite;
+}
+
+@keyframes bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+}
+
+/* ----- Framework section ----- */
+
+.metrics-framework {
+  padding: 6rem 0;
+  background: #f8f9fa;
+}
+
+.metrics-framework h2 {
+  text-align: center;
+  font-size: 2.8rem;
+  color: #1a1a1a;
+  margin-bottom: 1.2rem;
+}
+
+.metrics-framework > .mg-container > p {
+  text-align: center;
+  font-size: 1.6rem;
+  color: #555;
+  max-width: 700px;
+  margin: 0 auto 3rem;
+  line-height: 1.6;
+}
+
+.pillar-card {
+  background: #fff;
+  border-radius: 6px;
+  padding: 2.4rem 2rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.pillar-card--hazard { border-top: 4px solid #c10920; }
+.pillar-card--exposure { border-top: 4px solid #eb752a; }
+.pillar-card--vulnerability { border-top: 4px solid #f0c808; }
+.pillar-card--resilience { border-top: 4px solid #00afae; }
+
+.pillar-card__icon {
+  font-size: 3.2rem;
+  margin-bottom: 1rem;
+}
+
+.pillar-card h3 {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  margin-bottom: 0.8rem;
+}
+
+.pillar-card p {
+  font-size: 1.4rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* ----- Scrollytelling section ----- */
+
+.metrics-scroll {
+  display: flex;
+  position: relative;
+}
+
+.metrics-narrative {
+  width: 40%;
+  min-width: 340px;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.metrics-card {
+  min-height: 60vh;
+  margin-bottom: 40vh;
+  padding: 3rem 2.4rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid transparent;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.metrics-card:last-child {
+  margin-bottom: 10vh;
+}
+
+.metrics-card--active {
+  border-left-color: #004f91;
+  box-shadow: 0 4px 16px rgba(0, 79, 145, 0.12);
+}
+
+.metrics-card h3 {
+  font-size: 2.2rem;
+  color: #004f91;
+  margin-bottom: 1.2rem;
+}
+
+.metrics-card p {
+  font-size: 1.5rem;
+  line-height: 1.7;
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+.metrics-card__chart {
+  margin-top: 1rem;
+}
+
+.metrics-card__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.metrics-map-sticky {
+  width: 60%;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 1;
+}
+
+.metrics-map-sticky .app-map {
+  height: 100%;
+  position: relative;
+}
+
+.metrics-map-sticky #mapx {
+  position: absolute;
+  inset: 0;
+}
+
+/* ----- Charts ----- */
+
+.chart-svg {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ----- Metric cards ----- */
+
+.metric-card {
+  background: #f0f4f8;
+  border-radius: 6px;
+  padding: 1.6rem 1.4rem;
+  text-align: center;
+  flex: 1;
+  min-width: 120px;
+}
+
+.metric-card__value {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #004f91;
+  line-height: 1.1;
+}
+
+.metric-card__unit {
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #666;
+  margin-left: 2px;
+}
+
+.metric-card__label {
+  font-size: 1.2rem;
+  color: #555;
+  margin-top: 0.6rem;
+  line-height: 1.3;
+}
+
+.metric-card__subtitle {
+  font-size: 1.1rem;
+  color: #888;
+  margin-top: 0.3rem;
+}
+
+.metric-cards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* ----- Country deep dive ----- */
+
+.metrics-country {
+  padding: 6rem 0 4rem;
+  background: #f8f9fa;
+}
+
+.metrics-country h2 {
+  font-size: 2.8rem;
+  color: #1a1a1a;
+  margin-bottom: 0.8rem;
+}
+
+.metrics-country > .mg-container > p {
+  font-size: 1.5rem;
+  color: #555;
+  margin-bottom: 2rem;
+  max-width: 600px;
+}
+
+.metrics-country .country-select {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  padding: 1rem 1.2rem;
+  font-size: 1.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 2.4rem;
+  background: #fff;
+}
+
+.country-profile-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 3rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.country-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.country-profile-header h3 {
+  font-size: 2.6rem;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.risk-score-badge {
+  display: inline-block;
+  padding: 0.4rem 1.2rem;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.country-profile-hazard {
+  font-size: 1.4rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.country-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.country-chart-cell {
+  display: flex;
+  justify-content: center;
+}
+
+.country-chart-full {
+  max-width: 500px;
+}
+
+/* ----- Stakeholder pathways ----- */
+
+.metrics-pathways {
+  padding: 6rem 0;
+}
+
+.metrics-pathways h2 {
+  text-align: center;
+  font-size: 2.8rem;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+}
+
+.metrics-pathways > .mg-container > p {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #555;
+  max-width: 600px;
+  margin: 0 auto 3rem;
+}
+
+.pathway-card {
+  background: #fff;
+  border-radius: 6px;
+  padding: 2.4rem 2rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border-top: 3px solid #004f91;
+}
+
+.pathway-card__icon {
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+}
+
+.pathway-card h3 {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  margin-bottom: 0.8rem;
+}
+
+.pathway-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pathway-card li {
+  font-size: 1.3rem;
+  color: #555;
+  line-height: 1.6;
+  padding-left: 1.4rem;
+  position: relative;
+  margin-bottom: 0.4rem;
+}
+
+.pathway-card li::before {
+  content: "\2192";
+  position: absolute;
+  left: 0;
+  color: #004f91;
+}
+
+/* ----- CTA section ----- */
+
+.metrics-cta {
+  padding: 5rem 0;
+  background: #1a2a3a;
+  color: #fff;
+  text-align: center;
+}
+
+.metrics-cta h2 {
+  font-size: 2.6rem;
+  margin-bottom: 1rem;
+}
+
+.metrics-cta p {
+  font-size: 1.5rem;
+  opacity: 0.85;
+  margin-bottom: 2.4rem;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.metrics-cta__links {
+  display: flex;
+  gap: 1.2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.metrics-cta__links a {
+  padding: 1rem 2.4rem;
+  border-radius: 4px;
+  font-size: 1.4rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.metrics-cta__links a:hover {
+  opacity: 0.85;
+}
+
+.metrics-cta__links .cta-primary {
+  background: #004f91;
+  color: #fff;
+}
+
+.metrics-cta__links .cta-secondary {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ----- Section divider ----- */
+
+.metrics-divider {
+  height: 4px;
+  background: linear-gradient(90deg, #c10920, #eb752a, #f0c808, #00afae);
+  border: none;
+  margin: 0;
+}
+
+/* ----- Responsive ----- */
+
+@media (max-width: 1024px) {
+  .metrics-narrative {
+    width: 45%;
+  }
+  .metrics-map-sticky {
+    width: 55%;
+  }
+}
+
+@media (max-width: 768px) {
+  .metrics-hero__content h1 {
+    font-size: 3.2rem;
+  }
+
+  .metrics-hero__content p {
+    font-size: 1.5rem;
+  }
+
+  .metrics-scroll {
+    flex-direction: column;
+  }
+
+  .metrics-narrative {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .metrics-card {
+    min-height: auto;
+    margin-bottom: 2rem;
+  }
+
+  .metrics-map-sticky {
+    width: 100%;
+    position: relative;
+    height: 50vh;
+  }
+
+  .country-charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-cards-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-hero__content h1 {
+    font-size: 2.6rem;
+  }
+
+  .country-profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
