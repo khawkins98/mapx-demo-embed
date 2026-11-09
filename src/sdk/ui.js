@@ -5,7 +5,6 @@
  *   set_language({lang})  -- switch interface language using ISO 639-1
  *                            codes (e.g. "en", "fr", "es", "ar")
  *   get_language()        -- returns current language code
- *   get_languages()       -- returns list of supported language codes
  *
  * Theme:
  *   set_theme({idTheme})  -- switch map visual theme
@@ -80,12 +79,4 @@ export function showModalMapComposer() {
  */
 export function showModalShare() {
   return getSDK().ask("show_modal_share");
-}
-
-/**
- * close_modal_all()
- *   Closes all open MapX modals. Useful as a cleanup step.
- */
-export function closeModalAll() {
-  return getSDK().ask("close_modal_all");
 }

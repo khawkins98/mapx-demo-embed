@@ -52,7 +52,7 @@
 
 import { getSDK } from "./client.js";
 
-export function mapMethod(method, parameters) {
+function mapMethod(method, parameters) {
   const opts = { method, parameters: parameters ?? [] };
   return getSDK().ask("map", opts);
 }

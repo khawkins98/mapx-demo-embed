@@ -4,13 +4,18 @@ Hard-won lessons from building this MapX embed proof of concept. Captured during
 
 The deeper SDK reference lives in the [mapx-llm-skills](https://github.com/khawkins98/mapx-llm-skills) repo (especially `skills/mapx-sdk-dev/limitations-and-workarounds.md`). This file captures lessons specifically relevant to *this* embed PoC.
 
-## The MapX SDK fails silently in important places
+## Project context and SDK error handling
 
-- `view_add` fails silently for views that aren't part of the connected MapX project — there's no error, no rejected promise, no network request. If a view doesn't appear, the first thing to check is whether the view ID belongs to the project the SDK is connected to.
-- Validation logic enforces the single-project constraint at startup. Building a sister project's view into the demo means switching projects, not mixing them.
+- The original investigation found silent failures when adding story views
+  from a different project. Check project context first when a view fails to
+  appear; see the historical investigation in [methodology.md](methodology.md).
+- The regular view list targets the Eco-DRR project. Cross-project stories use
+  a separate iframe with their own project context; there is no startup catalogue
+  validation in this demo.
 - Older MapX releases could leave `get_view_source_summary` pending on resolver failure. MapX 1.14.3 now returns structured resolver errors and supports request timeouts; do not assume an SDK call always succeeds.
 
-The skills repo's `troubleshooting.md` lists the full set of silent-failure resolvers.
+For more SDK failure modes, see the skills repo's
+[`troubleshooting.md`](https://github.com/khawkins98/mapx-llm-skills/blob/main/skills/mapx-sdk-dev/troubleshooting.md).
 
 ## `map_wait_idle()` is the bottleneck people miss
 

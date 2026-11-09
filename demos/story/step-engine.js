@@ -35,15 +35,6 @@ export function getCurrentStepIndex() {
 }
 
 /**
- * Return the step definition object for the current step,
- * or null if no step has been activated yet.
- * @returns {object|null} Current step definition ({id, title, narrative, views, camera, transparency}).
- */
-export function getCurrentStep() {
-  return STORY_STEPS[currentStepIndex] || null;
-}
-
-/**
  * Register a callback that fires after every step transition.
  *
  * @param {function(object, number): void} callback

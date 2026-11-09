@@ -36,12 +36,11 @@ npm run dev
 
 Open **http://localhost:3001/mapx-demo-embed/**. Vite handles module bundling and hot reload.
 
-For production:
+To build and preview the static site:
 
 ```bash
 npm run build          # outputs to dist/
-npm run preview        # preview the production build
-node server.js         # serves dist/ (falls back to root if no build)
+npm run preview        # http://localhost:4173/mapx-demo-embed/
 ```
 
 ## Testing
@@ -59,7 +58,8 @@ Install Playwright browsers on first run: `npx playwright install --with-deps ch
 
 ## Demo Pages
 
-The site is a multi-page app (Vite MPA) with a landing page and four demos:
+The site is a multi-page app (Vite MPA) with a landing page and four demos.
+Routes below are relative to the `/mapx-demo-embed/` deployment base:
 
 | Page | Route | What it shows |
 |---|---|---|
@@ -79,13 +79,16 @@ The site is a multi-page app (Vite MPA) with a landing page and four demos:
 | `docs/` | Pitch document and story arc for the Metrics Hub concept |
 | `tests/unit/` | Vitest unit tests for pure logic (esc, geo, stats, store) |
 | `tests/e2e/` | Playwright E2E tests (smoke, views, scenarios, controls, analysis) |
-| `server.js` | Node static file server (serves `dist/` in production) |
-| `probe-views.html` | Utility page — connects to MapX projects and dumps their view catalogs |
+| `probe-views.html` | Development-only utility — connects to MapX projects and dumps their view catalogs |
 | `methodology.md` | Documents how views and data sources were discovered and selected |
+
+The development-only catalogue probe is available at
+`http://localhost:3001/mapx-demo-embed/probe-views.html` after `npm run dev`.
+It is not included in the production build.
 
 ## Curated DRR Views
 
-The demo loads 11 curated views covering hazards, exposure, eco-DRR solutions, and climate projections:
+The demo offers 11 curated views covering hazards, exposure, eco-DRR solutions, and climate projections:
 
 | Type | View | What it shows |
 |---|---|---|
@@ -105,12 +108,11 @@ See [methodology.md](methodology.md) for how these were discovered and why they 
 
 ## Known Limitations
 
-**Story maps require same-project context.** The SDK's `view_add` only works
-for views belonging to the currently loaded project. Story maps from other
-projects (like the HOME project) silently fail — no error, no network request.
-The demo works around this by overlaying a second MapX iframe for story map
-playback. If your project has its own story maps, `view_add` works seamlessly.
-See [methodology.md](methodology.md) section 8 for the full investigation.
+**Story playback uses a separate project context.** The kitchen-sink story
+examples belong to the HOME project, while its main map uses Eco-DRR. The demo
+opens a second iframe with the story's project and view, then closes that frame
+to return to the main map. The original cross-project `view_add` failures are
+recorded in [methodology.md](methodology.md) section 8 as historical findings.
 
 ## Custom Data Overlays
 

@@ -15,12 +15,12 @@
 
 import "./styles/shared.css";
 import { initSDK, getMapXVersion } from "./sdk/client.js";
+import { setVectorHighlight } from "./sdk/ui.js";
 import { setStatus, log } from "./ui/log.js";
 import { showInfobox } from "./ui/infobox.js";
 import { buildViewButtons } from "./ui/view-buttons.js";
 import { enableActionButtons } from "./ui/action-buttons.js";
 import { initCoordinateDisplay } from "./ui/coordinates.js";
-
 
 /* Initialise the SDK */
 const mapx = initSDK(document.getElementById("mapx"));
@@ -30,7 +30,7 @@ mapx.on("ready", async () => {
   log(`SDK ready — MapX ${getMapXVersion() ?? "unknown version"}, Eco-DRR project loaded`);
   buildViewButtons();
   enableActionButtons();
-  await mapx.ask("set_vector_highlight", { enable: true });
+  await setVectorHighlight(true);
 
   /* Start coordinate bar — polls every 2 seconds */
   initCoordinateDisplay(2000);

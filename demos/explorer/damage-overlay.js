@@ -13,19 +13,6 @@ import { DAMAGE_CIRCLE_PAINT } from "../../src/config/explorer-layers.js";
 import { log } from "../../src/ui/log.js";
 import { registerGeoJSON, openViews } from "../../src/state/store.js";
 
-/** @type {string|null} SDK-assigned view ID once the overlay is created */
-let damageViewId = null;
-
-/**
- * Return the SDK view ID of the damage overlay.
- *
- * @returns {string|null} The view ID, or `null` if the overlay has not
- *   been loaded yet (or failed to load).
- */
-export function getDamageViewId() {
-  return damageViewId;
-}
-
 /**
  * Return the raw GeoJSON FeatureCollection used by the damage overlay.
  *
@@ -53,7 +40,7 @@ export async function loadDamageOverlay() {
       abstract: { en: "Simulated damage event points for analysis demo" },
       random: false,
     });
-    damageViewId = result.id;
+    const damageViewId = result.id;
 
     await viewGeojsonSetStyle(damageViewId, DAMAGE_CIRCLE_PAINT);
 
