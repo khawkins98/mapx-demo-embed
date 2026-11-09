@@ -59,6 +59,10 @@ The site is a multi-page app (Vite MPA) with a landing page and four demos:
 | **Data Explorer** | `/demos/explorer/` | DELTA-style analysis with damage overlays and preset queries |
 | **Metrics Hub** | `/demos/metrics/` | Scrollytelling risk metrics, interactive charts, country deep-dives |
 
+## Editorial Storyboarding
+
+Use the [editorial planning guide](docs/editorial/README.md) to turn a scroll-story idea into a sequence of copy, visuals, and map actions. It includes a blank storyboard template and a worked drought-loss example, each available in Markdown and editable Word format.
+
 ## What's In Here
 
 | Path | Purpose |
