@@ -1,188 +1,76 @@
-# MapX Demo Embed
+# MapX demo embed
 
-> **Investigation proof of concept** — Exploratory work to see what the
-> MapX SDK can do for embedding interactive geospatial maps into a website.
-> Not intended for production use; workarounds and rough edges are documented
-> in [methodology.md](methodology.md).
+Explore disaster risk reduction maps through a kitchen-sink SDK demo, a guided
+story, a data explorer and a metrics hub, styled with UNDRR Mangrove.
 
-A proof-of-concept that embeds MapX disaster risk reduction maps via the SDK and wires them up to UI controls styled with the UNDRR Mangrove component library.
+This is an unofficial investigation prototype, not an official UNDRR product or
+a production service. Custom overlays (offices, monitoring stations, project
+zones and damage events) and Metrics Hub figures are synthetic. MapX layers come
+from their third-party sources.
 
-## Project
+[Open the hosted demos](https://khawkins98.github.io/mapx-demo-embed/). Enter PIN
+**5498** and select **Unlock** or press Enter. Access is remembered across the
+demos and browser tabs. The PIN is a preview notice, not authentication.
 
-- **Primary MapX project:** Eco-DRR Geospatial Datasets (`MX-2LD-FBB-58N-ROK-8RH`)
-- **Direct link:** https://app.mapx.org/?project=MX-2LD-FBB-58N-ROK-8RH&language=en&theme=color_light
+## Run locally
 
-## Preview Access
+Use Node.js 24.15 or later in the 24 LTS series. `.nvmrc` selects that major when
+using nvm. From the repository root:
 
-The demo uses the published Mangrove 2.3.0 **PreviewAccess** pattern for its unofficial preview.
-
-**PIN: `5498`**
-
-Enter the PIN and select **Unlock** (or press Enter). Mangrove remembers the unlock
-in `localStorage`, shared across the landing page and all four demos. Existing
-users of the previous custom gate enter the PIN once again after this upgrade.
-
-The component supplies the dialog, background isolation, error feedback and focus
-handling. Its CSS and JavaScript both come from the pinned 2.3.0 asset bundle.
-
-## Running It
-
-Requires Node.js 24.15+ (24 LTS). Use `nvm use` to select the supported major.
-
-```bash
+```sh
 npm ci
 npm run dev
 ```
 
-Open **http://localhost:3001/mapx-demo-embed/**. Vite handles module bundling and hot reload.
+Open **http://localhost:3001/mapx-demo-embed/** and use the same preview PIN. If
+Vite selects another port, use the URL it prints. The pages need network access
+for Mangrove assets, MapX and other remote content; a build does not bundle those
+services for offline use. Leave the dev terminal running while using the demos;
+stop it with Ctrl+C.
 
-To build and preview the static site:
+## Choose a demo
 
-```bash
-npm run build          # outputs to dist/
-npm run preview        # http://localhost:4173/mapx-demo-embed/
+Routes are relative to `/mapx-demo-embed/` locally and on GitHub Pages.
+
+| Demo | Route | Try it for |
+| --- | --- | --- |
+| Kitchen sink | `demos/kitchen-sink/` | Views, scenarios, custom overlays and analysis tools |
+| Risk to resilience | `demos/story/` | Step-by-step map and narrative transitions |
+| Data explorer | `demos/explorer/` | Queries and analysis with fictional damage events |
+| Metrics hub | `demos/metrics/` | Scrolling charts, country profiles and map actions |
+
+The primary map project is [Eco-DRR](https://app.mapx.org/?project=MX-2LD-FBB-58N-ROK-8RH&language=en&theme=color_light).
+For layer IDs and types, see the maintained [view catalogue](src/config/views.js).
+
+## Build and check
+
+Stop the dev server with Ctrl+C, or open another terminal. After installing
+dependencies:
+
+```sh
+npm run build
+npm test
+npm run preview
 ```
 
-## Testing
+The build writes `dist/`. Open the preview URL printed by Vite, normally
+**http://localhost:4173/mapx-demo-embed/**. Preview also runs until Ctrl+C.
+Deployment uses the GitHub Pages workflow. [Contributor checks](CONTRIBUTING.md#checks) cover Playwright setup,
+the CI browser subset and live MapX tests.
 
-```bash
-npm test               # unit tests (Vitest)
-npm run test:e2e       # E2E tests (Playwright, requires chromium)
-npm run test:all       # both
-```
+## Work on the integration
 
-CI runs unit tests plus the preview-access, landing-page and stubbed MapX compatibility browser tests.
-The full E2E suite also contacts live MapX and needs network access.
+- [Integration guide](docs/integration.md): SDK setup, overlays, inspection,
+  analysis limits, runtime compatibility and Mangrove preview access.
+- [Contributing](CONTRIBUTING.md): change and review workflow, documentation
+  maintenance and contribution conventions.
+- [Investigation record](methodology.md): original experiments and their limits;
+  historical examples are marked and include corrections.
+- [Decision record](LEARNINGS.md): why the demo uses its current integration
+  patterns and where those lessons came from.
+- [Metrics concept brief](docs/risk-to-resilience-pitch.md): the proposed audience
+  and story arc, including ideas that the prototype does not implement.
 
-Install Playwright browsers on first run: `npx playwright install --with-deps chromium`
-
-## Demo Pages
-
-The site is a multi-page app (Vite MPA) with a landing page and four demos.
-Routes below are relative to the `/mapx-demo-embed/` deployment base:
-
-| Page | Route | What it shows |
-|---|---|---|
-| **Landing** | `/` | Project intro + cards linking to each demo |
-| **Kitchen Sink** | `/demos/kitchen-sink/` | All SDK features: views, scenarios, custom data, analysis tools |
-| **Risk to Resilience** | `/demos/story/` | Guided narrative with step-by-step map animations |
-| **Data Explorer** | `/demos/explorer/` | DELTA-style analysis with damage overlays and preset queries |
-| **Metrics Hub** | `/demos/metrics/` | Scrollytelling risk metrics, interactive charts, country deep-dives |
-
-## What's In Here
-
-| Path | Purpose |
-|---|---|
-| `index.html` | Landing page — demo cards linking to each page |
-| `demos/` | Demo pages, each with its own `index.html` + entry-point JS |
-| `src/` | Shared modules — config, data, lib (pure functions), SDK wrappers, state, UI |
-| `docs/` | Pitch document and story arc for the Metrics Hub concept |
-| `tests/unit/` | Vitest tests for logic, state, SDK setup and infobox rendering |
-| `tests/e2e/` | Playwright UI, preview-access and SDK compatibility tests; full suite also uses live MapX |
-| `probe-views.html` | Development-only utility — connects to MapX projects and dumps their view catalogs |
-| `methodology.md` | Documents how views and data sources were discovered and selected |
-
-The development-only catalogue probe is available at
-`http://localhost:3001/mapx-demo-embed/probe-views.html` after `npm run dev`.
-It is not included in the production build.
-
-## Curated DRR Views
-
-The demo offers 11 curated views covering hazards, exposure, eco-DRR solutions, and climate projections:
-
-| Type | View | What it shows |
-|---|---|---|
-| live | Earthquakes Mag >= 5.5 (USGS) | Real-time seismic point data |
-| raster | Flood Hazard 25yr | River flood return period model |
-| raster | Landslide Exposure | Earthquake + precipitation triggered |
-| raster | Tropical Cyclone Exposure | Wind speed probability |
-| raster | Tsunami Exposure | Annual physical exposure |
-| raster | Population (HRSL 2022) | Who is at risk — exposure baseline |
-| raster | Forest Protection — Flood Risk | Nature-based solution opportunities |
-| raster | Mangrove Restoration — Cyclone Surge | Coastal NbS opportunities |
-| vector | Water Stress Change (RCP8.5 2030) | Forward-looking climate projection |
-| vector | Active Fires (Admin Level 1) | Admin polygons with fire trends |
-| vector | Intact Forest Landscapes | Large intact ecosystem polygons |
-
-See [methodology.md](methodology.md) for how these were discovered and why they were chosen.
-
-## Known Limitations
-
-**Story playback uses a separate project context.** The kitchen-sink story
-examples belong to the HOME project, while its main map uses Eco-DRR. The demo
-opens a second iframe with the story's project and view, then closes that frame
-to return to the main map. The original cross-project `view_add` failures are
-recorded in [methodology.md](methodology.md) section 8 as historical findings.
-
-## Custom Data Overlays
-
-You can overlay your own data on top of MapX layers in a few different ways:
-
-| Approach | Method | Best for |
-|---|---|---|
-| **GeoJSON view** | `view_geojson_create` | Point overlays needing click interaction |
-| **Mapbox passthrough** | `map` method (`addSource`/`addLayer`) | Layers needing advanced Mapbox GL styling |
-| **Polygon overlay** | `map` method with `fill`/`line` layers | Area boundaries and project zones |
-
-**Click interaction:** GeoJSON views fire the `click_features` event natively
-when a feature is clicked, and feature properties come through with it. Mapbox
-passthrough layers cannot have click handlers (callbacks are not serializable
-through `postMessage`), so a coordinate matching fallback is used instead —
-nearest-point matching for points and ray-casting point-in-polygon for polygons.
-
-See [methodology.md](methodology.md) section 9 for technical details,
-trade-offs, and implementation patterns.
-
-## Analysis Tools
-
-The demo includes lightweight analysis tools in the sidebar that operate on whichever layer is selected in the "Active View" dropdown:
-
-| Tool | What it does |
-|---|---|
-| **Numeric Range Filter** | Filter vector layers by numeric attribute range |
-| **Spatial Query** | Query features in the current viewport or a two-click bounding box |
-| **Feature Statistics** | View count, min/max, mean, and category distributions |
-| **Data Export** | Download GeoJSON view data as a file |
-
-Not all tools work on all view types — numeric filtering requires vector tile (`vt`) views, and export only works for GeoJSON views. See [methodology.md](methodology.md) section 10 for details and the `toggle_draw_mode` workaround.
-
-## Runtime compatibility
-
-- **Mangrove 2.3.0** is pinned to the published asset CDN on every page.
-- **MapX 1.14.3** was checked on 9 November 2026. The Manager is loaded from
-  `https://app.mapx.org/sdk/mxsdk.umd.js` alongside the iframe from that same host.
-  These intentionally follow the hosted release together: pinning only the Manager
-  can cause `err_version_mismatch`. The kitchen-sink log reports the runtime version.
-- Feature inspection consumes `click_features` (MapX 1.14.2+), whose `attributes`
-  maps view IDs to feature rows. Empty hits close the infobox; custom passthrough
-  layers keep their local coordinate-matching fallback.
-- Vite 8.3, Vitest/coverage 5.1, jsdom 31 and Playwright 1.65 use the Node 24
-  toolchain declared in `.nvmrc` and CI.
-
-See [LEARNINGS.md](LEARNINGS.md) for the compatibility decisions borrowed from
-`undrr-risk-resilience-maps-pw`.
-
-## Key SDK Methods
-
-| Method | What it does |
-|---|---|
-| `mapx.ask("get_views")` | List all views in the project |
-| `mapx.ask("view_add", {idView: "MX-..."})` | Display a view on the map |
-| `mapx.ask("view_remove", {idView: "MX-..."})` | Remove a view from the map |
-| `mapx.ask("map_fly_to", {center: {lng, lat}, zoom})` | Animated fly to a location |
-| `mapx.ask("map_jump_to", {center: {lng, lat}, zoom})` | Instant jump to a location |
-| `mapx.ask("set_view_layer_filter_text", {idView, value})` | Filter a layer by text |
-| `mapx.ask("set_view_layer_transparency", {idView, value})` | Set layer transparency (0-100) |
-| `mapx.ask("get_views_id_open")` | Get currently open view IDs |
-| `mapx.ask("set_theme", {idTheme})` | Change the map theme |
-
-## References
-
-- **SDK docs:** https://github.com/unep-grid/mapx/tree/master/app/src/js/sdk
-- **SDK recipes wiki:** https://github.com/unep-grid/map-x-mgl/wiki/SDK---Recipes
-- **Observable examples:** https://observablehq.com/collection/@trepmag/mapx-sdk
-- **Starter project:** https://git.unepgrid.ch/drikc/mapx-sdk-starter-project
-- **Mangrove component library:** https://mangrove.undrr.org/
-- **Mangrove CSS (CDN):** `https://assets.undrr.org/mangrove/2.3.0/css/style.css`
-- **NPM alternative:** `@fxi/mxsdk` — use only when its version matches the hosted MapX app.
-- **UMD script:** `https://app.mapx.org/sdk/mxsdk.umd.js`
+Project-authored code and documentation use [Apache-2.0](LICENSE).
+[NOTICE](NOTICE) explains third-party content exclusions, including UNDRR assets
+and embedded datasets. Check those terms before reusing the content.

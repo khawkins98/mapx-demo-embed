@@ -1,7 +1,7 @@
 > Compatibility update (9 November 2026): demos now use Mangrove 2.3.0 and
 > the hosted MapX 1.14.3 SDK. Click inspection uses `click_features` with attributes
 > grouped by view ID. The investigation below is historical, including its old
-> `click_attributes` examples and asset URLs. See [LEARNINGS.md](LEARNINGS.md)
+> `click_attributes` examples and asset URLs. See the [integration guide](docs/integration.md)
 > for current integration rules.
 
 # Methodology: Discovering MapX Views and Data Sources
@@ -404,7 +404,17 @@ coordinate matching fallback is the way to go, though it does add complexity.
 Hard-won lessons from working with the MapX SDK's iframe/postMessage bridge.
 Each item links to the relevant source file.
 
+<a id="viewport-query-correction"></a>
+
 ### queryRenderedFeatures requires explicit `parameters: []`
+
+> **Correction, 9 November 2026:** the diagnosis below is retained as part of
+> the original investigation, but `[]` is truthy in JavaScript. The shown
+> `if (parameters)` condition would not remove an empty array. It does not
+> establish the claimed SDK root cause. The current private helper sends
+> `parameters: parameters ?? []`; application callers use the named
+> `queryRenderedFeatures()` wrapper for a full-viewport query. See the
+> [current wrapper guidance](docs/integration.md#add-overlays-and-inspect-clicks).
 
 > **Resolved (2026-03-19):** The "silently returns nothing" behavior is real
 > but the root cause is **the demo's `mapMethod` wrapper**, not the SDK

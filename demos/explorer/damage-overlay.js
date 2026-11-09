@@ -3,8 +3,8 @@
  *
  * Creates a dynamic GeoJSON view inside the MapX iframe, applies
  * data-driven circle paint (radius by damage_usd, color by severity),
- * and exposes accessors so other modules (preset-queries) can read
- * the overlay state without importing the raw data themselves.
+ * and exposes the raw GeoJSON for preset queries without requiring
+ * those callers to import the dataset directly.
  */
 
 import { viewGeojsonCreate, viewGeojsonSetStyle } from "../../src/sdk/views.js";

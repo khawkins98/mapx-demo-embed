@@ -2,8 +2,9 @@
 
 > Concept brief, not an implementation reference. Country metrics and chart values
 > are synthetic demonstration data. The current demo uses a native country select
-> rather than the searchable selector proposed below. See [README](../README.md)
-> for current routes, runtime versions and verification commands.
+> rather than the searchable selector proposed below. See [README](../README.md) for current routes, the
+> [integration guide](integration.md) for compatibility and
+> [contributor checks](../CONTRIBUTING.md#checks) for verification commands.
 
 ## Audience
 

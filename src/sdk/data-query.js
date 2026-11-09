@@ -23,8 +23,8 @@
  * download_view_source_geojson({idView, mode})
  *   Returns GeoJSON for a view's data.
  *   mode: "data" (raw source data) or "view" (with current filters applied).
- *   Only works for GeoJSON views created via view_geojson_create -- not
- *   for native MapX vector tile or raster views.
+ *   The demo attempts this for GeoJSON and vector views, then validates
+ *   the response. Export availability depends on the source.
  */
 
 import { getSDK } from "./client.js";
