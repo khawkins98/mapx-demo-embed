@@ -10,7 +10,6 @@ import { COUNTRY_PROFILES } from "../../src/config/country-data.js";
 import {
   renderDonutChart,
   renderHorizontalBarChart,
-  renderMetricCard,
 } from "./charts.js";
 
 const HAZARD_COLORS = {
@@ -52,7 +51,7 @@ export function initCountryProfile({ onCountryChange }) {
  * Uses Mangrove mg-card, mg-stats-card, mg-tag, and mg-grid patterns.
  * @param {string} code - ISO alpha-3
  */
-export function renderCountryProfile(code) {
+function renderCountryProfile(code) {
   const container = document.getElementById("country-profile");
   if (!container) return;
 

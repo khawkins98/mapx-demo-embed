@@ -1,34 +1,80 @@
 # Contributing
 
-Thanks for your interest. This is an investigation proof of concept embedding MapX disaster-risk-reduction maps via the MapX SDK, styled with the UNDRR Mangrove component library. It is **not** intended for production — see the README banner.
+This repository is an unofficial MapX integration prototype. Start with
+[local setup](README.md#run-locally), then choose a focused change on a branch
+from `main`. Open a draft PR while iterating.
 
-For deeper technical patterns and SDK quirks, the related skills repo is the canonical reference: https://github.com/khawkins98/mapx-llm-skills
+## Report an issue
 
-## Filing issues
+Include the demo route, browser and operating system, steps to reproduce and
+relevant console output in the [issue tracker](https://github.com/khawkins98/mapx-demo-embed/issues).
+Say whether the failure appears in the demo controls, Mangrove or the embedded
+MapX app. General SDK discoveries can also inform
+[mapx-llm-skills](https://github.com/khawkins98/mapx-llm-skills).
 
-Open an issue at https://github.com/khawkins98/mapx-demo-embed/issues. Useful detail:
+## Checks
 
-- The demo page (e.g. `index.html`, `country-map.html`).
-- Browser + OS, browser console output if anything errored.
-- Whether the failure is in the MapX SDK, the Mangrove styling, or the demo glue.
+After the setup in README, run the production build and unit tests:
 
-## Proposing changes
+```sh
+npm run build
+npm test
+```
 
-1. Fork and branch off `main`.
-2. `npm install`, then `npm run dev` to serve locally.
-3. Open a draft PR while you iterate.
+Install the browser once, then run the same browser subset as CI:
 
-Note that this repo's relationship to `mapx-llm-skills` is "the demos that informed the skills" — if you find a new SDK quirk worth documenting, the skills repo is usually the better home for it long-term.
+```sh
+npx playwright install --with-deps chromium
+npx playwright test compatibility.spec.js landing.spec.js preview-access.spec.js
+```
 
-## Branch and commit style
+These browser checks use the published Mangrove assets, with MapX stubbed where
+appropriate. They need network access. For the full suite, including live MapX
+views, controls, scenarios and story transitions:
 
-- Branches: descriptive, e.g. `feat/mangrove-1.4-upgrade`, `fix/postmessage-bridge`.
-- Commits: short, imperative — recent history mixes Conventional Commits and plain summaries.
+```sh
+npm run test:e2e
+```
 
-## Review
+`npm run test:all` combines unit tests and that full suite. Live-service tests
+can time out during MapX startup; report those failures and any isolated reruns
+separately from a clean run. Also check the affected page at narrow widths and
+with a keyboard when changing interaction or layout. The demo and its datasets
+remain outside a production validation claim.
 
-Best-effort, no SLA. This is exploratory; expect occasional decisions to lean toward "this lives in mapx-llm-skills now."
+## Prepare the contribution
 
-## License
+Use descriptive branches such as `fix/postmessage-bridge`. New commits and PR
+titles use Conventional Commits, for example `fix: clear stale feature details`
+or `docs: clarify preview access`. Keep existing commit history and human credits.
+Do not add unsolicited AI co-author trailers, tool signatures or generated-by text.
 
-MIT (see [LICENSE](LICENSE) — added in audit PR #5).
+Describe the concrete problem, resulting behaviour and checks that actually ran.
+Name material limits, such as a stubbed service or a live test that timed out.
+Keep each PR focused and update its title and description when scope changes.
+Review is best-effort, with no service-level commitment.
+
+## Maintain documentation
+
+Apply the maintainer's [Reader First skills](https://github.com/khawkins98/reader-first):
+[documentation refactoring](https://github.com/khawkins98/reader-first/blob/main/skills/documentation-refactoring/SKILL.md)
+and [contribution conventions](https://github.com/khawkins98/reader-first/blob/main/skills/contribution-conventions/SKILL.md).
+Repository and user instructions take precedence.
+
+Keep first-time orientation and a complete local run in README. Maintain SDK,
+Mangrove and preview-access details in the [integration guide](docs/integration.md),
+and link there instead of appending each upgrade to README. Agent entry points,
+including `.claude/agents/mapx-sdk-developer.md`, should route to these same homes. Commands in this
+file are the contributor check workflow; keep them aligned with `package.json`
+and CI. Preserve the [investigation](methodology.md) and
+[concept brief](docs/risk-to-resilience-pitch.md) as records, adding dated corrections
+or implementation notes rather than rewriting their original claims as current advice.
+
+When moving material, verify relative links and anchors and exercise affected
+reader tasks. Documentation prose follows sentence case and plain language;
+retain literal API names, UI labels, credits and scientific qualifications.
+
+## Reuse
+
+Project-authored code and documentation use [Apache-2.0](LICENSE).
+[NOTICE](NOTICE) defines the scope and third-party content exclusions.

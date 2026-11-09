@@ -11,7 +11,6 @@
  */
 
 let currentSectionId = null;
-let observer = null;
 
 /**
  * Initialise the scroll engine.
@@ -26,7 +25,7 @@ export function initScrollEngine({ cardSelector, onActivate }) {
   const cards = document.querySelectorAll(cardSelector);
   if (!cards.length) return;
 
-  observer = new IntersectionObserver(
+  const observer = new IntersectionObserver(
     (entries) => {
       let bestId = null;
       let bestRatio = -1;
@@ -50,20 +49,4 @@ export function initScrollEngine({ cardSelector, onActivate }) {
   );
 
   cards.forEach((card) => observer.observe(card));
-}
-
-/** @returns {string|null} Current active section ID */
-export function getActiveSectionId() {
-  return currentSectionId;
-}
-
-/**
- * Programmatically scroll to a section by ID.
- * @param {string} sectionId
- */
-export function scrollToSection(sectionId) {
-  const card = document.querySelector(`[data-section="${sectionId}"]`);
-  if (card) {
-    card.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
 }

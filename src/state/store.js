@@ -1,7 +1,7 @@
 /*
  * Track which views are currently displayed on the map.
- * Needed because view_add/view_remove are fire-and-forget —
- * there's no synchronous "is this view open?" check.
+ * SDK operations are asynchronous, so local UI state tracks completed
+ * view_add/view_remove calls without another round-trip.
  * (get_views_id_open() exists but it's async.)
  */
 export const openViews = new Set();

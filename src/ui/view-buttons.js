@@ -12,7 +12,7 @@
  *   There's no synchronous SDK check for "is this view displayed?" so
  *   we track it locally and sync the UI accordingly.
  *
- * Key exports:
+ * Key functions:
  *   buildViewButtons()      — create the button list from CURATED_VIEWS
  *   toggleView(idView, btn) — add/remove a view and update all UI
  *   ensureView(idView)      — idempotent activation (used by scenarios)
@@ -103,7 +103,7 @@ export function buildViewButtons() {
  * @param {HTMLElement} wrapper - Parent wrapper for slider placement
  * @param {string} label - Human-readable view label
  */
-export async function toggleView(idView, btn, wrapper, label) {
+async function toggleView(idView, btn, wrapper, label) {
   dismissStoryOverlay();
   try {
     if (store.openViews.has(idView)) {

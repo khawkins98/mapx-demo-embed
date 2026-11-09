@@ -173,7 +173,7 @@
    Follows mg-stats-card-item pattern but simplified for JS rendering. */
 
 .metric-card {
-  background: var(--mg-color-neutral-50, #f0f4f8);
+  background: rgb(var(--mg-color-neutral-50));
   border-radius: 6px;
   padding: 1rem 0.875rem;
   text-align: center;
@@ -197,7 +197,7 @@
 }
 
 .metric-card--interactive.is-selected {
-  border-color: var(--mg-color-interactive, #004f91);
+  border-color: rgb(var(--mg-color-interactive));
   box-shadow: 0 2px 12px rgba(0, 79, 145, 0.2);
 }
 
@@ -219,7 +219,7 @@
 .metric-card__value {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--mg-color-interactive, #004f91);
+  color: rgb(var(--mg-color-interactive));
   line-height: 1.1;
 }
 
@@ -239,13 +239,6 @@
   font-size: 0.7rem;
   opacity: 0.7;
   margin-top: 0.2rem;
-}
-
-.metric-cards-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.625rem;
-  margin-bottom: 1.25rem;
 }
 
 /* ----- Country deep dive ----- */
@@ -361,7 +354,7 @@
   content: "\2192";
   position: absolute;
   left: 0;
-  color: var(--mg-color-interactive, #004f91);
+  color: rgb(var(--mg-color-interactive));
 }
 
 /* ----- Responsive ----- */
@@ -407,10 +400,6 @@
 
   .country-charts-grid {
     grid-template-columns: 1fr;
-  }
-
-  .metric-cards-row {
-    flex-direction: column;
   }
 }
 

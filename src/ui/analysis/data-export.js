@@ -7,16 +7,13 @@
  *      We already have the GeoJSON in memory, so we just hand it to
  *      downloadGeoJSON() — no network round-trip needed.
  *
- *   2. GeoJSON views (MapX-hosted):
- *      We call download_view_source_geojson with mode "data", which asks
- *      the MapX backend to serialize the source as a GeoJSON file and send
- *      it back through the SDK bridge.
+ *   2. MapX-hosted GeoJSON and vector views:
+ *      We try download_view_source_geojson with mode "data" and download
+ *      the result only if it contains valid GeoJSON. Not every source
+ *      supports export; invalid responses and SDK failures are reported.
  *
- *   3. Native MapX views (vt, rt, cc):
- *      NOT supported for export. Vector tiles are sliced server-side and
- *      have no single GeoJSON source to download. Raster and custom-coded
- *      views don't have a GeoJSON representation at all. The UI shows an
- *      explanatory message instead of attempting a download.
+ *   3. Raster and custom-coded views:
+ *      The download action blocks these types with an explanatory message.
  *
  * The "Preview" button uses the same fetch path but only renders the first
  * three features as formatted JSON so the user can inspect the schema before
