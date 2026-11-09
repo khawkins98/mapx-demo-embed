@@ -1,0 +1,45 @@
+mapx-demo-embed
+Copyright 2024 Ken Hawkins and contributors
+
+This product includes software developed by Ken Hawkins and the project
+contributors. The source code in this repository is licensed under the
+Apache License, Version 2.0 (see LICENSE).
+
+------------------------------------------------------------------------
+Scope of the Apache-2.0 license
+------------------------------------------------------------------------
+
+The Apache-2.0 license covers the source code in this repository:
+HTML, CSS, JavaScript, build configuration, tests, and documentation
+authored for this project.
+
+------------------------------------------------------------------------
+Content NOT covered by the Apache-2.0 license
+------------------------------------------------------------------------
+
+This project embeds, references, or interoperates with materials owned
+by the United Nations Office for Disaster Risk Reduction (UNDRR) and
+its partners. Those materials are NOT licensed under Apache-2.0 and
+remain the intellectual property of their respective owners. They are
+included or referenced here under their own terms.
+
+This includes (without being exhaustive):
+
+  * UNDRR brand assets, logos, and visual identity.
+  * The UNDRR Mangrove design system / component library and any UI
+    components rendered from it.
+  * MapX views, layers, and underlying datasets accessed via the MapX
+    SDK (https://app.mapx.org/), including disaster risk reduction
+    indicators, hazard data, and any GIS sources surfaced through them.
+  * UNDRR terminology, hazard taxonomies, and other reference data
+    fetched from PreventionWeb or related UNDRR-operated APIs.
+  * Any text, imagery, or copy reproduced from undrr.org or
+    preventionweb.net.
+
+If you reuse this code, you are responsible for separately securing
+the rights to any UNDRR or partner content you choose to embed,
+display, or distribute alongside it. The Apache-2.0 grant in LICENSE
+does not extend to those materials.
+
+For UNDRR copyright and reuse policy see:
+https://www.undrr.org/copyright
