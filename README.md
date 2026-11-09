@@ -77,8 +77,8 @@ Routes below are relative to the `/mapx-demo-embed/` deployment base:
 | `demos/` | Demo pages, each with its own `index.html` + entry-point JS |
 | `src/` | Shared modules — config, data, lib (pure functions), SDK wrappers, state, UI |
 | `docs/` | Pitch document and story arc for the Metrics Hub concept |
-| `tests/unit/` | Vitest unit tests for pure logic (esc, geo, stats, store) |
-| `tests/e2e/` | Playwright E2E tests (smoke, views, scenarios, controls, analysis) |
+| `tests/unit/` | Vitest tests for logic, state, SDK setup and infobox rendering |
+| `tests/e2e/` | Playwright UI, preview-access and SDK compatibility tests; full suite also uses live MapX |
 | `probe-views.html` | Development-only utility — connects to MapX projects and dumps their view catalogs |
 | `methodology.md` | Documents how views and data sources were discovered and selected |
 

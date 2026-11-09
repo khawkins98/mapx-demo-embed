@@ -1,6 +1,6 @@
 /**
- * Curated view IDs from the Eco-DRR project (MX-2LD-FBB-58N-ROK-8RH)
- * and the MapX HOME project. Discovered using probe-views.html.
+ * Curated view IDs from the Eco-DRR project (MX-2LD-FBB-58N-ROK-8RH).
+ * Discovered using the development-only probe-views.html utility.
  *
  * MapX view types:
  *   cc = Custom Coded (dynamic/real-time)
