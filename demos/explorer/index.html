@@ -11,31 +11,23 @@
       https://mangrove.undrr.org/
     -->
     <link rel="stylesheet" href="https://assets.undrr.org/mangrove/2.3.0/css/style.css" />
+    <script type="module" src="https://assets.undrr.org/mangrove/2.3.0/js/preview-access.js"></script>
   </head>
   <body>
     <a class="mg-skip-link" href="#main">Skip to content</a>
-    <!--
-      PIN gate — full-screen overlay that blocks access until a
-      numeric preview PIN is entered. Removed from the DOM by
-      src/ui/pin-gate.js once the correct code is submitted.
-    -->
-    <div id="pin-gate" class="pin-gate">
-      <div class="pin-gate__card">
-        <h2 class="mg-u-font-size-500" style="margin-top:0;">Preview access</h2>
-        <p class="mg-u-font-size-300" style="line-height:1.5;margin-bottom:2rem;">
-          This is an <strong>unofficial investigation proof of concept</strong>
-          for demonstration purposes only. It is not an official UNDRR product.
-        </p>
-        <p style="font-size:1.4rem;margin-bottom:1.5rem;">
-          Enter the preview PIN to continue:
-        </p>
-        <input id="pin-input" type="text" inputmode="numeric" maxlength="4"
-          placeholder="_ _ _ _" class="pin-gate__input"
-          aria-label="Preview PIN"
-        />
-        <p id="pin-error" class="pin-gate__error"></p>
-      </div>
-    </div>
+    <!-- Mangrove owns the preview dialog, focus handling and persistence. -->
+    <div
+      data-mg-preview-access
+      data-mg-preview-id="mapx-demo-embed"
+      data-mg-preview-pin="5498"
+      data-mg-preview-persist="local"
+      data-mg-preview-eyebrow="MapX demos · Preview"
+      data-mg-preview-title="Preview access required"
+      data-mg-preview-message="This is an unofficial investigation prototype for demonstration and feedback only. It is not an official UNDRR product. Enter the preview PIN to continue."
+      data-mg-preview-pin-label="Preview PIN"
+      data-mg-preview-contact-url="https://github.com/khawkins98/mapx-demo-embed/issues"
+      data-mg-preview-contact-label="Report a demo issue"
+    ></div>
 
     <!--
       Page header — standard Mangrove page-header component with the

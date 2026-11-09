@@ -15,7 +15,6 @@
 import "../../src/styles/shared.css";
 import "../../src/styles/metrics.css";
 import { initSDK } from "../../src/sdk/client.js";
-import { initPinGate } from "../../src/ui/pin-gate.js";
 import { log } from "../../src/ui/log.js";
 import { showToast } from "../../src/ui/toast.js";
 import { viewAdd, viewRemove } from "../../src/sdk/views.js";
@@ -48,9 +47,6 @@ const chartRenderers = {
   "stacked-bar": renderStackedBar,
   "trend-line": renderTrendLine,
 };
-
-/* ── PIN gate ────────────────────────────────────────────────── */
-initPinGate();
 
 /* ── SDK bootstrap — two instances ───────────────────────────── */
 

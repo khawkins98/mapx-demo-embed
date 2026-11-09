@@ -2,20 +2,20 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Explorer demo", () => {
   test("page loads with correct title", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
+    await page.addInitScript(() => sessionStorage.setItem("mg-preview-access:mapx-demo-embed", "unlocked"));
     await page.goto("/mapx-demo-embed/demos/explorer/");
     await expect(page).toHaveTitle(/MapX/);
   });
 
   test("SDK status shows Connected after ready", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
+    await page.addInitScript(() => sessionStorage.setItem("mg-preview-access:mapx-demo-embed", "unlocked"));
     await page.goto("/mapx-demo-embed/demos/explorer/");
     const status = page.locator("#status");
     await expect(status).toHaveText("Connected", { timeout: 60000 });
   });
 
   test("back link is visible and points to /", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
+    await page.addInitScript(() => sessionStorage.setItem("mg-preview-access:mapx-demo-embed", "unlocked"));
     await page.goto("/mapx-demo-embed/demos/explorer/");
     const backLink = page.locator('a', { hasText: "All Demos" });
     await expect(backLink).toBeVisible();
@@ -23,13 +23,13 @@ test.describe("Explorer demo", () => {
   });
 
   test("#mapx container exists", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
+    await page.addInitScript(() => sessionStorage.setItem("mg-preview-access:mapx-demo-embed", "unlocked"));
     await page.goto("/mapx-demo-embed/demos/explorer/");
     await expect(page.locator("#mapx")).toHaveCount(1);
   });
 
   test("sidebar with Data explorer heading is visible", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
+    await page.addInitScript(() => sessionStorage.setItem("mg-preview-access:mapx-demo-embed", "unlocked"));
     await page.goto("/mapx-demo-embed/demos/explorer/");
     const sidebar = page.locator(".explorer-sidebar");
     await expect(sidebar).toBeVisible();
@@ -38,7 +38,7 @@ test.describe("Explorer demo", () => {
   });
 
   test("severity legend is visible with 4 items", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
+    await page.addInitScript(() => sessionStorage.setItem("mg-preview-access:mapx-demo-embed", "unlocked"));
     await page.goto("/mapx-demo-embed/demos/explorer/");
     const legend = page.locator(".damage-legend");
     await expect(legend).toBeVisible();
@@ -49,7 +49,7 @@ test.describe("Explorer demo", () => {
 
 test.describe("Explorer demo — after SDK ready", () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
+    await page.addInitScript(() => sessionStorage.setItem("mg-preview-access:mapx-demo-embed", "unlocked"));
     await page.goto("/mapx-demo-embed/demos/explorer/");
     await expect(page.locator("#status")).toHaveText("Connected", { timeout: 60000 });
   });

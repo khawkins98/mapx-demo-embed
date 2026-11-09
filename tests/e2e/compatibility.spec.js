@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 // Test the consumer contract without depending on the live MapX service.
 test("MapX click_features updates the infobox and clears an empty hit", async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
+  await page.addInitScript(() => sessionStorage.setItem("mg-preview-access:mapx-demo-embed", "unlocked"));
   await page.route("https://app.mapx.org/sdk/mxsdk.umd.js", (route) => route.fulfill({
     contentType: "application/javascript",
     body: `window.mxsdk = { Manager: class {

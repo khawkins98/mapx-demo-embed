@@ -23,4 +23,4 @@ jobs:
       - run: npm test
 
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test compatibility.spec.js landing.spec.js
+      - run: npx playwright test compatibility.spec.js landing.spec.js preview-access.spec.js

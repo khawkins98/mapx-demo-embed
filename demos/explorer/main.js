@@ -28,7 +28,6 @@
 import "../../src/styles/shared.css";
 import "../../src/styles/explorer.css";
 import { initSDK } from "../../src/sdk/client.js";
-import { initPinGate } from "../../src/ui/pin-gate.js";
 import { setStatus, log } from "../../src/ui/log.js";
 import { viewAdd } from "../../src/sdk/views.js";
 import { mapFlyTo } from "../../src/sdk/map-control.js";
@@ -40,7 +39,6 @@ import { openViews } from "../../src/state/store.js";
 import { enableAnalysisTools } from "../../src/ui/analysis/panel.js";
 import { updateAnalysisViewSelect } from "../../src/ui/analysis/view-select.js";
 
-initPinGate();
 
 const mapx = initSDK(document.getElementById("mapx"));
 

@@ -19,45 +19,6 @@ body {
 }
 
 /*
- * PIN gate overlay — full-screen modal blocking access until preview PIN
- * is entered. Duplicated across all 4 HTML pages; styles extracted here
- * so the markup uses classes instead of inline styles.
- */
-.pin-gate {
-  position: fixed;
-  inset: 0;
-  z-index: calc(var(--mg-z-index-toast) + 1);
-  background: rgb(var(--mg-color-interactive) / 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.pin-gate__card {
-  background: rgb(var(--mg-color-neutral-0));
-  max-width: 440px;
-  width: 90%;
-  padding: 1.875rem 1.5rem;
-  text-align: center;
-}
-.pin-gate__input {
-  font-size: 1.5rem;
-  text-align: center;
-  letter-spacing: 0.5rem;
-  width: 7.5rem;
-  padding: 0.5rem;
-  border: 2px solid rgb(var(--mg-color-neutral-100));
-  outline: none;
-  font-family: var(--mg-font-family-code);
-  font-variant-numeric: tabular-nums;
-}
-.pin-gate__error {
-  color: #c10920;
-  font-size: 0.875rem;
-  margin-top: 0.625rem;
-  min-height: 0.875rem;
-}
-
-/*
  * App title bar — sits between the UNDRR page header and the map.
  * Uses mg-container for consistent horizontal alignment with the
  * card sections below the map.

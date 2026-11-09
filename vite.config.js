@@ -34,7 +34,7 @@ export default defineConfig({
      *   metrics      → /demos/metrics/          (scrollytelling metrics hub)
      *
      * Vite automatically deduplicates shared modules across entry points.
-     * For example, shared.css and pin-gate.js are imported by every page
+     * For example, shared.css is imported by every page
      * but will be emitted once and referenced by all entry chunks, keeping
      * the production bundle lean.
      */

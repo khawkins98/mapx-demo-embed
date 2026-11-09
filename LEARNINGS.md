@@ -51,7 +51,8 @@ Checked against MapX **1.14.3** on 9 November 2026, using integration lessons fr
   retains its local auto-dismiss timer. Old `mg-snackbar__info` and
   `mg-snackbar__content` classes no longer style the notification.
 - Existing buttons, tags, header and footer use their published CSS contracts;
-  sidebar, map geometry, story steps, charts and PIN behaviour remain local.
+  sidebar, map geometry, story steps and charts remain local. Preview access
+  uses the published component described below.
 
 Sources: [Mangrove guide](https://mangrove.undrr.org/llms.txt),
 [component index](https://mangrove.undrr.org/ai-components/index.json) and the
@@ -67,8 +68,7 @@ The November upgrade also checks the [theme dictionary](https://mangrove.undrr.o
 
 - Shell interactive, white surface and border colours use sRGB channel tokens
   inside `rgb(...)`; their declarations were verified in the 2.3.0 stylesheet.
-  The preview gate derives its stacking level from the toast token so background
-  connection notifications cannot appear above it.
+  Preview-access stacking and isolation are owned by the library component.
 - Map toolbar and metadata actions use the published Buttons `mg-icon-button`
   contract with verified `mg-icon-*` masks, accessible names and 44px targets.
   A 420px mobile map minimum accommodates the taller toolbar. Map behaviour
@@ -78,6 +78,27 @@ The November upgrade also checks the [theme dictionary](https://mangrove.undrr.o
   "About this project". Source-authored dataset titles are retained.
 - Drupal page building, search configuration, publication/news recipes and
   taxonomy assignment do not apply to this standalone demo update.
+
+## Published preview-access gate
+
+Each page declares `[data-mg-preview-access]` with the shared ID `mapx-demo-embed`,
+PIN `5498` and `data-mg-preview-persist="local"`, then loads
+`https://assets.undrr.org/mangrove/2.3.0/js/preview-access.js` as a module.
+The [PreviewAccess contract](https://mangrove.undrr.org/ai-components/components-preview-access.json)
+is verified against that published script and the matching CSS.
+
+The library owns rendering, form submission, errors, focus, background `inert`
+state, anti-flash CSS and persisted unlocks. The custom `pin-gate.js` and its
+styles are removed. Unlock requires submitting the form rather than typing
+four digits alone. Existing users unlock once again; the old `mapx-demo-pin`
+entry is not used by the new component.
+
+The local unlock is stored by Mangrove under `mg-preview-access:mapx-demo-embed`.
+Browser tests that need access without testing the gate seed the documented
+session flag (`unlocked`) under the same key. Dedicated browser tests use the
+real published module to verify the locked state on all five pages, error and
+focus behaviour, and persistence across reloads and tabs. This remains an
+editorial preview signal, not authentication.
 
 ## Repo positioning
 

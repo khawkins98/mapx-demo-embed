@@ -14,11 +14,16 @@ A proof-of-concept that embeds MapX disaster risk reduction maps via the SDK and
 
 ## Preview Access
 
-The demo sits behind a PIN overlay since it's an unofficial preview.
+The demo uses the published Mangrove 2.3.0 **PreviewAccess** pattern for its unofficial preview.
 
 **PIN: `5498`**
 
-Enter this when prompted. The PIN is stored in `localStorage` so you only need to enter it once per browser.
+Enter the PIN and select **Unlock** (or press Enter). Mangrove remembers the unlock
+in `localStorage`, shared across the landing page and all four demos. Existing
+users of the previous custom gate enter the PIN once again after this upgrade.
+
+The component supplies the dialog, background isolation, error feedback and focus
+handling. Its CSS and JavaScript both come from the pinned 2.3.0 asset bundle.
 
 ## Running It
 
@@ -47,7 +52,7 @@ npm run test:e2e       # E2E tests (Playwright, requires chromium)
 npm run test:all       # both
 ```
 
-CI runs unit tests plus the landing-page and stubbed MapX compatibility browser tests.
+CI runs unit tests plus the preview-access, landing-page and stubbed MapX compatibility browser tests.
 The full E2E suite also contacts live MapX and needs network access.
 
 Install Playwright browsers on first run: `npx playwright install --with-deps chromium`
