@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kitchen Sink — MapX Embed Demo</title>
+    <title>Kitchen sink — MapX Embed Demo</title>
 
     <!-- Mangrove 2.3.0: published CSS, with a 16px rem base. -->
     <link rel="stylesheet" href="https://assets.undrr.org/mangrove/2.3.0/css/style.css" />
@@ -23,7 +23,7 @@
     -->
     <div id="pin-gate" class="pin-gate">
       <div class="pin-gate__card">
-        <h2 class="mg-u-font-size-500" style="margin-top:0;">Preview Access</h2>
+        <h2 class="mg-u-font-size-500" style="margin-top:0;">Preview access</h2>
         <p class="mg-u-font-size-300" style="line-height:1.5;margin-bottom:2rem;">
           This is an <strong>unofficial investigation proof of concept</strong>
           for demonstration purposes only. It is not an official UNDRR product.
@@ -92,7 +92,7 @@
       <div class="mg-container app-title-bar">
         <div style="display:flex;align-items:center;gap:1rem;">
           <a href="/mapx-demo-embed/" style="color:#fff;text-decoration:none;font-size:1.4rem;opacity:0.8;">&#8592; All Demos</a>
-          <h1 class="mg-u-color--white" style="margin:0;">Kitchen Sink</h1>
+          <h1 class="mg-u-color--white" style="margin:0;">Kitchen sink</h1>
         </div>
         <span class="mg-tag mg-tag--outline" style="color:#fff;border-color:#fff" id="status">Loading SDK...</span>
       </div>
@@ -116,7 +116,7 @@
           Open by default — this is the primary interaction point.
         -->
         <details class="sidebar-section" open>
-          <summary><h2>DRR Views</h2></summary>
+          <summary><h2>DRR views</h2></summary>
           <!-- mg-form-help is a Mangrove class for hint/helper text -->
           <p class="mg-form-help">Curated disaster risk reduction layers. Click to toggle.</p>
           <div id="view-buttons">
@@ -242,7 +242,7 @@
           Both can be toggled on/off independently of the DRR views.
         -->
         <details class="sidebar-section">
-          <summary><h2>Custom Data</h2></summary>
+          <summary><h2>Custom data</h2></summary>
           <p class="mg-form-help">Overlay your own data on top of MapX layers</p>
 
           <!-- Approach 1: GeoJSON View (SDK-managed) -->
@@ -286,7 +286,7 @@
           crowd the sidebar. See methodology.md section 10.
         -->
         <details class="sidebar-section">
-          <summary><h2>Analysis Tools</h2></summary>
+          <summary><h2>Analysis tools</h2></summary>
           <p class="mg-form-help">Filter, query, summarise, and export map data</p>
           <div class="action-buttons">
             <button class="mg-button mg-button-primary disabled" id="btn-toggle-analysis">
@@ -301,7 +301,7 @@
           story map playback, and MapX modal tools (composer, share).
         -->
         <details class="sidebar-section">
-          <summary><h2>SDK Features</h2></summary>
+          <summary><h2>SDK features</h2></summary>
           <p class="mg-form-help">Language, theme, modals, and story map controls</p>
 
           <!--
@@ -379,14 +379,14 @@
           attribute for discoverability.
         -->
         <div class="map-toolbar" id="map-toolbar">
-          <button class="map-toolbar-btn disabled" id="btn-zoom-in" title="Zoom In (+2)">+<span class="mg-u-sr-only">Zoom in</span></button>
-          <button class="map-toolbar-btn disabled" id="btn-zoom-out" title="Zoom Out (-2)">&minus;<span class="mg-u-sr-only">Zoom out</span></button>
+          <button type="button" class="mg-icon-button map-toolbar-btn disabled" id="btn-zoom-in" title="Zoom in (+2)" aria-label="Zoom in (+2)"><span class="mg-icon mg-icon-plus" aria-hidden="true"></span></button>
+          <button type="button" class="mg-icon-button map-toolbar-btn disabled" id="btn-zoom-out" title="Zoom out (-2)" aria-label="Zoom out (-2)"><span class="mg-icon mg-icon-minus" aria-hidden="true"></span></button>
           <div class="map-toolbar-sep"></div>
-          <button class="map-toolbar-btn disabled" id="btn-globe" title="Toggle Globe">&#127760;<span class="mg-u-sr-only">Toggle globe</span></button>
-          <button class="map-toolbar-btn disabled" id="btn-terrain" title="Toggle 3D Terrain">&#9968;<span class="mg-u-sr-only">Toggle 3D terrain</span></button>
-          <button class="map-toolbar-btn disabled" id="btn-3d" title="Toggle 3D Tilt">&#9653;<span class="mg-u-sr-only">Toggle 3D tilt</span></button>
-          <button class="map-toolbar-btn disabled" id="btn-aerial" title="Toggle Aerial View">&#128752;<span class="mg-u-sr-only">Toggle aerial view</span></button>
-          <button class="map-toolbar-btn disabled" id="btn-immersive" title="Toggle Immersive">&#9974;<span class="mg-u-sr-only">Toggle immersive</span></button>
+          <button type="button" class="mg-icon-button map-toolbar-btn disabled" id="btn-globe" title="Toggle globe" aria-label="Toggle globe"><span class="mg-icon mg-icon-globe" aria-hidden="true"></span></button>
+          <button type="button" class="mg-icon-button map-toolbar-btn disabled" id="btn-terrain" title="Toggle 3D terrain" aria-label="Toggle 3D terrain"><span class="mg-icon mg-icon-layers" aria-hidden="true"></span></button>
+          <button type="button" class="mg-icon-button map-toolbar-btn disabled" id="btn-3d" title="Toggle 3D tilt" aria-label="Toggle 3D tilt"><span class="mg-icon mg-icon-cubes" aria-hidden="true"></span></button>
+          <button type="button" class="mg-icon-button map-toolbar-btn disabled" id="btn-aerial" title="Toggle aerial view" aria-label="Toggle aerial view"><span class="mg-icon mg-icon-map" aria-hidden="true"></span></button>
+          <button type="button" class="mg-icon-button map-toolbar-btn disabled" id="btn-immersive" title="Toggle immersive" aria-label="Toggle immersive"><span class="mg-icon mg-icon-expand" aria-hidden="true"></span></button>
         </div>
 
         <!--
@@ -530,7 +530,7 @@
     -->
     <section class="mg-u-background-color--neutral-25">
       <div class="mg-container mg-container--padded mg-container--spacer">
-        <h2>About This Demo</h2>
+        <h2>About this demo</h2>
         <p class="mg-u-text-wrap-pretty">
           This proof-of-concept demonstrates embedding
           <a href="https://app.mapx.org">MapX</a> geospatial datasets
@@ -541,7 +541,7 @@
         <div class="mg-grid mg-grid__col-3">
           <article class="mg-card mg-card__icon">
             <div class="mg-card__content">
-              <header class="mg-card__title">Hazard Layers</header>
+              <header class="mg-card__title">Hazard layers</header>
               <p class="mg-card__summary">
                 Explore flood, landslide, cyclone, and tsunami exposure data
                 from global risk models covering return periods and annual
@@ -552,7 +552,7 @@
 
           <article class="mg-card mg-card__icon">
             <div class="mg-card__content">
-              <header class="mg-card__title">Nature-Based Solutions</header>
+              <header class="mg-card__title">Nature-based solutions</header>
               <p class="mg-card__summary">
                 See where forest protection and mangrove restoration can
                 reduce flood and storm surge risk — the core of the Eco-DRR
@@ -563,7 +563,7 @@
 
           <article class="mg-card mg-card__icon">
             <div class="mg-card__content">
-              <header class="mg-card__title">Live Monitoring</header>
+              <header class="mg-card__title">Live monitoring</header>
               <p class="mg-card__summary">
                 Real-time earthquake data (M5.5+) from USGS and active fire
                 tracking at administrative level, updated continuously.
@@ -597,7 +597,7 @@
     -->
     <section>
       <div class="mg-container mg-container--padded mg-container--spacer">
-        <h2>Data &amp; Resources</h2>
+        <h2>Data and resources</h2>
         <div class="mg-grid mg-grid__col-4">
           <article class="mg-card mg-card__vc">
             <div class="mg-card__content">

@@ -28,12 +28,12 @@ test.describe("Explorer demo", () => {
     await expect(page.locator("#mapx")).toHaveCount(1);
   });
 
-  test("sidebar with Data Explorer heading is visible", async ({ page }) => {
+  test("sidebar with Data explorer heading is visible", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
     await page.goto("/mapx-demo-embed/demos/explorer/");
     const sidebar = page.locator(".explorer-sidebar");
     await expect(sidebar).toBeVisible();
-    const heading = sidebar.locator("h2", { hasText: "Data Explorer" });
+    const heading = sidebar.locator("h2", { hasText: "Data explorer" });
     await expect(heading).toBeVisible();
   });
 

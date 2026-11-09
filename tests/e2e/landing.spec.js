@@ -44,10 +44,10 @@ test.describe("Landing page", () => {
     await expect(cards.nth(3)).toHaveAttribute("href", "/mapx-demo-embed/demos/metrics/");
   });
 
-  test("About This Project section is visible", async ({ page }) => {
+  test("About this project section is visible", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
     await page.goto("/mapx-demo-embed/");
-    const heading = page.locator("h2", { hasText: "About This Project" });
+    const heading = page.locator("h2", { hasText: "About this project" });
     await expect(heading).toBeVisible();
   });
 

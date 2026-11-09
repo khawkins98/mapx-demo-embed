@@ -70,8 +70,8 @@ export function buildViewButtons() {
 
     /* Info button — fetch and show view metadata on click */
     const infoBtn = document.createElement("button");
-    infoBtn.className = "view-info-btn";
-    infoBtn.innerHTML = 'i<span class="mg-u-sr-only">View metadata</span>';
+    infoBtn.className = "mg-icon-button view-info-btn";
+    infoBtn.innerHTML = '<span class="mg-icon mg-icon-info-circle" aria-hidden="true"></span>';
     infoBtn.title = "View metadata";
     infoBtn.setAttribute("aria-label", "View metadata");
     infoBtn.addEventListener("click", (e) => {

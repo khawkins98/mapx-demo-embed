@@ -57,6 +57,28 @@ Sources: [Mangrove guide](https://mangrove.undrr.org/llms.txt),
 [component index](https://mangrove.undrr.org/ai-components/index.json) and the
 [pinned stylesheet](https://assets.undrr.org/mangrove/2.3.0/css/style.css).
 
+## Guidance follow-up
+
+The November upgrade also checks the [theme dictionary](https://mangrove.undrr.org/tokens.json),
+[utility inventory](https://mangrove.undrr.org/ai-components/utilities.json),
+[icon inventory](https://mangrove.undrr.org/ai-components/components-icons.json),
+[asset-library guide](https://assets.undrr.org/AGENTS.md) and
+[editorial manual](https://mangrove.undrr.org/llms-editorial-manual.txt).
+
+- Shell interactive, white surface and border colours use sRGB channel tokens
+  inside `rgb(...)`; their declarations were verified in the 2.3.0 stylesheet.
+  The preview gate derives its stacking level from the toast token so background
+  connection notifications cannot appear above it.
+- Map toolbar and metadata actions use the published Buttons `mg-icon-button`
+  contract with verified `mg-icon-*` masks, accessible names and 44px targets.
+  A 420px mobile map minimum accommodates the taller toolbar. Map behaviour
+  and arrangement remain application-specific.
+- Code-font counters use tabular numerals to avoid shifting as values change.
+- Static application headings use sentence case, including "DRR views" and
+  "About this project". Source-authored dataset titles are retained.
+- Drupal page building, search configuration, publication/news recipes and
+  taxonomy assignment do not apply to this standalone demo update.
+
 ## Repo positioning
 
 - This repo is a PoC, not production. Decision pending on whether to archive it once `mapx-llm-skills` fully supersedes it (audit issue #3).
