@@ -14,20 +14,27 @@ A proof-of-concept that embeds MapX disaster risk reduction maps via the SDK and
 
 ## Preview Access
 
-The demo sits behind a PIN overlay since it's an unofficial preview.
+The demo uses the published Mangrove 2.3.0 **PreviewAccess** pattern for its unofficial preview.
 
 **PIN: `5498`**
 
-Enter this when prompted. The PIN is stored in `localStorage` so you only need to enter it once per browser.
+Enter the PIN and select **Unlock** (or press Enter). Mangrove remembers the unlock
+in `localStorage`, shared across the landing page and all four demos. Existing
+users of the previous custom gate enter the PIN once again after this upgrade.
+
+The component supplies the dialog, background isolation, error feedback and focus
+handling. Its CSS and JavaScript both come from the pinned 2.3.0 asset bundle.
 
 ## Running It
 
+Requires Node.js 24.15+ (24 LTS). Use `nvm use` to select the supported major.
+
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Open **http://localhost:3001**. Vite handles module bundling and hot reload.
+Open **http://localhost:3001/mapx-demo-embed/**. Vite handles module bundling and hot reload.
 
 For production:
 
@@ -44,6 +51,9 @@ npm test               # unit tests (Vitest)
 npm run test:e2e       # E2E tests (Playwright, requires chromium)
 npm run test:all       # both
 ```
+
+CI runs unit tests plus the preview-access, landing-page and stubbed MapX compatibility browser tests.
+The full E2E suite also contacts live MapX and needs network access.
 
 Install Playwright browsers on first run: `npx playwright install --with-deps chromium`
 
@@ -112,7 +122,7 @@ You can overlay your own data on top of MapX layers in a few different ways:
 | **Mapbox passthrough** | `map` method (`addSource`/`addLayer`) | Layers needing advanced Mapbox GL styling |
 | **Polygon overlay** | `map` method with `fill`/`line` layers | Area boundaries and project zones |
 
-**Click interaction:** GeoJSON views fire the `click_attributes` event natively
+**Click interaction:** GeoJSON views fire the `click_features` event natively
 when a feature is clicked, and feature properties come through with it. Mapbox
 passthrough layers cannot have click handlers (callbacks are not serializable
 through `postMessage`), so a coordinate matching fallback is used instead —
@@ -134,6 +144,22 @@ The demo includes lightweight analysis tools in the sidebar that operate on whic
 
 Not all tools work on all view types — numeric filtering requires vector tile (`vt`) views, and export only works for GeoJSON views. See [methodology.md](methodology.md) section 10 for details and the `toggle_draw_mode` workaround.
 
+## Runtime compatibility
+
+- **Mangrove 2.3.0** is pinned to the published asset CDN on every page.
+- **MapX 1.14.3** was checked on 9 November 2026. The Manager is loaded from
+  `https://app.mapx.org/sdk/mxsdk.umd.js` alongside the iframe from that same host.
+  These intentionally follow the hosted release together: pinning only the Manager
+  can cause `err_version_mismatch`. The kitchen-sink log reports the runtime version.
+- Feature inspection consumes `click_features` (MapX 1.14.2+), whose `attributes`
+  maps view IDs to feature rows. Empty hits close the infobox; custom passthrough
+  layers keep their local coordinate-matching fallback.
+- Vite 8.3, Vitest/coverage 5.1, jsdom 31 and Playwright 1.65 use the Node 24
+  toolchain declared in `.nvmrc` and CI.
+
+See [LEARNINGS.md](LEARNINGS.md) for the compatibility decisions borrowed from
+`undrr-risk-resilience-maps-pw`.
+
 ## Key SDK Methods
 
 | Method | What it does |
@@ -154,7 +180,7 @@ Not all tools work on all view types — numeric filtering requires vector tile 
 - **SDK recipes wiki:** https://github.com/unep-grid/map-x-mgl/wiki/SDK---Recipes
 - **Observable examples:** https://observablehq.com/collection/@trepmag/mapx-sdk
 - **Starter project:** https://git.unepgrid.ch/drikc/mapx-sdk-starter-project
-- **Mangrove component library:** https://unisdr.github.io/undrr-mangrove/
-- **Mangrove CSS (CDN):** `https://assets.undrr.org/static/mangrove/1.4.0/css/style.css`
-- **NPM:** `npm install @fxi/mxsdk` (if a build step is preferred)
+- **Mangrove component library:** https://mangrove.undrr.org/
+- **Mangrove CSS (CDN):** `https://assets.undrr.org/mangrove/2.3.0/css/style.css`
+- **NPM alternative:** `@fxi/mxsdk` — use only when its version matches the hosted MapX app.
 - **UMD script:** `https://app.mapx.org/sdk/mxsdk.umd.js`

@@ -15,7 +15,6 @@
 import "../../src/styles/shared.css";
 import "../../src/styles/metrics.css";
 import { initSDK } from "../../src/sdk/client.js";
-import { initPinGate } from "../../src/ui/pin-gate.js";
 import { log } from "../../src/ui/log.js";
 import { showToast } from "../../src/ui/toast.js";
 import { viewAdd, viewRemove } from "../../src/sdk/views.js";
@@ -49,9 +48,6 @@ const chartRenderers = {
   "trend-line": renderTrendLine,
 };
 
-/* ── PIN gate ────────────────────────────────────────────────── */
-initPinGate();
-
 /* ── SDK bootstrap — two instances ───────────────────────────── */
 
 /** Scrollytelling map (sticky panel in section 3) */
@@ -67,6 +63,7 @@ const mapx = initSDK(document.getElementById("mapx"));
 /* global mxsdk */
 const countryMapx = new mxsdk.Manager({
   container: document.getElementById("country-mapx"),
+  iframeTitle: "Country risk map",
   url: "https://app.mapx.org/?project=MX-2LD-FBB-58N-ROK-8RH",
   params: {
     closePanels: true,

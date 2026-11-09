@@ -84,7 +84,7 @@
 .narrative-nav .step-count {
   font-size: 0.8rem;
   color: #666; /* mg-color-neutral-300 (secondary text) */
-  font-family: 'Roboto Condensed', monospace;
+  font-family: var(--mg-font-family-code);
 }
 
 .narrative-nav .mg-button.disabled {

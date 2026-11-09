@@ -1,8 +1,8 @@
 /*
  * Box-select spatial query
  *
- * Why an overlay instead of intercepting click_attributes or the SDK's own
- * draw tools?  The SDK's click_attributes gives us feature info on click, but
+ * Why an overlay instead of intercepting click_features or the SDK's own
+ * draw tools?  The SDK's click_features gives us feature info on click, but
  * there's no crosshair cursor and no visual feedback while selecting an area.
  * The SDK method toggle_draw_mode doesn't exist in the current build, so we
  * can't ask MapX to handle rectangle drawing for us. An overlay gives us full

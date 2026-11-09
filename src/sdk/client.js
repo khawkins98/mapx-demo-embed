@@ -23,9 +23,10 @@
 let _mapx = null;
 
 export function initSDK(container) {
-  /* global mxsdk */
-  _mapx = new mxsdk.Manager({
+  if (!window.mxsdk?.Manager) throw new Error("MapX SDK is unavailable");
+  _mapx = new window.mxsdk.Manager({
     container,
+    iframeTitle: "Interactive Eco-DRR map",
     url: "https://app.mapx.org/?project=MX-2LD-FBB-58N-ROK-8RH",
     params: {
       closePanels: true,
@@ -44,4 +45,9 @@ export function initSDK(container) {
 export function getSDK() {
   if (!_mapx) throw new Error("SDK not initialised -- call initSDK() first");
   return _mapx;
+}
+
+/** Hosted Manager and iframe must use matching MapX releases. */
+export function getMapXVersion() {
+  return typeof _mapx?.version === "string" ? _mapx.version : null;
 }

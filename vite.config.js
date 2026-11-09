@@ -22,7 +22,7 @@ export default defineConfig({
     /*
      * Multi-Page Application (MPA) configuration.
      *
-     * Rollup's `input` object defines the entry points for the production
+     * Rolldown's `input` object defines the entry points for the production
      * build. Each key becomes a chunk name and each value is the HTML file
      * that Vite will process (resolving <script> tags, CSS imports, etc.).
      *
@@ -34,11 +34,11 @@ export default defineConfig({
      *   metrics      → /demos/metrics/          (scrollytelling metrics hub)
      *
      * Vite automatically deduplicates shared modules across entry points.
-     * For example, shared.css and pin-gate.js are imported by every page
+     * For example, shared.css is imported by every page
      * but will be emitted once and referenced by all entry chunks, keeping
      * the production bundle lean.
      */
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         landing: resolve(__dirname, "index.html"),
         "kitchen-sink": resolve(__dirname, "demos/kitchen-sink/index.html"),

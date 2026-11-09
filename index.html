@@ -3,55 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MapX Embed — Disaster Risk Reduction Demos</title>
+    <title>MapX Embed — Disaster risk reduction demos</title>
 
-    <!--
-      UNDRR Mangrove Component Library (v1.3.3)
-      Provides Roboto font family, button styles (mg-button, mg-button-primary,
-      mg-button-secondary), tags (mg-tag), form helpers (mg-form-help), the
-      page header with UNDRR black bar (mg-page-header), Sendai decoration
-      stripe (mg-page-header__decoration), container layout (mg-container),
-      grid system (mg-grid), card components (mg-card), footer (mg-footer),
-      utility classes (mg-u-*), and other UN-consistent UI patterns.
-
-      Source & docs: https://unisdr.github.io/undrr-mangrove/
-      GitHub: https://github.com/unisdr/undrr-mangrove
-      CDN base: https://assets.undrr.org/static/mangrove/{version}/css/style.css
-
-      Note: Mangrove sets html font-size to 10px and uses rem units throughout,
-      so 1.6rem = 16px, 2.3rem = 23px, etc.
-    -->
-    <link rel="stylesheet" href="https://assets.undrr.org/testing/static/mangrove/1.4.0/css/style.css" />
+    <!-- Mangrove 2.3.0: published CSS, with a 16px rem base. -->
+    <link rel="stylesheet" href="https://assets.undrr.org/mangrove/2.3.0/css/style.css" />
+    <script type="module" src="https://assets.undrr.org/mangrove/2.3.0/js/preview-access.js"></script>
   </head>
   <body>
-    <!--
-      PIN GATE OVERLAY
-      Basic PIN gate so people know this is an unofficial preview.
-      Requires entering a 4-digit PIN (5498) to dismiss the overlay
-      and access the demo. Not a real security measure — just a
-      speed bump. PIN is in the README.
-
-      Once entered correctly, the PIN is stored in localStorage so
-      returning visitors skip the gate. The JS logic lives in
-      src/ui/pin-gate.js and is initialised by src/landing.js.
-    -->
-    <div id="pin-gate" class="pin-gate">
-      <div class="pin-gate__card">
-        <h2 class="mg-u-font-size-500" style="margin-top:0;">Preview Access</h2>
-        <p class="mg-u-font-size-300" style="line-height:1.5;margin-bottom:2rem;">
-          This is an <strong>unofficial investigation proof of concept</strong>
-          for demonstration purposes only. It is not an official UNDRR product.
-        </p>
-        <p style="font-size:1.4rem;margin-bottom:1.5rem;">
-          Enter the preview PIN to continue:
-        </p>
-        <input id="pin-input" type="text" inputmode="numeric" maxlength="4"
-          placeholder="_ _ _ _" class="pin-gate__input"
-          aria-label="Preview PIN"
-        />
-        <p id="pin-error" class="pin-gate__error"></p>
-      </div>
-    </div>
+    <a class="mg-skip-link" href="#main">Skip to content</a>
+    <!-- Mangrove owns the preview dialog, focus handling and persistence. -->
+    <div
+      data-mg-preview-access
+      data-mg-preview-id="mapx-demo-embed"
+      data-mg-preview-pin="5498"
+      data-mg-preview-persist="local"
+      data-mg-preview-eyebrow="MapX demos · Preview"
+      data-mg-preview-title="Preview access required"
+      data-mg-preview-message="This is an unofficial investigation prototype for demonstration and feedback only. It is not an official UNDRR product. Enter the preview PIN to continue."
+      data-mg-preview-pin-label="Preview PIN"
+      data-mg-preview-contact-url="https://github.com/khawkins98/mapx-demo-embed/issues"
+      data-mg-preview-contact-label="Report a demo issue"
+    ></div>
 
     <!--
       UNDRR Page Header (mg-page-header)
@@ -68,7 +40,7 @@
         mg-page-header__region--toolbar — flex row holding logo + optional controls
         mg-page-header__block--logo     — UNDRR horizontal logo (SVG from assets CDN)
 
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-pageheader--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-pageheader--docs
     -->
     <header class="mg-page-header mg-page-header--default">
       <div class="mg-page-header__decoration">
@@ -79,10 +51,10 @@
           <div class="mg-page-header__region mg-page-header__region--toolbar">
             <section class="mg-page-header__block mg-page-header__block--logo">
               <a href="https://www.undrr.org">
-                <img src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                <img src="https://assets.undrr.org/logos/undrr/undrr-logo-horizontal.svg"
                      alt="UNDRR Logo" width="324" height="47"
                      title="UNDRR — United Nations Office for Disaster Risk Reduction"
-                     class="mg-page-header__logo-img" />
+                     class="mg-logo mg-logo--autocrop mg-page-header__logo-img" />
               </a>
             </section>
           </div>
@@ -101,7 +73,7 @@
     -->
     <div class="mg-u-background-color--blue-900">
       <div class="mg-container app-title-bar">
-        <h1 class="mg-u-color--white" style="margin:0;">Eco-DRR MapX Demos</h1>
+        <h1 class="mg-u-color--white" style="margin:0;">Eco-DRR MapX demos</h1>
       </div>
     </div>
 
@@ -111,9 +83,10 @@
       heading and descriptive paragraph linking to the MapX platform.
       Styled by src/styles/landing.css (.landing-hero).
     -->
+    <main id="main" tabindex="-1">
     <section class="landing-hero">
       <div class="mg-container">
-        <h1>Explore Disaster Risk Reduction Data</h1>
+        <h1>Explore disaster risk reduction data</h1>
         <p>
           Interactive demos embedding <a href="https://app.mapx.org">MapX</a> geospatial datasets
           via the SDK, showcasing disaster risk reduction data from the
@@ -147,7 +120,7 @@
           <a href="/mapx-demo-embed/demos/kitchen-sink/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
               <span class="mg-tag mg-tag--kitchen-sink">Full Demo</span>
-              <header class="mg-card__title">Kitchen Sink</header>
+              <header class="mg-card__title">Kitchen sink</header>
               <p class="mg-card__summary">
                 All MapX SDK features in one page: curated views, scenarios,
                 custom data overlays, analysis tools, language switching,
@@ -159,7 +132,7 @@
           <a href="/mapx-demo-embed/demos/story/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
               <span class="mg-tag mg-tag--story">Narrative</span>
-              <header class="mg-card__title">Risk to Resilience</header>
+              <header class="mg-card__title">Risk to resilience</header>
               <p class="mg-card__summary">
                 A guided story walking through hazard, exposure, vulnerability,
                 compound risk, nature-based solutions, and monitoring — step
@@ -171,7 +144,7 @@
           <a href="/mapx-demo-embed/demos/explorer/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
               <span class="mg-tag mg-tag--explorer">Analysis</span>
-              <header class="mg-card__title">Data Explorer</header>
+              <header class="mg-card__title">Data explorer</header>
               <p class="mg-card__summary">
                 Simulated DELTA-style analysis with pre-loaded hazard layers
                 and fictional damage event markers. Filter, query,
@@ -183,7 +156,7 @@
           <a href="/mapx-demo-embed/demos/metrics/" class="demo-card mg-card mg-card__vc">
             <div class="mg-card__content">
               <span class="mg-tag mg-tag--metrics">Metrics</span>
-              <header class="mg-card__title">Metrics Hub</header>
+              <header class="mg-card__title">Metrics hub</header>
               <p class="mg-card__summary">
                 Scrollytelling risk metrics with interactive charts, country
                 deep-dives, and decision-relevant indicators for financial
@@ -211,11 +184,11 @@
         mg-card__summary                  — card description text
         mg-u-text-wrap-pretty             — CSS text-wrap: pretty for better typography
 
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-icon-card--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-cards-icon-card--docs
     -->
     <section class="mg-u-background-color--neutral-25">
       <div class="mg-container mg-container--padded mg-container--spacer">
-        <h2>About This Project</h2>
+        <h2>About this project</h2>
         <p class="mg-u-text-wrap-pretty">
           These demos showcase how <a href="https://app.mapx.org">MapX</a>
           geospatial data can be embedded in external websites using the
@@ -226,7 +199,7 @@
         <div class="mg-grid mg-grid__col-3">
           <article class="mg-card mg-card__icon">
             <div class="mg-card__content">
-              <header class="mg-card__title">Hazard Layers</header>
+              <header class="mg-card__title">Hazard layers</header>
               <p class="mg-card__summary">
                 Flood, landslide, cyclone, and tsunami exposure data
                 from global risk models.
@@ -235,7 +208,7 @@
           </article>
           <article class="mg-card mg-card__icon">
             <div class="mg-card__content">
-              <header class="mg-card__title">Nature-Based Solutions</header>
+              <header class="mg-card__title">Nature-based solutions</header>
               <p class="mg-card__summary">
                 Forest protection and mangrove restoration areas that
                 reduce flood and storm surge risk.
@@ -244,7 +217,7 @@
           </article>
           <article class="mg-card mg-card__icon">
             <div class="mg-card__content">
-              <header class="mg-card__title">Live Monitoring</header>
+              <header class="mg-card__title">Live monitoring</header>
               <p class="mg-card__summary">
                 Real-time earthquake and active fire data, updated
                 continuously from global sensors.
@@ -270,8 +243,9 @@
         activedomain: "www.undrr.org" — which site's footer to pull
 
       Widget endpoint: https://publish.preventionweb.net/widget.js
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-footer--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-footer--docs
     -->
+    </main>
     <footer class="mg-footer">
       <div id="pw-widget-footer"></div>
     </footer>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>MapX View Probe</title>
-    <link rel="stylesheet" href="https://assets.undrr.org/testing/static/mangrove/1.4.0/css/style.css" />
+    <link rel="stylesheet" href="https://assets.undrr.org/mangrove/2.3.0/css/style.css" />
     <style>
       html { font-size: 10px; }
       body { padding: 2rem; max-width: 120rem; margin: 0 auto; }
@@ -57,6 +57,7 @@
 
         try {
           const mgr = new mxsdk.Manager({
+            iframeTitle: "MapX view catalogue",
             container,
             url: `https://app.mapx.org/?project=${project.id}&language=en&theme=color_light`,
             params: { closePanels: true },

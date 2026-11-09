@@ -4,7 +4,7 @@
  * Initialises the MapX SDK, wires the step engine to the narrative
  * panel, and starts at step 0. The init sequence is:
  *
- *   1. PIN gate (synchronous — blocks interaction until dismissed)
+ *   1. Mangrove preview gate (initialised by the HTML module)
  *   2. SDK initialisation (creates iframe, connects to MapX app)
  *   3. Step-change callback registered (updates narrative panel
  *      whenever the engine transitions to a new step)
@@ -18,7 +18,6 @@
 import "../../src/styles/shared.css";
 import "../../src/styles/story.css";
 import { initSDK } from "../../src/sdk/client.js";
-import { initPinGate } from "../../src/ui/pin-gate.js";
 import { setStatus, log } from "../../src/ui/log.js";
 import { initNarrativePanel, updatePanel } from "./narrative-panel.js";
 import {
@@ -31,7 +30,6 @@ import {
   setOnStepChange,
 } from "./step-engine.js";
 
-initPinGate();
 
 const mapx = initSDK(document.getElementById("mapx"));
 

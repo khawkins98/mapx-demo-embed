@@ -70,8 +70,8 @@ export function buildViewButtons() {
 
     /* Info button — fetch and show view metadata on click */
     const infoBtn = document.createElement("button");
-    infoBtn.className = "view-info-btn";
-    infoBtn.innerHTML = 'i<span class="mg-u-sr-only">View metadata</span>';
+    infoBtn.className = "mg-icon-button view-info-btn";
+    infoBtn.innerHTML = '<span class="mg-icon mg-icon-info-circle" aria-hidden="true"></span>';
     infoBtn.title = "View metadata";
     infoBtn.setAttribute("aria-label", "View metadata");
     infoBtn.addEventListener("click", (e) => {
@@ -250,6 +250,9 @@ async function addTransparencySlider(idView, wrapper) {
    */
   const slider = document.createElement("input");
   slider.type = "range";
+  slider.className = "mg-range";
+  slider.id = `opacity-${idView}`;
+  label.htmlFor = slider.id;
   slider.min = "0";
   slider.max = "100";
   slider.value = "100"; /* Default: fully opaque */

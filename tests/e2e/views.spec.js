@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
-  await page.goto("/demos/kitchen-sink/");
+  await page.addInitScript(() => sessionStorage.setItem("mg-preview-access:mapx-demo-embed", "unlocked"));
+  await page.goto("/mapx-demo-embed/demos/kitchen-sink/");
   await expect(page.locator("#status")).toHaveText("Connected", { timeout: 60000 });
 });
 

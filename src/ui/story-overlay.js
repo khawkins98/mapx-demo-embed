@@ -52,6 +52,7 @@ export function playStoryMap(idView, label) {
   overlay.style.cssText = "position:absolute;inset:0;z-index:20;background:#000;";
 
   const iframe = document.createElement("iframe");
+  iframe.title = label;
   iframe.src = `https://app.mapx.org/?project=MX-YBJ-YYF-08R-UUR-QW6&views=${idView}&storyAutoStart=true&language=en`;
   iframe.style.cssText = "width:100%;height:100%;border:none;";
 

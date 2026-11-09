@@ -3,38 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Data Explorer — MapX Analysis Demo</title>
+    <title>Data explorer — MapX Analysis Demo</title>
     <!--
       Mangrove CSS — UNDRR's design-system component library.
       Provides .mg-page-header, .mg-button, .mg-tag, .mg-container,
       .mg-form-help, and utility classes used throughout this page.
-      https://unisdr.github.io/undrr-mangrove/
+      https://mangrove.undrr.org/
     -->
-    <link rel="stylesheet" href="https://assets.undrr.org/testing/static/mangrove/1.4.0/css/style.css" />
+    <link rel="stylesheet" href="https://assets.undrr.org/mangrove/2.3.0/css/style.css" />
+    <script type="module" src="https://assets.undrr.org/mangrove/2.3.0/js/preview-access.js"></script>
   </head>
   <body>
-    <!--
-      PIN gate — full-screen overlay that blocks access until a
-      numeric preview PIN is entered. Removed from the DOM by
-      src/ui/pin-gate.js once the correct code is submitted.
-    -->
-    <div id="pin-gate" class="pin-gate">
-      <div class="pin-gate__card">
-        <h2 class="mg-u-font-size-500" style="margin-top:0;">Preview Access</h2>
-        <p class="mg-u-font-size-300" style="line-height:1.5;margin-bottom:2rem;">
-          This is an <strong>unofficial investigation proof of concept</strong>
-          for demonstration purposes only. It is not an official UNDRR product.
-        </p>
-        <p style="font-size:1.4rem;margin-bottom:1.5rem;">
-          Enter the preview PIN to continue:
-        </p>
-        <input id="pin-input" type="text" inputmode="numeric" maxlength="4"
-          placeholder="_ _ _ _" class="pin-gate__input"
-          aria-label="Preview PIN"
-        />
-        <p id="pin-error" class="pin-gate__error"></p>
-      </div>
-    </div>
+    <a class="mg-skip-link" href="#main">Skip to content</a>
+    <!-- Mangrove owns the preview dialog, focus handling and persistence. -->
+    <div
+      data-mg-preview-access
+      data-mg-preview-id="mapx-demo-embed"
+      data-mg-preview-pin="5498"
+      data-mg-preview-persist="local"
+      data-mg-preview-eyebrow="MapX demos · Preview"
+      data-mg-preview-title="Preview access required"
+      data-mg-preview-message="This is an unofficial investigation prototype for demonstration and feedback only. It is not an official UNDRR product. Enter the preview PIN to continue."
+      data-mg-preview-pin-label="Preview PIN"
+      data-mg-preview-contact-url="https://github.com/khawkins98/mapx-demo-embed/issues"
+      data-mg-preview-contact-label="Report a demo issue"
+    ></div>
 
     <!--
       Page header — standard Mangrove page-header component with the
@@ -50,16 +43,17 @@
           <div class="mg-page-header__region mg-page-header__region--toolbar">
             <section class="mg-page-header__block mg-page-header__block--logo">
               <a href="https://www.undrr.org">
-                <img src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                <img src="https://assets.undrr.org/logos/undrr/undrr-logo-horizontal.svg"
                      alt="UNDRR Logo" width="324" height="47"
                      title="UNDRR — United Nations Office for Disaster Risk Reduction"
-                     class="mg-page-header__logo-img" />
+                     class="mg-logo mg-logo--autocrop mg-page-header__logo-img" />
               </a>
             </section>
           </div>
         </div>
       </div>
     </header>
+    <main id="main" tabindex="-1">
 
     <!--
       Title bar — blue-900 banner with a back-link to the demo index
@@ -70,7 +64,7 @@
       <div class="mg-container app-title-bar">
         <div style="display:flex;align-items:center;gap:1rem;">
           <a href="/mapx-demo-embed/" style="color:#fff;text-decoration:none;font-size:1.4rem;opacity:0.8;">&#8592; All Demos</a>
-          <h1 class="mg-u-color--white" style="margin:0;">Data Explorer</h1>
+          <h1 class="mg-u-color--white" style="margin:0;">Data explorer</h1>
         </div>
         <span class="mg-tag mg-tag--outline" style="color:#fff;border-color:#fff" id="status">Loading SDK...</span>
       </div>
@@ -83,7 +77,7 @@
     -->
     <div class="explorer-body">
       <aside class="explorer-sidebar">
-        <h2>Data Explorer</h2>
+        <h2>Data explorer</h2>
         <p class="mg-form-help">
           Pre-loaded hazard layers and fictional damage event markers.
           Use the preset queries to filter and analyse the data.
@@ -94,7 +88,7 @@
           palette used by DAMAGE_CIRCLE_PAINT in explorer-layers.js.
           Colours: Critical=#c10920, High=#eb752a, Medium=#f0c808, Low=#00afae.
         -->
-        <h3>Severity Legend</h3>
+        <h3>Severity legend</h3>
         <div class="damage-legend">
           <div class="damage-legend-item">
             <span class="damage-legend-dot" style="background:#c10920;"></span> Critical
@@ -116,7 +110,7 @@
           The placeholder "Loading..." button is replaced once
           wirePresetQueries() runs after SDK init.
         -->
-        <h3>Preset Queries</h3>
+        <h3>Preset queries</h3>
         <div class="preset-buttons" id="preset-buttons">
           <button class="mg-button mg-button-secondary disabled">Loading...</button>
         </div>
@@ -128,7 +122,7 @@
         -->
         <div class="analysis-results" id="preset-results"></div>
 
-        <h3>Analysis Tools</h3>
+        <h3>Analysis tools</h3>
         <button class="mg-button mg-button-primary disabled" id="btn-toggle-analysis">
           Open Analysis Panel
         </button>
@@ -237,6 +231,7 @@
       SDK script — the MapX UMD bundle must load before the ES module
       entry point so that `new mxsdk.Manager()` is available at import time.
     -->
+    </main>
     <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
     <script type="module" src="/demos/explorer/main.js"></script>
   </body>
