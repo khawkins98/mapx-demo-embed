@@ -3,28 +3,28 @@ import { test, expect } from "@playwright/test";
 test.describe("Story demo", () => {
   test("page loads with correct title", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
-    await page.goto("/demos/story/");
+    await page.goto("/mapx-demo-embed/demos/story/");
     await expect(page).toHaveTitle(/MapX/);
   });
 
   test("SDK status shows Connected after ready", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
-    await page.goto("/demos/story/");
+    await page.goto("/mapx-demo-embed/demos/story/");
     const status = page.locator("#status");
     await expect(status).toHaveText("Connected", { timeout: 60000 });
   });
 
   test("back link is visible and points to /", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
-    await page.goto("/demos/story/");
+    await page.goto("/mapx-demo-embed/demos/story/");
     const backLink = page.locator('a', { hasText: "All Demos" });
     await expect(backLink).toBeVisible();
-    await expect(backLink).toHaveAttribute("href", "/");
+    await expect(backLink).toHaveAttribute("href", "/mapx-demo-embed/");
   });
 
   test("narrative panel is visible with title and text", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
-    await page.goto("/demos/story/");
+    await page.goto("/mapx-demo-embed/demos/story/");
     const panel = page.locator("#narrative-panel");
     await expect(panel).toBeVisible();
     const title = page.locator("#narrative-title");
@@ -35,7 +35,7 @@ test.describe("Story demo", () => {
 
   test("#mapx container exists", async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
-    await page.goto("/demos/story/");
+    await page.goto("/mapx-demo-embed/demos/story/");
     await expect(page.locator("#mapx")).toHaveCount(1);
   });
 });
@@ -43,7 +43,7 @@ test.describe("Story demo", () => {
 test.describe("Story demo — after SDK ready", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem("mapx-demo-pin", "ok"));
-    await page.goto("/demos/story/");
+    await page.goto("/mapx-demo-embed/demos/story/");
     await expect(page.locator("#status")).toHaveText("Connected", { timeout: 60000 });
   });
 

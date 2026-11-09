@@ -250,6 +250,9 @@ async function addTransparencySlider(idView, wrapper) {
    */
   const slider = document.createElement("input");
   slider.type = "range";
+  slider.className = "mg-range";
+  slider.id = `opacity-${idView}`;
+  label.htmlFor = slider.id;
   slider.min = "0";
   slider.max = "100";
   slider.value = "100"; /* Default: fully opaque */

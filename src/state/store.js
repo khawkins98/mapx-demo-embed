@@ -10,8 +10,8 @@ export const openViews = new Set();
  * Registry of custom GeoJSON datasets added to the map.
  *
  * WHY THIS EXISTS:
- * The MapX SDK's click_attributes event tells us WHERE a click happened
- * (lng/lat coordinates) and WHICH view was clicked (idView), but for
+ * The MapX SDK's click_features event tells us WHERE a click happened
+ * (lng/lat coordinates) and groups hits by view ID, but for
  * GeoJSON views created via view_geojson_create or layers added via the
  * Mapbox passthrough, the event may not include the actual feature
  * properties (e.g. name, status, budget). The feature data lives in
@@ -26,7 +26,7 @@ export const openViews = new Set();
  *   1. Call view_geojson_create (or map.addSource) to put data on the map
  *   2. Call registerGeoJSON(id, geojson, label, paint) to store the data
  *      for click matching, dropdown labels, and paint restoration
- *   3. On click_attributes, findNearestFeature() searches the registry
+ *   3. On click_features, findNearestFeature() searches the registry
  *   4. On removal, call unregisterGeoJSON(id) to clean up
  */
 export const customGeoJSONRegistry = [];

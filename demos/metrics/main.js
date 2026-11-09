@@ -67,6 +67,7 @@ const mapx = initSDK(document.getElementById("mapx"));
 /* global mxsdk */
 const countryMapx = new mxsdk.Manager({
   container: document.getElementById("country-mapx"),
+  iframeTitle: "Country risk map",
   url: "https://app.mapx.org/?project=MX-2LD-FBB-58N-ROK-8RH",
   params: {
     closePanels: true,

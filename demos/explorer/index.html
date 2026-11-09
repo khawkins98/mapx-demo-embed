@@ -8,11 +8,12 @@
       Mangrove CSS — UNDRR's design-system component library.
       Provides .mg-page-header, .mg-button, .mg-tag, .mg-container,
       .mg-form-help, and utility classes used throughout this page.
-      https://unisdr.github.io/undrr-mangrove/
+      https://mangrove.undrr.org/
     -->
-    <link rel="stylesheet" href="https://assets.undrr.org/testing/static/mangrove/1.4.0/css/style.css" />
+    <link rel="stylesheet" href="https://assets.undrr.org/mangrove/2.3.0/css/style.css" />
   </head>
   <body>
+    <a class="mg-skip-link" href="#main">Skip to content</a>
     <!--
       PIN gate — full-screen overlay that blocks access until a
       numeric preview PIN is entered. Removed from the DOM by
@@ -50,16 +51,17 @@
           <div class="mg-page-header__region mg-page-header__region--toolbar">
             <section class="mg-page-header__block mg-page-header__block--logo">
               <a href="https://www.undrr.org">
-                <img src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                <img src="https://assets.undrr.org/logos/undrr/undrr-logo-horizontal.svg"
                      alt="UNDRR Logo" width="324" height="47"
                      title="UNDRR — United Nations Office for Disaster Risk Reduction"
-                     class="mg-page-header__logo-img" />
+                     class="mg-logo mg-logo--autocrop mg-page-header__logo-img" />
               </a>
             </section>
           </div>
         </div>
       </div>
     </header>
+    <main id="main" tabindex="-1">
 
     <!--
       Title bar — blue-900 banner with a back-link to the demo index
@@ -237,6 +239,7 @@
       SDK script — the MapX UMD bundle must load before the ES module
       entry point so that `new mxsdk.Manager()` is available at import time.
     -->
+    </main>
     <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
     <script type="module" src="/demos/explorer/main.js"></script>
   </body>

@@ -12,9 +12,10 @@
       (mg-u-background-color, mg-u-color), container layout (mg-container),
       and typography defaults used throughout this page.
     -->
-    <link rel="stylesheet" href="https://assets.undrr.org/testing/static/mangrove/1.4.0/css/style.css" />
+    <link rel="stylesheet" href="https://assets.undrr.org/mangrove/2.3.0/css/style.css" />
   </head>
   <body>
+    <a class="mg-skip-link" href="#main">Skip to content</a>
 
     <!--
       PIN gate overlay — full-screen modal that blocks all interaction
@@ -53,16 +54,17 @@
           <div class="mg-page-header__region mg-page-header__region--toolbar">
             <section class="mg-page-header__block mg-page-header__block--logo">
               <a href="https://www.undrr.org">
-                <img src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                <img src="https://assets.undrr.org/logos/undrr/undrr-logo-horizontal.svg"
                      alt="UNDRR Logo" width="324" height="47"
                      title="UNDRR — United Nations Office for Disaster Risk Reduction"
-                     class="mg-page-header__logo-img" />
+                     class="mg-logo mg-logo--autocrop mg-page-header__logo-img" />
               </a>
             </section>
           </div>
         </div>
       </div>
     </header>
+    <main id="main" tabindex="-1">
 
     <!--
       Title bar — blue-900 banner with a back-link to the landing page
@@ -118,6 +120,7 @@
         2. main.js — ES module entry point that initialises the SDK, wires the
            step engine, and starts the story at step 0.
     -->
+    </main>
     <script src="https://app.mapx.org/sdk/mxsdk.umd.js"></script>
     <script type="module" src="/demos/story/main.js"></script>
   </body>

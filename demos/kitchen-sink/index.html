@@ -5,25 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kitchen Sink — MapX Embed Demo</title>
 
-    <!--
-      UNDRR Mangrove Component Library (v1.3.3)
-      Provides Roboto font family, button styles (mg-button, mg-button-primary,
-      mg-button-secondary), tags (mg-tag), form helpers (mg-form-help), the
-      page header with UNDRR black bar (mg-page-header), Sendai decoration
-      stripe (mg-page-header__decoration), container layout (mg-container),
-      grid system (mg-grid), card components (mg-card), footer (mg-footer),
-      utility classes (mg-u-*), and other UN-consistent UI patterns.
-
-      Source & docs: https://unisdr.github.io/undrr-mangrove/
-      GitHub: https://github.com/unisdr/undrr-mangrove
-      CDN base: https://assets.undrr.org/static/mangrove/{version}/css/style.css
-
-      Note: Mangrove sets html font-size to 10px and uses rem units throughout,
-      so 1.6rem = 16px, 2.3rem = 23px, etc.
-    -->
-    <link rel="stylesheet" href="https://assets.undrr.org/testing/static/mangrove/1.4.0/css/style.css" />
+    <!-- Mangrove 2.3.0: published CSS, with a 16px rem base. -->
+    <link rel="stylesheet" href="https://assets.undrr.org/mangrove/2.3.0/css/style.css" />
   </head>
   <body>
+    <a class="mg-skip-link" href="#main">Skip to content</a>
     <!--
       PIN GATE OVERLAY
       Basic PIN gate so people know this is an unofficial preview.
@@ -69,7 +55,7 @@
         mg-page-header__block--logo     — UNDRR horizontal logo (SVG from assets CDN)
 
       Source component: stories/Components/PageHeader/PageHeader.jsx
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-pageheader--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-pageheader--docs
     -->
     <header id="header" class="mg-page-header mg-page-header--default">
       <div class="mg-page-header__decoration">
@@ -80,16 +66,17 @@
           <div class="mg-page-header__region mg-page-header__region--toolbar">
             <section class="mg-page-header__block mg-page-header__block--logo">
               <a href="https://www.undrr.org">
-                <img src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                <img src="https://assets.undrr.org/logos/undrr/undrr-logo-horizontal.svg"
                      alt="UNDRR Logo" width="324" height="47"
                      title="UNDRR — United Nations Office for Disaster Risk Reduction"
-                     class="mg-page-header__logo-img" />
+                     class="mg-logo mg-logo--autocrop mg-page-header__logo-img" />
               </a>
             </section>
           </div>
         </div>
       </div>
     </header>
+    <main id="main" tabindex="-1">
 
     <!--
       App Title Bar — uses Mangrove utility classes instead of custom .app-header CSS:
@@ -405,7 +392,7 @@
         <!--
           Custom infobox — shown when the user clicks a feature.
           Positioned in the top-right of the map area. Populated
-          dynamically from click_attributes event data.
+          dynamically from click_features event data.
         -->
         <div id="infobox" style="
           display:none;
@@ -539,7 +526,7 @@
 
       Source: stories/Components/Cards/IconCard/IconCard.jsx
       Grid:   stories/Atom/Layout/Grid/Grid.jsx
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-icon-card--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-cards-icon-card--docs
     -->
     <section class="mg-u-background-color--neutral-25">
       <div class="mg-container mg-container--padded mg-container--spacer">
@@ -606,7 +593,7 @@
 
       Grid: mg-grid__col-4 → 4 columns at desktop, 2 at tablet, 1 at mobile.
 
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-vertical-card--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-cards-vertical-card--docs
     -->
     <section>
       <div class="mg-container mg-container--padded mg-container--spacer">
@@ -663,7 +650,7 @@
                 <span class="mg-card__label mg-card__label--active">Design System</span>
               </div>
               <header class="mg-card__title">
-                <a href="https://unisdr.github.io/undrr-mangrove/" target="_blank" rel="noopener">Mangrove</a>
+                <a href="https://mangrove.undrr.org/" target="_blank" rel="noopener">Mangrove</a>
               </header>
               <p class="mg-card__summary">
                 UNDRR's component library for consistent, accessible UI
@@ -691,8 +678,9 @@
 
       Source component: stories/Components/Footer/Footer.jsx
       Widget endpoint: https://publish.preventionweb.net/widget.js
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-footer--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-footer--docs
     -->
+    </main>
     <footer class="mg-footer">
       <div id="pw-widget-footer"></div>
     </footer>

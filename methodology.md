@@ -1,3 +1,9 @@
+> Compatibility update (9 November 2026): demos now use Mangrove 2.3.0 and
+> the hosted MapX 1.14.3 SDK. Click inspection uses `click_features` with attributes
+> grouped by view ID. The investigation below is historical, including its old
+> `click_attributes` examples and asset URLs. See [LEARNINGS.md](LEARNINGS.md)
+> for current integration rules.
+
 # Methodology: Discovering MapX Views and Data Sources
 
 The demo views and project configuration had to be discovered manually because

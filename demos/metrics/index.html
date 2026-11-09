@@ -7,15 +7,16 @@
     <link
       rel="preload"
       as="image"
-      href="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+      href="https://assets.undrr.org/logos/undrr/undrr-logo-horizontal.svg"
     />
     <link
       rel="stylesheet"
-      href="https://assets.undrr.org/testing/static/mangrove/1.4.0/css/style.css"
+      href="https://assets.undrr.org/mangrove/2.3.0/css/style.css"
     />
   </head>
 
   <body>
+    <a class="mg-skip-link" href="#main">Skip to content</a>
     <!-- =========================================================
          PIN GATE
          ========================================================= -->
@@ -36,7 +37,7 @@
     </div>
 
     <!-- =========================================================
-         PAGE HEADER — Mangrove 1.4.0 PageHeader with decoration stripe
+         PAGE HEADER — Mangrove 2.3.0 PageHeader with decoration stripe
          ========================================================= -->
     <header id="header" class="mg-page-header mg-page-header--default">
       <div class="mg-page-header__decoration">
@@ -52,11 +53,11 @@
               <a href="https://www.undrr.org">
                 <img
                   alt="UNDRR Logo"
-                  src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                  src="https://assets.undrr.org/logos/undrr/undrr-logo-horizontal.svg"
                   width="324"
                   height="47"
                   title="UNDRR Logo"
-                  class="mg-page-header__logo-img"
+                  class="mg-logo mg-logo--autocrop mg-page-header__logo-img"
                 />
               </a>
             </div>
@@ -64,6 +65,7 @@
         </div>
       </div>
     </header>
+    <main id="main" tabindex="-1">
     <!-- =========================================================
          SECTION 1: HERO — Mangrove Hero component pattern
          ========================================================= -->
@@ -414,6 +416,7 @@
     <!-- =========================================================
          FOOTER
          ========================================================= -->
+    </main>
     <script>
       var defined_locale = "en";
     </script>

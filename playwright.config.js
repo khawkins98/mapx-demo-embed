@@ -9,9 +9,9 @@ export default defineConfig({
     headless: true,
   },
   webServer: {
-    command: "npx vite --port 3001",
+    command: "npx vite --port 3001 --strictPort",
     port: 3001,
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 30_000,
   },
   projects: [

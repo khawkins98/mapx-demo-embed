@@ -5,25 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MapX Embed — Disaster Risk Reduction Demos</title>
 
-    <!--
-      UNDRR Mangrove Component Library (v1.3.3)
-      Provides Roboto font family, button styles (mg-button, mg-button-primary,
-      mg-button-secondary), tags (mg-tag), form helpers (mg-form-help), the
-      page header with UNDRR black bar (mg-page-header), Sendai decoration
-      stripe (mg-page-header__decoration), container layout (mg-container),
-      grid system (mg-grid), card components (mg-card), footer (mg-footer),
-      utility classes (mg-u-*), and other UN-consistent UI patterns.
-
-      Source & docs: https://unisdr.github.io/undrr-mangrove/
-      GitHub: https://github.com/unisdr/undrr-mangrove
-      CDN base: https://assets.undrr.org/static/mangrove/{version}/css/style.css
-
-      Note: Mangrove sets html font-size to 10px and uses rem units throughout,
-      so 1.6rem = 16px, 2.3rem = 23px, etc.
-    -->
-    <link rel="stylesheet" href="https://assets.undrr.org/testing/static/mangrove/1.4.0/css/style.css" />
+    <!-- Mangrove 2.3.0: published CSS, with a 16px rem base. -->
+    <link rel="stylesheet" href="https://assets.undrr.org/mangrove/2.3.0/css/style.css" />
   </head>
   <body>
+    <a class="mg-skip-link" href="#main">Skip to content</a>
     <!--
       PIN GATE OVERLAY
       Basic PIN gate so people know this is an unofficial preview.
@@ -68,7 +54,7 @@
         mg-page-header__region--toolbar — flex row holding logo + optional controls
         mg-page-header__block--logo     — UNDRR horizontal logo (SVG from assets CDN)
 
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-pageheader--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-pageheader--docs
     -->
     <header class="mg-page-header mg-page-header--default">
       <div class="mg-page-header__decoration">
@@ -79,10 +65,10 @@
           <div class="mg-page-header__region mg-page-header__region--toolbar">
             <section class="mg-page-header__block mg-page-header__block--logo">
               <a href="https://www.undrr.org">
-                <img src="https://assets.undrr.org/static/logos/undrr/undrr-logo-horizontal.svg"
+                <img src="https://assets.undrr.org/logos/undrr/undrr-logo-horizontal.svg"
                      alt="UNDRR Logo" width="324" height="47"
                      title="UNDRR — United Nations Office for Disaster Risk Reduction"
-                     class="mg-page-header__logo-img" />
+                     class="mg-logo mg-logo--autocrop mg-page-header__logo-img" />
               </a>
             </section>
           </div>
@@ -111,6 +97,7 @@
       heading and descriptive paragraph linking to the MapX platform.
       Styled by src/styles/landing.css (.landing-hero).
     -->
+    <main id="main" tabindex="-1">
     <section class="landing-hero">
       <div class="mg-container">
         <h1>Explore Disaster Risk Reduction Data</h1>
@@ -211,7 +198,7 @@
         mg-card__summary                  — card description text
         mg-u-text-wrap-pretty             — CSS text-wrap: pretty for better typography
 
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-cards-icon-card--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-cards-icon-card--docs
     -->
     <section class="mg-u-background-color--neutral-25">
       <div class="mg-container mg-container--padded mg-container--spacer">
@@ -270,8 +257,9 @@
         activedomain: "www.undrr.org" — which site's footer to pull
 
       Widget endpoint: https://publish.preventionweb.net/widget.js
-      Storybook: https://unisdr.github.io/undrr-mangrove/?path=/docs/components-footer--docs
+      Storybook: https://mangrove.undrr.org/?path=/docs/components-footer--docs
     -->
+    </main>
     <footer class="mg-footer">
       <div id="pw-widget-footer"></div>
     </footer>

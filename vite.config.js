@@ -22,7 +22,7 @@ export default defineConfig({
     /*
      * Multi-Page Application (MPA) configuration.
      *
-     * Rollup's `input` object defines the entry points for the production
+     * Rolldown's `input` object defines the entry points for the production
      * build. Each key becomes a chunk name and each value is the HTML file
      * that Vite will process (resolving <script> tags, CSS imports, etc.).
      *
@@ -38,7 +38,7 @@ export default defineConfig({
      * but will be emitted once and referenced by all entry chunks, keeping
      * the production bundle lean.
      */
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         landing: resolve(__dirname, "index.html"),
         "kitchen-sink": resolve(__dirname, "demos/kitchen-sink/index.html"),

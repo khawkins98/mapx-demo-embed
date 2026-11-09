@@ -25,7 +25,7 @@
  *   set_vector_highlight({enable})
  *     Enables or disables the click highlight ring on vector features.
  *     When enabled, clicking a feature shows a visual highlight and
- *     triggers click_attributes events through the SDK.
+ *     triggers click_features events through the SDK.
  */
 
 import { getSDK } from "./client.js";

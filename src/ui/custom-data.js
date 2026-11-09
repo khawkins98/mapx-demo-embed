@@ -16,7 +16,7 @@ import { updateAnalysisViewSelect } from "./analysis/view-select.js";
  *   The SDK creates a proper MapX view from your GeoJSON. It appears in
  *   the view list inside the MapX iframe, gets an idView you can pass to
  *   other SDK methods (view_geojson_set_style, view_geojson_delete), and
- *   click_attributes events will fire with the feature's properties in
+ *   click_features events will fire with the feature's properties in
  *   data.attributes. This is the easier path — MapX handles rendering,
  *   click detection, and cleanup. The trade-off is limited styling: you
  *   get Mapbox paint properties but not layout or data-driven expressions.
@@ -27,13 +27,13 @@ import { updateAnalysisViewSelect } from "./analysis/view-select.js";
  *   Mapbox GL instance inside the iframe. This gives you full control
  *   over Mapbox styling — data-driven colors (match expressions), symbol
  *   layers with custom fonts, etc. The trade-off: MapX doesn't know the
- *   layer exists. It won't appear in the view list, click_attributes
+ *   layer exists. It won't appear in the view list, click_features
  *   won't include feature properties (because MapX doesn't own the layer),
  *   and you have to clean up sources/layers yourself on removal.
  *
  *   To make click detection work for passthrough layers, we call
  *   store.registerGeoJSON(sourceId, geojson) after adding the source.
- *   This stores the GeoJSON data locally so that when a click_attributes
+ *   This stores the GeoJSON data locally so that when a click_features
  *   event arrives with empty attributes but valid coordinates, the
  *   infobox handler can fall back to findNearestFeature() and search
  *   the registry by coordinate proximity. Without this registration
